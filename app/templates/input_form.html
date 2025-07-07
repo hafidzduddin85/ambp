@@ -83,81 +83,82 @@
     <button type="submit">✅ Simpan Aset</button>
   </form>
 
-  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-  <script>
-    const categories = {{ refs.categories | tojson }};
-    const types = {{ refs.types | tojson }};
-    const companies = {{ refs.companies | tojson }};
-    const owners = {{ refs.owners | tojson }};
-    const locationRoomMap = {{ location_room_map | tojson }};
+	<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+	<script>
+	  const categories = {{ refs.categories | tojson }};
+	  const types = {{ refs.types | tojson }};
+	  const companies = {{ refs.companies | tojson }};
+	  const owners = {{ refs.owners | tojson }};
+	  const locationRoomMap = {{ location_room_map | tojson }};
 
-    // Category dropdown
-    const categorySelect = new TomSelect("#category", {
-      options: categories.map(c => ({ value: c, text: c })),
-      create: false,
-      onChange: value => {
-        const filteredTypes = types.filter(t => t.Category === value);
-        const typeSelect = document.getElementById("type");
-        const typeLabel = document.getElementById("type_label");
-        typeSelect.innerHTML = "";
+	  let typeSelectInstance = null;
+	  let roomSelectInstance = null;
 
-        if (filteredTypes.length) {
-          filteredTypes.forEach(t => {
-            const option = document.createElement("option");
-            option.value = t.Type;
-            option.textContent = t.Type;
-            typeSelect.appendChild(option);
-          });
-          new TomSelect("#type", { create: true });
-          typeSelect.classList.remove("hidden");
-          typeLabel.classList.remove("hidden");
-        } else {
-          typeSelect.classList.add("hidden");
-          typeLabel.classList.add("hidden");
-        }
-      }
-    });
+	  // Kategori
+	  new TomSelect("#category", {
+		options: categories.map(c => ({ value: c, text: c })),
+		create: false,
+		onChange: value => {
+		  const filtered = types.filter(t => t.Category === value);
+		  const typeSelect = document.getElementById("type");
+		  const typeLabel = document.getElementById("type_label");
 
-    // Company dropdown
-    new TomSelect("#company", {
-      options: companies.map(c => ({ value: c, text: c })),
-      create: true,
-      onChange: (val) => {
-        const known = companies.includes(val);
-        document.getElementById("code_company_group").classList.toggle("hidden", known);
-      }
-    });
+		  // Kosongkan dulu
+		  typeSelect.innerHTML = '';
+		  filtered.forEach(t => {
+			const opt = document.createElement("option");
+			opt.value = t.Type;
+			opt.textContent = t.Type;
+			typeSelect.appendChild(opt);
+		  });
 
-    // Location dropdown
-    const locationSelect = new TomSelect("#location", {
-      options: Object.keys(locationRoomMap).map(l => ({ value: l, text: l })),
-      create: true,
-      onChange: (value) => {
-        const roomSelect = document.getElementById("room_location");
-        const roomLabel = document.getElementById("room_label");
-        roomSelect.innerHTML = "";
-        if (locationRoomMap[value]) {
-          locationRoomMap[value].forEach(r => {
-            const option = document.createElement("option");
-            option.value = r;
-            option.textContent = r;
-            roomSelect.appendChild(option);
-          });
-          new TomSelect("#room_location", { create: true });
-          roomSelect.classList.remove("hidden");
-          roomLabel.classList.remove("hidden");
-        } else {
-          roomSelect.classList.add("hidden");
-          roomLabel.classList.add("hidden");
-        }
-      }
-    });
+		  typeSelect.classList.remove("hidden");
+		  typeLabel.classList.remove("hidden");
 
-    // Owner dropdown
-    new TomSelect("#owner", {
-      options: owners.map(o => ({ value: o, text: o })),
-      create: false,
-    });
-  </script>
+		  if (typeSelectInstance) typeSelectInstance.destroy();
+		  typeSelectInstance = new TomSelect("#type", { create: true });
+		}
+	  });
+
+	  // Company
+	  new TomSelect("#company", {
+		options: companies.map(c => ({ value: c, text: c })),
+		create: true,
+		onChange: (val) => {
+		  const known = companies.includes(val);
+		  document.getElementById("code_company_group").classList.toggle("hidden", known);
+		}
+	  });
+
+	  // Lokasi
+	  new TomSelect("#location", {
+		options: Object.keys(locationRoomMap).map(l => ({ value: l, text: l })),
+		create: true,
+		onChange: value => {
+		  const roomSelect = document.getElementById("room_location");
+		  const roomLabel = document.getElementById("room_label");
+
+		  roomSelect.innerHTML = '';
+		  (locationRoomMap[value] || []).forEach(r => {
+			const opt = document.createElement("option");
+			opt.value = r;
+			opt.textContent = r;
+			roomSelect.appendChild(opt);
+		  });
+
+		  roomSelect.classList.remove("hidden");
+		  roomLabel.classList.remove("hidden");
+
+		  if (roomSelectInstance) roomSelectInstance.destroy();
+		  roomSelectInstance = new TomSelect("#room_location", { create: true });
+		}
+	  });
+
+	  // Owner
+	  new TomSelect("#owner", {
+		options: owners.map(o => ({ value: o, text: o })),
+		create: false,
+	  });
+	</script>
 </body>
 </html>
