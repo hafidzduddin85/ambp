@@ -1,19 +1,63 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Form Input Aset</title>
+    <title>Input Aset</title>
 </head>
 <body>
-  <h1>Form Input Aset</h1>
-  <form method="post">
-    <label>Item Name: <input type="text" name="item_name" required></label><br>
-    <label>Category: <input type="text" name="category" required></label><br>
-    <label>Type: <input type="text" name="type_" required></label><br>
-    <label>Company: <input type="text" name="company" required></label><br>
-    <label>Owner: <input type="text" name="owner" required></label><br>
-    <label>Purchase Date: <input type="date" name="purchase_date" required></label><br>
-    <label>Purchase Cost: <input type="number" name="purchase_cost" required></label><br>
-    <button type="submit">Submit</button>
-  </form>
+    <h2>Form Input Aset</h2>
+    <form method="post" action="/input">
+        <label>Item Name:</label><br><input type="text" name="item_name" required><br><br>
+
+        <label>Category:</label><br>
+        <select name="category" required>
+            {% for c in categories %}
+                <option value="{{ c }}">{{ c }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label>Type:</label><br>
+        <select name="type_" required>
+            {% for t in types %}
+                <option value="{{ t }}">{{ t }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label>Manufacture:</label><br><input type="text" name="manufacture"><br><br>
+        <label>Model:</label><br><input type="text" name="model"><br><br>
+        <label>Serial Number:</label><br><input type="text" name="serial_number"><br><br>
+
+        <label>Company:</label><br>
+        <select name="company" required>
+            {% for co in companies %}
+                <option value="{{ co }}">{{ co }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <label>Bisnis Unit:</label><br><input type="text" name="bisnis_unit"><br><br>
+        <label>Location:</label><br><input type="text" name="location"><br><br>
+        <label>Room Location:</label><br><input type="text" name="room_location"><br><br>
+        <label>Notes:</label><br><input type="text" name="notes"><br><br>
+        <label>Condition:</label><br><input type="text" name="condition"><br><br>
+        <label>Purchase Date:</label><br><input type="date" name="purchase_date" required><br><br>
+        <label>Purchase Cost:</label><br><input type="number" name="purchase_cost" required><br><br>
+
+        <label>Warranty:</label><br>
+        <select name="warranty">
+            <option value="Yes">Yes</option>
+            <option value="No" selected>No</option>
+        </select><br><br>
+
+        <label>Supplier:</label><br><input type="text" name="supplier"><br><br>
+        <label>No. Journal:</label><br><input type="text" name="journal"><br><br>
+
+        <label>Owner:</label><br>
+        <select name="owner" required>
+            {% for o in owners %}
+                <option value="{{ o }}">{{ o }}</option>
+            {% endfor %}
+        </select><br><br>
+
+        <button type="submit">Submit</button>
+    </form>
 </body>
 </html>

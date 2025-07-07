@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard Aset</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            font-size: 14px;
+        }
+
+        th, td {
+            border: 1px solid #999;
+            padding: 6px;
+            text-align: left;
+        }
+
+        th {
+            background: #f2f2f2;
+        }
+
+        form {
+            margin-bottom: 16px;
+        }
+
+        h2 {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <h1>📋 Aset Management Dashboard</h1>
+
+    <!-- 🔍 Filter Status -->
+    <form method="get" action="/dashboard">
+        <label><strong>Filter Status:</strong></label>
+        <select name="status" onchange="this.form.submit()">
+            <option value="All" {% if selected_status == 'All' %}selected{% endif %}>All</option>
+            <option value="In Use" {% if selected_status == 'In Use' %}selected{% endif %}>In Use</option>
+            <option value="In Stock" {% if selected_status == 'In Stock' %}selected{% endif %}>In Stock</option>
+            <option value="Disposed" {% if selected_status == 'Disposed' %}selected{% endif %}>Disposed</option>
+            <option value="Repair" {% if selected_status == 'Repair' %}selected{% endif %}>Repair</option>
+        </select>
+    </form>
+
+    <h2>📊 Dashboard Aset ({{ selected_status }})</h2>
+
+    <!-- 📈 Grafik -->
+    <h3>Grafik Jumlah Aset per Kategori</h3>
+    <canvas id="kategoriChart" width="600" height="300"></canvas>
+
+    <h3>Grafik Jumlah Aset per Tahun</h3>
+    <canvas id="tahunChart" width="600" height="300"></canvas>
+
+    <!-- 📋 Tabel Aset -->
+    <h2>📑 Data Aset</h2>
+    <table>
+        <thead>
+            <tr>
+                {% for key in assets[0].keys() %}
+                    <th>{{ key }}</th>
+                {% endfor %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in assets %}
+                <tr>
+                    {% for cell in row.values() %}
+                        <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        const kategoriLabels = {{ kategori_labels | tojson | safe }};
+        const kategoriValues = {{ kategori_values | tojson | safe }};
+        const tahunLabels = {{ tahun_labels | tojson | safe }};
+        const tahunValues = {{ tahun_values | tojson | safe }};
+
+        new Chart(document.getElementById('kategoriChart').getContext('2d'), {
+            type: 'bar',
+            data: {
+                labels: kategoriLabels,
+                datasets: [{
+                    label: 'Jumlah Aset',
+                    data: kategoriValues,
+                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+
+        new Chart(document.getElementById('tahunChart').getContext('2d'), {
+            type: 'line',
+            data: {
+                labels: tahunLabels,
+                datasets: [{
+                    label: 'Aset Dibeli per Tahun',
+                    data: tahunValues,
+                    backgroundColor: 'rgba(255, 99, 132, 0.3)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.3
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
