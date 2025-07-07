@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: asset-manager
+    name: asset-management
     env: python
     plan: free
     buildCommand: pip install -r requirements.txt
