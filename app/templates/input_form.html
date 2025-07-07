@@ -5,11 +5,13 @@
     <title>Input Aset Baru</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
 
+    <!-- PWA -->
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#1976d2">
     <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
-	
-	<link rel="stylesheet" href="/static/style.css">
+
+    <!-- Style -->
+    <link rel="stylesheet" href="/static/style.css">
 
     <style>
         body {
@@ -33,9 +35,9 @@
         }
 
         label {
-            display: block;
             margin-top: 1rem;
             font-weight: bold;
+            display: block;
         }
 
         input, select, textarea {
@@ -64,8 +66,9 @@
         }
 
         .back-link {
-            display: inline-block;
+            display: block;
             margin: 1rem 0;
+            text-align: center;
             text-decoration: none;
             color: #1976d2;
         }
@@ -74,94 +77,92 @@
 <body>
     <h1>➕ Input Aset Baru</h1>
 
-    <p style="text-align: center;">
-        <a href="/" class="back-link">🔙 Kembali ke Beranda</a>
-    </p>
+    <a href="/" class="back-link">🔙 Kembali ke Beranda</a>
 
     <form method="post">
-        <label for="item_name">📦 Nama Aset</label>
-        <input type="text" id="item_name" name="item_name" required>
+        <label>📦 Nama Aset</label>
+        <input type="text" name="item_name" required>
 
-        <label for="category">📁 Kategori</label>
-        <input list="category_list" id="category" name="category" required>
+        <label>📁 Kategori</label>
+        <input list="category_list" name="category" required>
         <datalist id="category_list">
-            {% for cat in categories %}
+            {% for cat in refs.categories %}
                 <option value="{{ cat }}">
             {% endfor %}
         </datalist>
 
-        <label for="type_">🧩 Tipe</label>
-        <input list="type_list" id="type_" name="type_" required>
+        <label>🧩 Tipe</label>
+        <input list="type_list" name="type" required>
         <datalist id="type_list">
-            {% for t in types %}
-                <option value="{{ t['Type'] }}">{{ t['Type'] }} ({{ t['Category'] }})
+            {% for t in refs.types %}
+                <option value="{{ t.Type }}">{{ t.Type }} ({{ t.Category }})
             {% endfor %}
         </datalist>
 
-        <label for="manufacture">🏭 Merk / Manufacture</label>
-        <input type="text" id="manufacture" name="manufacture">
+        <label>🏭 Merk / Manufacture</label>
+        <input type="text" name="manufacture">
 
-        <label for="model">📎 Model</label>
-        <input type="text" id="model" name="model">
+        <label>📎 Model</label>
+        <input type="text" name="model">
 
-        <label for="serial_number">🔢 Nomor Seri</label>
-        <input type="text" id="serial_number" name="serial_number">
+        <label>🔢 Nomor Seri</label>
+        <input type="text" name="serial_number">
 
-        <label for="company">🏢 Perusahaan</label>
-        <input list="company_list" id="company" name="company" required>
+        <label>🏢 Perusahaan</label>
+        <input list="company_list" name="company" required>
         <datalist id="company_list">
-            {% for c in companies %}
+            {% for c in refs.companies %}
                 <option value="{{ c }}">
             {% endfor %}
         </datalist>
 
-        <label for="code_company">🏷️ Kode Perusahaan</label>
-        <input type="text" id="code_company" name="code_company" required maxlength="3">
+        <label>🏷️ Kode Perusahaan</label>
+        <input type="text" name="code_company" maxlength="3" required>
 
-        <label for="bisnis_unit">🏭 Unit Bisnis</label>
-        <input type="text" id="bisnis_unit" name="bisnis_unit">
+        <label>🏭 Unit Bisnis</label>
+        <input type="text" name="bisnis_unit">
 
-        <label for="location">📍 Lokasi</label>
-        <select id="location" name="location" required onchange="updateRooms()">
-            <option value="">Pilih Lokasi</option>
-            {% for loc in locations %}
+        <label>📍 Lokasi</label>
+        <select name="location" id="location" onchange="updateRooms()" required>
+            <option value="">-- Pilih Lokasi --</option>
+            {% for loc in refs.locations %}
                 <option value="{{ loc }}">{{ loc }}</option>
             {% endfor %}
         </select>
 
-        <label for="room_location">🏢 Ruangan</label>
-        <select id="room_location" name="room_location" required>
-            <option value="">Pilih Ruangan</option>
+        <label>🏢 Ruangan</label>
+        <select name="room_location" id="room_location" required>
+            <option value="">-- Pilih Ruangan --</option>
         </select>
 
-        <label for="notes">📝 Catatan</label>
-        <textarea id="notes" name="notes" rows="2"></textarea>
+        <label>📝 Catatan</label>
+        <textarea name="notes" rows="2"></textarea>
 
-        <label for="condition">⚙️ Kondisi</label>
-        <input type="text" id="condition" name="condition">
+        <label>⚙️ Kondisi</label>
+        <input type="text" name="condition">
 
-        <label for="purchase_date">🗓️ Tanggal Pembelian</label>
-        <input type="date" id="purchase_date" name="purchase_date" required>
+        <label>🗓️ Tanggal Pembelian</label>
+        <input type="date" name="purchase_date" required>
 
-        <label for="purchase_cost">💰 Harga Pembelian</label>
-        <input type="number" id="purchase_cost" name="purchase_cost" required>
+        <label>💰 Harga Pembelian</label>
+        <input type="number" name="purchase_cost" required>
 
-        <label for="warranty">📜 Garansi</label>
-        <select id="warranty" name="warranty">
+        <label>📜 Garansi</label>
+        <select name="warranty">
             <option value="No">No</option>
             <option value="Yes">Yes</option>
         </select>
 
-        <label for="supplier">🚚 Supplier</label>
-        <input type="text" id="supplier" name="supplier">
+        <label>🚚 Supplier</label>
+        <input type="text" name="supplier">
 
-        <label for="journal">📖 Jurnal</label>
-        <input type="text" id="journal" name="journal">
+        <label>📖 Jurnal</label>
+        <input type="text" name="journal">
 
-        <label for="owner">👤 Penanggung Jawab</label>
-        <input list="owner_list" id="owner" name="owner" required>
+        <label>👤 Penanggung Jawab</label>
+        <input list="owner_list" name="owner" required>
         <datalist id="owner_list">
-            {% for o in owners %}
+            {% for o in refs.owners %}
                 <option value="{{ o }}">
             {% endfor %}
         </datalist>
@@ -169,16 +170,15 @@
         <button type="submit">✅ Simpan Aset</button>
     </form>
 
-    <!-- JavaScript: Filter Ruangan Berdasarkan Lokasi -->
+    <!-- JS: Filter Room by Location -->
     <script>
-        const roomMap = {{ room_map | tojson | safe }};
+        const roomMap = {{ location_room_map | tojson | safe }};
 
         function updateRooms() {
             const loc = document.getElementById("location").value;
             const roomSelect = document.getElementById("room_location");
 
-            roomSelect.innerHTML = '<option value="">Pilih Ruangan</option>';
-
+            roomSelect.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
             if (roomMap[loc]) {
                 roomMap[loc].forEach(room => {
                     const option = document.createElement("option");

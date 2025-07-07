@@ -137,5 +137,10 @@ def export_excel(status: str = "All"):
         headers={"Content-Disposition": f"attachment; filename=assets_{status}.csv"}
     )
 
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("app/static/favicon.ico")
+
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=  True)
