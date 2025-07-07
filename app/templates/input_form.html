@@ -25,36 +25,36 @@
     <a href="/" class="back-link">🔙 Kembali ke Beranda</a>
 
     <form method="post" action="/submit">
-        <label>📦 Nama Aset</label>
-        <input type="text" name="item_name" required>
+        <label for="item_name">📦 Nama Aset</label>
+        <input type="text" id="item_name" name="item_name" required>
 
-        <label>📁 Kategori</label>
-        <select name="category" required>
+        <label for="category">📁 Kategori</label>
+        <select id="category" name="category" required>
             <option value="">-- Pilih Kategori --</option>
             {% for cat in refs.categories %}
                 <option value="{{ cat }}">{{ cat }}</option>
             {% endfor %}
         </select>
 
-        <label>🧩 Tipe</label>
-        <input list="type_list" name="type" required>
+        <label for="type">🧩 Tipe</label>
+        <input list="type_list" id="type" name="type" required>
         <datalist id="type_list">
             {% for t in refs.types %}
                 <option value="{{ t.Type }}">{{ t.Type }} ({{ t.Category }})</option>
             {% endfor %}
         </datalist>
 
-        <label>🏭 Merk / Manufacture</label>
-        <input type="text" name="manufacture">
+        <label for="manufacture">🏭 Merk / Manufacture</label>
+        <input type="text" id="manufacture" name="manufacture">
 
-        <label>📎 Model</label>
-        <input type="text" name="model">
+        <label for="model">📎 Model</label>
+        <input type="text" id="model" name="model">
 
-        <label>🔢 Nomor Seri</label>
-        <input type="text" name="serial_number">
+        <label for="serial_number">🔢 Nomor Seri</label>
+        <input type="text" id="serial_number" name="serial_number">
 
-        <label>🏢 Perusahaan</label>
-        <input list="company_list" name="company" id="company" onchange="toggleCodeCompany()" required>
+        <label for="company">🏢 Perusahaan</label>
+        <input list="company_list" id="company" name="company" onchange="toggleCodeCompany()" required>
         <datalist id="company_list">
             {% for c in refs.companies %}
                 <option value="{{ c }}">
@@ -62,55 +62,53 @@
         </datalist>
 
         <div id="code_company_group" class="hidden">
-            <label>🏷️ Kode Perusahaan</label>
-            <input type="text" name="code_company" maxlength="3">
+            <label for="code_company">🏷️ Kode Perusahaan</label>
+            <input type="text" id="code_company" name="code_company" maxlength="3">
         </div>
 
-        <label>🏭 Unit Bisnis</label>
-        <input type="text" name="bisnis_unit">
+        <label for="bisnis_unit">🏭 Unit Bisnis</label>
+        <input type="text" id="bisnis_unit" name="bisnis_unit">
 
-        <label>📍 Lokasi</label>
-        <input list="location_list" name="location" id="location" onchange="updateRooms()" required>
+        <label for="location">📍 Lokasi</label>
+        <input list="location_list" id="location" name="location" onchange="updateRooms()" required>
         <datalist id="location_list">
             {% for loc in refs.locations %}
                 <option value="{{ loc }}">
             {% endfor %}
         </datalist>
 
-        <label>🏢 Ruangan</label>
-        <input list="room_list" name="room_location" id="room_location" required>
+        <label for="room_location">🏢 Ruangan</label>
+        <input list="room_list" id="room_location" name="room_location" required>
         <datalist id="room_list">
-            {% for r in refs.rooms %}
-                <option value="{{ r }}">
-            {% endfor %}
+            <!-- Populated via JS -->
         </datalist>
 
-        <label>📝 Catatan</label>
-        <textarea name="notes" rows="2"></textarea>
+        <label for="notes">📝 Catatan</label>
+        <textarea id="notes" name="notes" rows="2"></textarea>
 
-        <label>⚙️ Kondisi</label>
-        <input type="text" name="condition">
+        <label for="condition">⚙️ Kondisi</label>
+        <input type="text" id="condition" name="condition">
 
-        <label>🗓️ Tanggal Pembelian</label>
-        <input type="date" name="purchase_date" required>
+        <label for="purchase_date">🗓️ Tanggal Pembelian</label>
+        <input type="date" id="purchase_date" name="purchase_date" required>
 
-        <label>💰 Harga Pembelian</label>
-        <input type="number" name="purchase_cost" required>
+        <label for="purchase_cost">💰 Harga Pembelian</label>
+        <input type="number" id="purchase_cost" name="purchase_cost" required>
 
-        <label>📜 Garansi</label>
-        <select name="warranty">
+        <label for="warranty">📜 Garansi</label>
+        <select id="warranty" name="warranty">
             <option value="No">No</option>
             <option value="Yes">Yes</option>
         </select>
 
-        <label>🚚 Supplier</label>
-        <input type="text" name="supplier">
+        <label for="supplier">🚚 Supplier</label>
+        <input type="text" id="supplier" name="supplier">
 
-        <label>📖 Jurnal</label>
-        <input type="text" name="journal">
+        <label for="journal">📖 Jurnal</label>
+        <input type="text" id="journal" name="journal">
 
-        <label>👤 Penanggung Jawab</label>
-        <select name="owner" required>
+        <label for="owner">👤 Penanggung Jawab</label>
+        <select id="owner" name="owner" required>
             <option value="">-- Pilih Penanggung Jawab --</option>
             {% for o in refs.owners %}
                 <option value="{{ o }}">{{ o }}</option>
@@ -124,25 +122,56 @@
         const roomMap = {{ location_room_map | tojson | safe }};
 
         function updateRooms() {
-            const location = document.getElementById("location").value;
-            const roomInput = document.getElementById("room_location");
+            const loc = document.getElementById("location").value;
             const roomList = document.getElementById("room_list");
-            roomList.innerHTML = '';
-            if (roomMap[location]) {
-                roomMap[location].forEach(r => {
+            roomList.innerHTML = "";
+
+            if (roomMap[loc]) {
+                roomMap[loc].forEach(room => {
                     const opt = document.createElement("option");
-                    opt.value = r;
+                    opt.value = room;
                     roomList.appendChild(opt);
                 });
             }
         }
 
         function toggleCodeCompany() {
-            const input = document.getElementById("company");
-            const known = [...document.querySelectorAll("#company_list option")].map(e => e.value);
+            const input = document.getElementById("company").value;
+            const knownCompanies = [...document.querySelectorAll("#company_list option")].map(opt => opt.value);
             const group = document.getElementById("code_company_group");
-            group.classList.toggle("hidden", known.includes(input.value));
+
+            group.classList.toggle("hidden", knownCompanies.includes(input));
         }
     </script>
+	<script>
+		const knownTypes = [...document.querySelectorAll("#type_list option")].map(opt => opt.value);
+		const knownLocations = [...document.querySelectorAll("#location_list option")].map(opt => opt.value);
+		const knownRooms = [...document.querySelectorAll("#room_list option")].map(opt => opt.value);
+
+		const form = document.querySelector("form");
+
+		form.addEventListener("submit", function (e) {
+			const type = document.querySelector("[name='type']").value;
+			const location = document.querySelector("[name='location']").value;
+			const room = document.querySelector("[name='room_location']").value;
+
+			let confirmMessage = "";
+
+			if (!knownTypes.includes(type)) {
+				confirmMessage += `🧩 Tipe "${type}" belum terdaftar. Tambah baru?\n`;
+			}
+			if (!knownLocations.includes(location)) {
+				confirmMessage += `📍 Lokasi "${location}" belum terdaftar. Tambah baru?\n`;
+			}
+			if (!knownRooms.includes(room)) {
+				confirmMessage += `🏢 Ruangan "${room}" belum terdaftar. Tambah baru?\n`;
+			}
+
+			if (confirmMessage && !confirm(confirmMessage)) {
+				e.preventDefault();
+			}
+		});
+	</script>
+
 </body>
 </html>

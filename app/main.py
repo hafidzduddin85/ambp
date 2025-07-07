@@ -1,9 +1,11 @@
 from fastapi import FastAPI, Request, Form
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from app import sheets
 import uvicorn
+import csv
+from io import StringIO
 
 app = FastAPI()
 
@@ -11,9 +13,11 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
+
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
+
 
 @app.get("/input", response_class=HTMLResponse)
 def show_form(request: Request):
@@ -25,6 +29,7 @@ def show_form(request: Request):
         "location_room_map": location_room_map
     })
 
+
 @app.post("/submit")
 def submit_asset(
     request: Request,
@@ -35,7 +40,7 @@ def submit_asset(
     model: str = Form(""),
     serial_number: str = Form(""),
     company: str = Form(...),
-    code_company: str = Form(...),
+    code_company: str = Form(""),
     bisnis_unit: str = Form(""),
     location: str = Form(...),
     room_location: str = Form(...),
@@ -47,27 +52,33 @@ def submit_asset(
     supplier: str = Form(""),
     journal: str = Form(""),
     owner: str = Form(...),
-    new_company: str = Form(""),
-    new_code_company: str = Form(""),
+
+    # Tambahan opsi input baru
+    new_type: str = Form(""),
     new_location: str = Form(""),
     new_room_location: str = Form(""),
+    new_company: str = Form(""),
+    new_code_company: str = Form(""),
 ):
-    # Tambah company baru jika diisi
+    # Tambah Company baru jika diberikan
     if new_company and new_code_company:
         sheets.add_company_with_code_if_not_exists(new_company, new_code_company)
         company = new_company
         code_company = new_code_company
 
-    # Tambah location-room jika diisi
+    # Tambah Lokasi dan Ruangan jika diberikan
     if new_location and new_room_location:
         sheets.add_location_if_not_exists(new_location, new_room_location)
         location = new_location
         room_location = new_room_location
 
-    # Tambah kategori/tipe/owner jika baru
-    sheets.add_category_if_not_exists(category)
-    sheets.add_type_if_not_exists(type, category)
-    sheets.add_owner_if_not_exists(owner)
+    # Tambah Type jika diberikan
+    if new_type:
+        sheets.add_type_if_not_exists(new_type, category)
+        type = new_type
+
+    # Kategori dan Owner dari dropdown (tidak ditambah)
+    # Validasi tetap bisa dilakukan jika perlu
 
     data = {
         "item_name": item_name,
@@ -94,6 +105,7 @@ def submit_asset(
     sheets.append_asset(data)
     return RedirectResponse(url="/input", status_code=303)
 
+
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, status: str = "All"):
     data = sheets.get_assets(status)
@@ -118,13 +130,10 @@ def dashboard(request: Request, status: str = "All"):
         "tahun_values": list(tahun_summary.values()),
     })
 
+
 @app.get("/export")
 def export_excel(status: str = "All"):
     data = sheets.get_assets(status)
-    from fastapi.responses import StreamingResponse
-    import csv
-    from io import StringIO
-
     output = StringIO()
     writer = csv.DictWriter(output, fieldnames=data[0].keys())
     writer.writeheader()
@@ -142,5 +151,6 @@ def export_excel(status: str = "All"):
 async def favicon():
     return FileResponse("app/static/favicon.ico")
 
+
 if __name__ == "__main__":
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=  True)
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
