@@ -66,7 +66,9 @@ def _build_location_room_map() -> dict:
 def get_ref_column(sheet_name: str, col: int) -> list:
     try:
         ws = get_sheet().worksheet(sheet_name)
-        return ws.col_values(col)[1:]
+        values = ws.col_values(col)[1:]  # Skip header
+        unique_values = sorted(set(v for v in values if v.strip()))  # Hapus duplikat & kosong
+        return unique_values
     except gspread.exceptions.WorksheetNotFound:
         logging.warning(f"Sheet '{sheet_name}' not found.")
         return []
