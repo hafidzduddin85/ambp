@@ -1,244 +1,188 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>Input Aset Baru</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="manifest" href="/static/manifest.json" />
-  <meta name="theme-color" content="#1976d2" />
-  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png" />
-  <link rel="stylesheet" href="/static/style.css" />
-  <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet" />
-
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#1976d2">
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
   <style>
-    .hidden { display: none; }
-    form {
-      background-color: white;
-      padding: 1rem;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.05);
-      max-width: 720px;
-      margin: auto;
-    }
-    body {
-      background: #f4f4f4;
-      font-family: Arial, sans-serif;
-      padding: 1rem;
-    }
-    label {
-      margin-top: 1rem;
-      font-weight: bold;
-      display: block;
-    }
-    input, select, textarea {
-      width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      box-sizing: border-box;
-    }
-    button {
-      margin-top: 1.5rem;
-      background-color: #1976d2;
-      color: white;
-      padding: 10px;
-      border: none;
-      width: 100%;
-      font-size: 16px;
-      border-radius: 6px;
-      cursor: pointer;
-    }
+    body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 1rem; max-width: 720px; margin: auto; }
+    h1 { text-align: center; color: #1976d2; }
+    form { background-color: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+    label { margin-top: 1rem; font-weight: bold; display: block; }
+    input, select, textarea { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+    button { margin-top: 1.5rem; background-color: #1976d2; color: white; padding: 10px; border: none; width: 100%; font-size: 16px; border-radius: 6px; cursor: pointer; }
     button:hover { background-color: #125ea2; }
-    .back-link {
-      display: block;
-      margin: 1rem auto;
-      text-align: center;
-      text-decoration: none;
-      color: #1976d2;
-    }
+    .back-link { display: block; margin: 1rem 0; text-align: center; text-decoration: none; color: #1976d2; }
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h1 style="text-align: center; color: #1976d2;">➕ Input Aset Baru</h1>
-  <a href="/" class="back-link">🔙 Kembali ke Beranda</a>
+<h1>➕ Input Aset Baru</h1>
+<a href="/" class="back-link">🔙 Kembali ke Beranda</a>
 
-  <form method="post" action="/submit">
-    <label>📦 Nama Aset</label>
-    <input type="text" name="item_name" required />
+<form method="post" action="/submit">
+  <label>📦 Nama Aset</label>
+  <input type="text" name="item_name" required>
 
-    <label>📁 Kategori</label>
-    <select id="category" name="category" required>
-      <option value="">-- Pilih Kategori --</option>
-      {% for cat in refs.categories %}
-        <option value="{{ cat }}">{{ cat }}</option>
-      {% endfor %}
-    </select>
+  <label>📁 Kategori</label>
+  <select name="category" id="category" required onchange="updateTypeOptions()">
+    <option value="">-- Pilih Kategori --</option>
+    {% for cat in refs.categories %}
+      <option value="{{ cat }}">{{ cat }}</option>
+    {% endfor %}
+  </select>
 
-    <label id="type_label" class="hidden">🧩 Tipe</label>
-    <select id="type" name="type" class="hidden"></select>
+  <label>🧩 Tipe</label>
+  <select id="type" name="type" required></select>
 
-    <label>🏭 Merk / Manufacture</label>
-    <input type="text" name="manufacture" />
+  <label>🏭 Merk / Manufacture</label>
+  <input type="text" name="manufacture">
 
-    <label>📎 Model</label>
-    <input type="text" name="model" />
+  <label>📎 Model</label>
+  <input type="text" name="model">
 
-    <label>🔢 Nomor Seri</label>
-    <input type="text" name="serial_number" />
+  <label>🔢 Nomor Seri</label>
+  <input type="text" name="serial_number">
 
-    <label>🏢 Perusahaan</label>
-    <select id="company" name="company" required>
-      <option value="">-- Pilih / Ketik Perusahaan --</option>
-      {% for c in refs.companies %}
-        <option value="{{ c }}">{{ c }}</option>
-      {% endfor %}
-    </select>
+  <label>🏢 Perusahaan</label>
+  <input list="company_list" name="company" id="company" onchange="toggleCodeCompany()" required>
+  <datalist id="company_list">
+    {% for c in refs.companies %}
+      <option value="{{ c }}">
+    {% endfor %}
+  </datalist>
 
-    <div id="code_company_group" class="hidden">
-      <label>🏷️ Kode Perusahaan</label>
-      <input type="text" name="code_company" maxlength="3" />
-    </div>
+  <div id="code_company_group" class="hidden">
+    <label>🏷️ Kode Perusahaan</label>
+    <input type="text" name="code_company" maxlength="3">
+  </div>
 
-    <label>🏭 Unit Bisnis</label>
-    <input type="text" name="bisnis_unit" />
+  <label>🏭 Unit Bisnis</label>
+  <input type="text" name="bisnis_unit">
 
-    <label>📍 Lokasi</label>
-    <select id="location" name="location" required>
-      <option value="">-- Pilih Lokasi --</option>
-      {% for loc in refs.locations %}
-        <option value="{{ loc }}">{{ loc }}</option>
-      {% endfor %}
-    </select>
+  <label>📍 Lokasi</label>
+  <select name="location" id="location" onchange="updateRoomOptions()" required>
+    <option value="">-- Pilih Lokasi --</option>
+    {% for loc in refs.locations %}
+      <option value="{{ loc }}">{{ loc }}</option>
+    {% endfor %}
+  </select>
 
-    <label id="room_label" class="hidden">🏢 Ruangan</label>
-    <select id="room_location" name="room_location" class="hidden"></select>
+  <label>🏢 Ruangan</label>
+  <select id="room_location" name="room_location" required></select>
 
-    <label>📝 Catatan</label>
-    <textarea name="notes" rows="2"></textarea>
+  <label>📝 Catatan</label>
+  <textarea name="notes" rows="2"></textarea>
 
-    <label>⚙️ Kondisi</label>
-    <input type="text" name="condition" />
+  <label>⚙️ Kondisi</label>
+  <input type="text" name="condition">
 
-    <label>🗓️ Tanggal Pembelian</label>
-    <input type="date" name="purchase_date" required />
+  <label>🗓️ Tanggal Pembelian</label>
+  <input type="date" name="purchase_date" required>
 
-    <label>💰 Harga Pembelian</label>
-    <input type="number" name="purchase_cost" required />
+  <label>💰 Harga Pembelian</label>
+  <input type="number" name="purchase_cost" required>
 
-    <label>📜 Garansi</label>
-    <select name="warranty">
-      <option value="No">No</option>
-      <option value="Yes">Yes</option>
-    </select>
+  <label>📜 Garansi</label>
+  <select name="warranty">
+    <option value="No">No</option>
+    <option value="Yes">Yes</option>
+  </select>
 
-    <label>🚚 Supplier</label>
-    <input type="text" name="supplier" />
+  <label>🚚 Supplier</label>
+  <input type="text" name="supplier">
 
-    <label>📖 Jurnal</label>
-    <input type="text" name="journal" />
+  <label>📖 Jurnal</label>
+  <input type="text" name="journal">
 
-    <label>👤 Penanggung Jawab</label>
-    <select id="owner" name="owner" required>
-      <option value="">-- Pilih Penanggung Jawab --</option>
-      {% for o in refs.owners %}
-        <option value="{{ o }}">{{ o }}</option>
-      {% endfor %}
-    </select>
+  <label>👤 Penanggung Jawab</label>
+  <select name="owner" required>
+    <option value="">-- Pilih Penanggung Jawab --</option>
+    {% for o in refs.owners %}
+      <option value="{{ o }}">{{ o }}</option>
+    {% endfor %}
+  </select>
 
-    <button type="submit">✅ Simpan Aset</button>
-  </form>
+  <button type="submit">✅ Simpan Aset</button>
+</form>
 
-  <!-- Script -->
-  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-  <script>
-    const categories = {{ refs.categories | tojson }};
-    const types = {{ refs.types | tojson }};
-    const companies = {{ refs.companies | tojson }};
-    const owners = {{ refs.owners | tojson }};
-    const locationRoomMap = {{ location_room_map | tojson }};
+<!-- Script Section -->
+<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+<script>
+  const allTypes = {{ refs.types | tojson | safe }};
+  const locationRoomMap = {{ location_room_map | tojson | safe }};
 
-    let typeSelectInstance = null;
-    let roomSelectInstance = null;
+  let typeSelectInstance = null;
+  let roomSelectInstance = null;
 
-    // === KATEGORI ===
-    new TomSelect("#category", {
-      options: categories.map(c => ({ value: c, text: c })),
-      create: false,
-      onChange: value => {
-        const typeLabel = document.getElementById("type_label");
-        const typeSelect = document.getElementById("type");
+  function updateTypeOptions() {
+    const category = document.getElementById("category").value;
+    const typeSelect = document.getElementById("type");
 
-        if (!value) {
-          typeLabel.classList.add("hidden");
-          typeSelect.classList.add("hidden");
-          if (typeSelectInstance) typeSelectInstance.destroy();
-          return;
-        }
+    if (typeSelectInstance) {
+      typeSelectInstance.destroy();
+      typeSelectInstance = null;
+    }
 
-        const filtered = types.filter(t => t.Category === value);
-        typeSelect.innerHTML = '';
-        filtered.forEach(t => {
-          const opt = document.createElement("option");
-          opt.value = t.Type;
-          opt.textContent = t.Type;
-          typeSelect.appendChild(opt);
-        });
-
-        typeLabel.classList.remove("hidden");
-        typeSelect.classList.remove("hidden");
-
-        if (typeSelectInstance) typeSelectInstance.destroy();
-        typeSelectInstance = new TomSelect("#type", { create: true });
-      }
+    typeSelect.innerHTML = '<option value="">-- Pilih Tipe --</option>';
+    const filtered = allTypes.filter(t => t.Category === category);
+    filtered.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t.Type;
+      opt.textContent = t.Type;
+      typeSelect.appendChild(opt);
     });
 
-    // === PERUSAHAAN ===
-    new TomSelect("#company", {
-      options: companies.map(c => ({ value: c, text: c })),
+    typeSelectInstance = new TomSelect("#type", {
       create: true,
-      onChange: (val) => {
-        const known = companies.includes(val);
-        document.getElementById("code_company_group").classList.toggle("hidden", known);
-      }
+      placeholder: "-- Pilih Tipe --"
     });
+    typeSelectInstance.clear(); // reset value
+  }
 
-    // === LOKASI ===
-    new TomSelect("#location", {
-      options: Object.keys(locationRoomMap).map(l => ({ value: l, text: l })),
+  function updateRoomOptions() {
+    const location = document.getElementById("location").value;
+    const roomSelect = document.getElementById("room_location");
+
+    if (roomSelectInstance) {
+      roomSelectInstance.destroy();
+      roomSelectInstance = null;
+    }
+
+    roomSelect.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
+    if (locationRoomMap[location]) {
+      locationRoomMap[location].forEach(room => {
+        const opt = document.createElement("option");
+        opt.value = room;
+        opt.textContent = room;
+        roomSelect.appendChild(opt);
+      });
+    }
+
+    roomSelectInstance = new TomSelect("#room_location", {
       create: true,
-      onChange: value => {
-        const roomLabel = document.getElementById("room_label");
-        const roomSelect = document.getElementById("room_location");
-
-        if (!value || !locationRoomMap[value]) {
-          roomLabel.classList.add("hidden");
-          roomSelect.classList.add("hidden");
-          if (roomSelectInstance) roomSelectInstance.destroy();
-          return;
-        }
-
-        roomSelect.innerHTML = '';
-        locationRoomMap[value].forEach(room => {
-          const opt = document.createElement("option");
-          opt.value = room;
-          opt.textContent = room;
-          roomSelect.appendChild(opt);
-        });
-
-        roomLabel.classList.remove("hidden");
-        roomSelect.classList.remove("hidden");
-
-        if (roomSelectInstance) roomSelectInstance.destroy();
-        roomSelectInstance = new TomSelect("#room_location", { create: true });
-      }
+      placeholder: "-- Pilih Ruangan --"
     });
+    roomSelectInstance.clear();
+  }
 
-    // === OWNER ===
-    new TomSelect("#owner", {
-      options: owners.map(o => ({ value: o, text: o })),
-      create: false,
-    });
-  </script>
+  function toggleCodeCompany() {
+    const input = document.getElementById("company");
+    const known = [...document.querySelectorAll("#company_list option")].map(e => e.value);
+    const group = document.getElementById("code_company_group");
+    group.classList.toggle("hidden", known.includes(input.value));
+  }
+
+  window.addEventListener("DOMContentLoaded", () => {
+    new TomSelect("#category", { create: false, placeholder: "-- Pilih Kategori --" });
+    new TomSelect("#location", { create: false, placeholder: "-- Pilih Lokasi --" });
+    new TomSelect("select[name='owner']", { create: false, placeholder: "-- Pilih Penanggung Jawab --" });
+  });
+</script>
 </body>
 </html>
