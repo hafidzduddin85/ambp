@@ -18,7 +18,7 @@ templates = Jinja2Templates(directory="app/templates")
 # Serve static files (favicon, manifest, etc.)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-@app.get("/", include_in_schema=False)
+@app.get("/", response_class=HTMLResponse)
 async def root(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 

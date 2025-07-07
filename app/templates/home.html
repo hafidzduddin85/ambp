@@ -48,6 +48,23 @@
             background-color: #125ea2;
         }
 
+        #installBtn {
+            display: none;
+            margin-top: 2rem;
+            padding: 0.75rem 1.5rem;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        #installBtn:hover {
+            background-color: #218838;
+        }
+
         footer {
             margin-top: 4rem;
             font-size: 0.9rem;
@@ -65,6 +82,9 @@
         <a href="/export">📥 Export Data Excel</a>
     </div>
 
+    <!-- Tombol Install App -->
+    <button id="installBtn">📲 Install Aplikasi</button>
+
     <footer>v1.0 — by Asset Management & Business Process Division</footer>
 
     <!-- Service Worker -->
@@ -74,6 +94,31 @@
                 .then(reg => console.log('✅ Service Worker registered:', reg.scope))
                 .catch(err => console.error('❌ Service Worker error:', err));
         }
+    </script>
+
+    <!-- Manual Install Button for PWA -->
+    <script>
+        let deferredPrompt;
+        const installBtn = document.getElementById('installBtn');
+
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            installBtn.style.display = 'inline-block';
+
+            installBtn.addEventListener('click', async () => {
+                installBtn.disabled = true;
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('✅ User accepted install');
+                } else {
+                    console.log('❌ User dismissed install');
+                }
+                deferredPrompt = null;
+                installBtn.style.display = 'none';
+            });
+        });
     </script>
 </body>
 </html>

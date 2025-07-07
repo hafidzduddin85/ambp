@@ -2,7 +2,7 @@
   "name": "Asset Management",
   "short_name": "AssetApp",
   "description": "Aplikasi untuk input dan monitoring aset perusahaan.",
-  "start_url": "/dashboard",
+  "start_url": "/",
   "scope": "/",
   "display": "standalone",
   "orientation": "portrait",
