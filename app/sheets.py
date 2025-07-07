@@ -1,6 +1,7 @@
 import os
 import json
 import gspread
+import logging
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
@@ -28,12 +29,33 @@ def get_sheet():
 # ========================
 def get_reference_lists() -> dict:
     sheet = get_sheet()
-    return {
-        "categories": sheet.worksheet("Ref_Categories").col_values(1)[1:],
-        "types": sheet.worksheet("Ref_Types").col_values(1)[1:],
-        "companies": sheet.worksheet("Ref_Companies").col_values(1)[1:],
-        "owners": sheet.worksheet("Ref_Owners").col_values(1)[1:]
-    }
+    refs = {}
+
+    try:
+        refs["categories"] = sheet.worksheet("Ref_Categories").col_values(1)[1:]
+    except gspread.exceptions.WorksheetNotFound:
+        logging.warning("Sheet 'Ref_Categories' not found.")
+        refs["categories"] = []
+
+    try:
+        refs["types"] = sheet.worksheet("Ref_Types").col_values(1)[1:]
+    except gspread.exceptions.WorksheetNotFound:
+        logging.warning("Sheet 'Ref_Types' not found.")
+        refs["types"] = []
+
+    try:
+        refs["companies"] = sheet.worksheet("Ref_Companies").col_values(1)[1:]
+    except gspread.exceptions.WorksheetNotFound:
+        logging.warning("Sheet 'Ref_Companies' not found.")
+        refs["companies"] = []
+
+    try:
+        refs["owners"] = sheet.worksheet("Ref_Owners").col_values(1)[1:]
+    except gspread.exceptions.WorksheetNotFound:
+        logging.warning("Sheet 'Ref_Owners' not found.")
+        refs["owners"] = []
+
+    return refs
 
 # ========================
 # Ambil Data Aset
