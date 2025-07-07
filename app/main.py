@@ -148,6 +148,14 @@ def export_excel(status: str = "All"):
 # Admin User Setup
 # ===============================
 
+from app.models import Base, engine
+
+@app.get("/init-db")
+def init_db():
+    Base.metadata.create_all(bind=engine)
+    return {"message": "✅ Tables created"}
+
+
 @app.get("/init-user")
 def init_admin(db: Session = Depends(get_db)):
     if db.query(User).filter_by(username="admin").first():
