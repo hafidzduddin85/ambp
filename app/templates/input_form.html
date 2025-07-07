@@ -1,54 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Input Aset Baru</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link rel="manifest" href="/static/manifest.json">
-  <meta name="theme-color" content="#1976d2">
-  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
-  <link rel="stylesheet" href="/static/style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="/static/manifest.json" />
+  <meta name="theme-color" content="#1976d2" />
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png" />
+  <link rel="stylesheet" href="/static/style.css" />
   <link href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css" rel="stylesheet" />
+
   <style>
     .hidden { display: none; }
+    form {
+      background-color: white;
+      padding: 1rem;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+      max-width: 720px;
+      margin: auto;
+    }
+    body {
+      background: #f4f4f4;
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+    }
+    label {
+      margin-top: 1rem;
+      font-weight: bold;
+      display: block;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      box-sizing: border-box;
+    }
+    button {
+      margin-top: 1.5rem;
+      background-color: #1976d2;
+      color: white;
+      padding: 10px;
+      border: none;
+      width: 100%;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:hover { background-color: #125ea2; }
+    .back-link {
+      display: block;
+      margin: 1rem auto;
+      text-align: center;
+      text-decoration: none;
+      color: #1976d2;
+    }
   </style>
 </head>
 <body>
-  <h1>➕ Input Aset Baru</h1>
+  <h1 style="text-align: center; color: #1976d2;">➕ Input Aset Baru</h1>
   <a href="/" class="back-link">🔙 Kembali ke Beranda</a>
 
   <form method="post" action="/submit">
     <label>📦 Nama Aset</label>
-    <input type="text" name="item_name" required>
+    <input type="text" name="item_name" required />
 
     <label>📁 Kategori</label>
-    <select id="category" name="category" required></select>
+    <select id="category" name="category" required>
+      <option value="">-- Pilih Kategori --</option>
+      {% for cat in refs.categories %}
+        <option value="{{ cat }}">{{ cat }}</option>
+      {% endfor %}
+    </select>
 
     <label id="type_label" class="hidden">🧩 Tipe</label>
     <select id="type" name="type" class="hidden"></select>
 
     <label>🏭 Merk / Manufacture</label>
-    <input type="text" name="manufacture">
+    <input type="text" name="manufacture" />
 
     <label>📎 Model</label>
-    <input type="text" name="model">
+    <input type="text" name="model" />
 
     <label>🔢 Nomor Seri</label>
-    <input type="text" name="serial_number">
+    <input type="text" name="serial_number" />
 
     <label>🏢 Perusahaan</label>
-    <select id="company" name="company" required></select>
+    <select id="company" name="company" required>
+      <option value="">-- Pilih / Ketik Perusahaan --</option>
+      {% for c in refs.companies %}
+        <option value="{{ c }}">{{ c }}</option>
+      {% endfor %}
+    </select>
 
     <div id="code_company_group" class="hidden">
       <label>🏷️ Kode Perusahaan</label>
-      <input type="text" name="code_company" maxlength="3">
+      <input type="text" name="code_company" maxlength="3" />
     </div>
 
     <label>🏭 Unit Bisnis</label>
-    <input type="text" name="bisnis_unit">
+    <input type="text" name="bisnis_unit" />
 
     <label>📍 Lokasi</label>
-    <select id="location" name="location" required></select>
+    <select id="location" name="location" required>
+      <option value="">-- Pilih Lokasi --</option>
+      {% for loc in refs.locations %}
+        <option value="{{ loc }}">{{ loc }}</option>
+      {% endfor %}
+    </select>
 
     <label id="room_label" class="hidden">🏢 Ruangan</label>
     <select id="room_location" name="room_location" class="hidden"></select>
@@ -57,13 +118,13 @@
     <textarea name="notes" rows="2"></textarea>
 
     <label>⚙️ Kondisi</label>
-    <input type="text" name="condition">
+    <input type="text" name="condition" />
 
     <label>🗓️ Tanggal Pembelian</label>
-    <input type="date" name="purchase_date" required>
+    <input type="date" name="purchase_date" required />
 
     <label>💰 Harga Pembelian</label>
-    <input type="number" name="purchase_cost" required>
+    <input type="number" name="purchase_cost" required />
 
     <label>📜 Garansi</label>
     <select name="warranty">
@@ -72,93 +133,112 @@
     </select>
 
     <label>🚚 Supplier</label>
-    <input type="text" name="supplier">
+    <input type="text" name="supplier" />
 
     <label>📖 Jurnal</label>
-    <input type="text" name="journal">
+    <input type="text" name="journal" />
 
-    <label>👤 Asset Owner</label>
-    <select id="owner" name="owner" required></select>
+    <label>👤 Penanggung Jawab</label>
+    <select id="owner" name="owner" required>
+      <option value="">-- Pilih Penanggung Jawab --</option>
+      {% for o in refs.owners %}
+        <option value="{{ o }}">{{ o }}</option>
+      {% endfor %}
+    </select>
 
     <button type="submit">✅ Simpan Aset</button>
   </form>
 
-	<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-	<script>
-	  const categories = {{ refs.categories | tojson }};
-	  const types = {{ refs.types | tojson }};
-	  const companies = {{ refs.companies | tojson }};
-	  const owners = {{ refs.owners | tojson }};
-	  const locationRoomMap = {{ location_room_map | tojson }};
+  <!-- Script -->
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script>
+    const categories = {{ refs.categories | tojson }};
+    const types = {{ refs.types | tojson }};
+    const companies = {{ refs.companies | tojson }};
+    const owners = {{ refs.owners | tojson }};
+    const locationRoomMap = {{ location_room_map | tojson }};
 
-	  let typeSelectInstance = null;
-	  let roomSelectInstance = null;
+    let typeSelectInstance = null;
+    let roomSelectInstance = null;
 
-	  // Kategori
-	  new TomSelect("#category", {
-		options: categories.map(c => ({ value: c, text: c })),
-		create: false,
-		onChange: value => {
-		  const filtered = types.filter(t => t.Category === value);
-		  const typeSelect = document.getElementById("type");
-		  const typeLabel = document.getElementById("type_label");
+    // === KATEGORI ===
+    new TomSelect("#category", {
+      options: categories.map(c => ({ value: c, text: c })),
+      create: false,
+      onChange: value => {
+        const typeLabel = document.getElementById("type_label");
+        const typeSelect = document.getElementById("type");
 
-		  // Kosongkan dulu
-		  typeSelect.innerHTML = '';
-		  filtered.forEach(t => {
-			const opt = document.createElement("option");
-			opt.value = t.Type;
-			opt.textContent = t.Type;
-			typeSelect.appendChild(opt);
-		  });
+        if (!value) {
+          typeLabel.classList.add("hidden");
+          typeSelect.classList.add("hidden");
+          if (typeSelectInstance) typeSelectInstance.destroy();
+          return;
+        }
 
-		  typeSelect.classList.remove("hidden");
-		  typeLabel.classList.remove("hidden");
+        const filtered = types.filter(t => t.Category === value);
+        typeSelect.innerHTML = '';
+        filtered.forEach(t => {
+          const opt = document.createElement("option");
+          opt.value = t.Type;
+          opt.textContent = t.Type;
+          typeSelect.appendChild(opt);
+        });
 
-		  if (typeSelectInstance) typeSelectInstance.destroy();
-		  typeSelectInstance = new TomSelect("#type", { create: true });
-		}
-	  });
+        typeLabel.classList.remove("hidden");
+        typeSelect.classList.remove("hidden");
 
-	  // Company
-	  new TomSelect("#company", {
-		options: companies.map(c => ({ value: c, text: c })),
-		create: true,
-		onChange: (val) => {
-		  const known = companies.includes(val);
-		  document.getElementById("code_company_group").classList.toggle("hidden", known);
-		}
-	  });
+        if (typeSelectInstance) typeSelectInstance.destroy();
+        typeSelectInstance = new TomSelect("#type", { create: true });
+      }
+    });
 
-	  // Lokasi
-	  new TomSelect("#location", {
-		options: Object.keys(locationRoomMap).map(l => ({ value: l, text: l })),
-		create: true,
-		onChange: value => {
-		  const roomSelect = document.getElementById("room_location");
-		  const roomLabel = document.getElementById("room_label");
+    // === PERUSAHAAN ===
+    new TomSelect("#company", {
+      options: companies.map(c => ({ value: c, text: c })),
+      create: true,
+      onChange: (val) => {
+        const known = companies.includes(val);
+        document.getElementById("code_company_group").classList.toggle("hidden", known);
+      }
+    });
 
-		  roomSelect.innerHTML = '';
-		  (locationRoomMap[value] || []).forEach(r => {
-			const opt = document.createElement("option");
-			opt.value = r;
-			opt.textContent = r;
-			roomSelect.appendChild(opt);
-		  });
+    // === LOKASI ===
+    new TomSelect("#location", {
+      options: Object.keys(locationRoomMap).map(l => ({ value: l, text: l })),
+      create: true,
+      onChange: value => {
+        const roomLabel = document.getElementById("room_label");
+        const roomSelect = document.getElementById("room_location");
 
-		  roomSelect.classList.remove("hidden");
-		  roomLabel.classList.remove("hidden");
+        if (!value || !locationRoomMap[value]) {
+          roomLabel.classList.add("hidden");
+          roomSelect.classList.add("hidden");
+          if (roomSelectInstance) roomSelectInstance.destroy();
+          return;
+        }
 
-		  if (roomSelectInstance) roomSelectInstance.destroy();
-		  roomSelectInstance = new TomSelect("#room_location", { create: true });
-		}
-	  });
+        roomSelect.innerHTML = '';
+        locationRoomMap[value].forEach(room => {
+          const opt = document.createElement("option");
+          opt.value = room;
+          opt.textContent = room;
+          roomSelect.appendChild(opt);
+        });
 
-	  // Owner
-	  new TomSelect("#owner", {
-		options: owners.map(o => ({ value: o, text: o })),
-		create: false,
-	  });
-	</script>
+        roomLabel.classList.remove("hidden");
+        roomSelect.classList.remove("hidden");
+
+        if (roomSelectInstance) roomSelectInstance.destroy();
+        roomSelectInstance = new TomSelect("#room_location", { create: true });
+      }
+    });
+
+    // === OWNER ===
+    new TomSelect("#owner", {
+      options: owners.map(o => ({ value: o, text: o })),
+      create: false,
+    });
+  </script>
 </body>
 </html>
