@@ -113,18 +113,19 @@
     <div class="table-wrapper">
         <table>
             <thead>
-                <tr>
-                    {% if assets %}
-						{% for key in assets[0].keys() %}
-							<!-- render kolom -->
-						{% endfor %}
-					{% else %}
-						<tr><td colspan="100%">Tidak ada data aset untuk status "{{ selected_status }}"</td></tr>
-					{% endif %}
-                        <th>{{ key }}</th>
-                    {% endfor %}
-                </tr>
-            </thead>
+				{% if assets %}
+				<tr>
+					{% for key in assets[0].keys() %}
+						<th>{{ key }}</th>
+					{% endfor %}
+				</tr>
+				{% else %}
+				<tr>
+					<th colspan="100%">Tidak ada data aset untuk status "{{ selected_status }}"</th>
+				</tr>
+				{% endif %}
+			</thead>
+
             <tbody>
                 {% for row in assets %}
                     <tr>
