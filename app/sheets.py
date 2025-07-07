@@ -24,18 +24,16 @@ def get_sheet():
     sheet_id = os.getenv("GOOGLE_SHEET_ID")
     return client.open_by_key(sheet_id)
 
+
 # ========================
 # Referensi Dropdown Input
 # ========================
 def get_reference_lists() -> dict:
-    sheet = get_sheet()
     refs = {}
-
     refs["categories"] = get_ref_column("Ref_Categories", 1)
     refs["types"] = get_ref_types()
     refs["companies"] = get_ref_companies()
     refs["owners"] = get_ref_column("Ref_Owners", 1)
-
     return refs
 
 def get_ref_column(sheet_name: str, col: int) -> list:
@@ -62,13 +60,13 @@ def get_ref_companies() -> list:
         logging.warning("Sheet 'Ref_Companies' not found.")
         return []
 
+
 # ================================
 # Tambah ke Sheet Referensi Jika Belum Ada
 # ================================
 def add_type_if_not_exists(type_name: str, category: str):
-    sheet = get_sheet()
     try:
-        ws = sheet.worksheet("Ref_Types")
+        ws = get_sheet().worksheet("Ref_Types")
         types = ws.col_values(1)[1:]
         if type_name not in types:
             next_code = str(len(types) + 1).zfill(2)
@@ -77,9 +75,8 @@ def add_type_if_not_exists(type_name: str, category: str):
         logging.warning(f"Gagal menambahkan Type '{type_name}': {e}")
 
 def add_category_if_not_exists(category_name: str):
-    sheet = get_sheet()
     try:
-        ws = sheet.worksheet("Ref_Categories")
+        ws = get_sheet().worksheet("Ref_Categories")
         categories = ws.col_values(1)[1:]
         if category_name not in categories:
             ws.append_row([category_name, "100", "5"])
@@ -91,26 +88,26 @@ def add_company_with_code_if_not_exists(company: str, code_company: str):
     code_company = code_company.strip().upper()
 
     if not code_company.isalpha() or len(code_company) != 3:
-        raise ValueError("Code Company harus 3 huruf kapital")
+        raise ValueError("❌ Code Company harus 3 huruf kapital")
 
-    sheet = get_sheet()
     try:
-        ws = sheet.worksheet("Ref_Companies")
-        records = ws.get_all_records()
-        companies = [r['Company'].upper() for r in records]
-        codes = [r['Code Company'].upper() for r in records]
+        ws = get_sheet().worksheet("Ref_Companies")
+        existing = ws.get_all_records()
 
-        if company not in companies:
-            if code_company in codes:
-                raise ValueError("Code Company sudah digunakan")
-            ws.append_row([company, code_company])
+        if any(r["Company"].strip().upper() == company for r in existing):
+            return  # Sudah ada
+
+        if any(r["Code Company"].strip().upper() == code_company for r in existing):
+            raise ValueError("❌ Code Company sudah digunakan")
+
+        ws.append_row([company, code_company])
     except Exception as e:
         logging.warning(f"Gagal menambahkan Company '{company}': {e}")
+        raise
 
 def add_owner_if_not_exists(owner_name: str):
-    sheet = get_sheet()
     try:
-        ws = sheet.worksheet("Ref_Owners")
+        ws = get_sheet().worksheet("Ref_Owners")
         owners = ws.col_values(1)[1:]
         if owner_name not in owners:
             next_code = str(len(owners) + 1).zfill(2)
@@ -118,53 +115,48 @@ def add_owner_if_not_exists(owner_name: str):
     except Exception as e:
         logging.warning(f"Gagal menambahkan Owner '{owner_name}': {e}")
 
+
 # ========================
 # Ambil Data Aset
 # ========================
 def get_assets(status_filter: str = "All") -> list:
-    sheet = get_sheet()
-    data = sheet.worksheet("Assets").get_all_records()
+    data = get_sheet().worksheet("Assets").get_all_records()
     if status_filter != "All":
         return [row for row in data if row.get("Status", "").lower() == status_filter.lower()]
     return data
+
 
 # ========================
 # ID & Tag Generator
 # ========================
 def get_next_asset_id() -> str:
-    sheet = get_sheet()
-    ws = sheet.worksheet("Assets")
-    ids = ws.col_values(1)
-
-    angka_terakhir = 0
-    for id_val in ids[1:]:
-        if id_val.startswith("A") and id_val[1:].isdigit():
-            angka = int(id_val[1:])
-            angka_terakhir = max(angka_terakhir, angka)
-
-    next_id = angka_terakhir + 1
-    return f"A{str(next_id).zfill(3)}"
+    ids = get_sheet().worksheet("Assets").col_values(1)
+    angka_terakhir = max(
+        (int(id_val[1:]) for id_val in ids[1:] if id_val.startswith("A") and id_val[1:].isdigit()),
+        default=0
+    )
+    return f"A{str(angka_terakhir + 1).zfill(3)}"
 
 def generate_asset_tag(code_company: str, category: str, type_: str, owner: str) -> str:
     sheet = get_sheet()
-
     ref_categories = sheet.worksheet("Ref_Categories").get_all_records()
     ref_types = sheet.worksheet("Ref_Types").get_all_records()
     ref_owners = sheet.worksheet("Ref_Owners").get_all_records()
     assets = sheet.worksheet("Assets").get_all_records()
 
     code_category = next((r["Code Category"] for r in ref_categories if r["Category"] == category), "XXX")
-    code_type = next((r["Code Type"] for r in ref_types if r["Type"] == type_ and r["Category"] == category), "XX")
-    code_owner = next((r["Code Owner"] for r in ref_owners if r["Owner"] == owner), "XX")
+    code_type = next((r["Code Type"] for r in ref_types if r["Type"] == type_ and r["Category"] == category), "XXX")
+    code_owner = next((r["Code Owner"] for r in ref_owners if r["Owner"] == owner), "XXX")
     tahun = datetime.now().year
 
     count = 1
     for a in assets:
-        if a["Company"] and a["Type"] == type_ and str(a["Tahun"]) == str(tahun):
+        if a.get("Company") and a.get("Type") == type_ and str(a.get("Tahun")) == str(tahun):
             count += 1
 
     no_urut = str(count).zfill(4)
     return f"{code_company}-{code_category}{code_type}.{code_owner}{tahun}.{no_urut}"
+
 
 # ========================
 # Tambahkan Data Aset
@@ -175,12 +167,11 @@ def append_asset(data: dict):
 
     asset_id = get_next_asset_id()
     asset_tag = generate_asset_tag(
-        code_company=data["code_company"].upper(),
+        code_company=data["code_company"],
         category=data["category"],
         type_=data["type"],
         owner=data["owner"]
     )
-
     tahun = datetime.now().year
 
     ws.append_row([
@@ -192,7 +183,7 @@ def append_asset(data: dict):
         data.get("model", ""),
         data.get("serial_number", ""),
         asset_tag,
-        data.get("company", "").upper(),
+        data.get("company", ""),
         data.get("bisnis_unit", ""),
         data.get("location", ""),
         data.get("room_location", ""),

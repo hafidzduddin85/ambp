@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <title>Beranda Aset Management</title>
@@ -11,64 +11,79 @@
     <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
 
     <style>
+        :root {
+            --primary: #1976d2;
+            --primary-dark: #125ea2;
+            --success: #28a745;
+            --success-dark: #218838;
+            --bg: #f0f4f8;
+            --text-muted: #666;
+        }
+
         body {
             font-family: Arial, sans-serif;
-            background-color: #f0f4f8;
+            background-color: var(--bg);
             margin: 0;
-            padding: 2rem;
+            padding: 2rem 1rem;
             text-align: center;
         }
 
         h1 {
-            color: #1976d2;
+            color: var(--primary);
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin: 0.5rem 0 2rem;
         }
 
         .menu {
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            margin-top: 2rem;
-            max-width: 300px;
+            max-width: 320px;
             margin-inline: auto;
         }
 
         .menu a {
             display: block;
             padding: 1rem;
-            background-color: #1976d2;
+            background-color: var(--primary);
             color: white;
             text-decoration: none;
-            border-radius: 8px;
+            border-radius: 10px;
             font-size: 1.1rem;
             font-weight: bold;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            transition: background-color 0.2s ease;
         }
 
         .menu a:hover {
-            background-color: #125ea2;
+            background-color: var(--primary-dark);
         }
 
         #installBtn {
             display: none;
             margin-top: 2rem;
             padding: 0.75rem 1.5rem;
-            background-color: #28a745;
+            background-color: var(--success);
             color: white;
             border: none;
             border-radius: 8px;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
+            transition: background-color 0.2s ease;
         }
 
         #installBtn:hover {
-            background-color: #218838;
+            background-color: var(--success-dark);
         }
 
         footer {
             margin-top: 4rem;
             font-size: 0.9rem;
-            color: #666;
+            color: var(--text-muted);
         }
     </style>
 </head>
@@ -92,7 +107,7 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/static/service-worker.js')
                 .then(reg => console.log('✅ Service Worker registered:', reg.scope))
-                .catch(err => console.error('❌ Service Worker error:', err));
+                .catch(err => console.error('❌ Service Worker registration failed:', err));
         }
     </script>
 
@@ -106,18 +121,14 @@
             deferredPrompt = e;
             installBtn.style.display = 'inline-block';
 
-            installBtn.addEventListener('click', async () => {
+            installBtn.onclick = async () => {
                 installBtn.disabled = true;
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('✅ User accepted install');
-                } else {
-                    console.log('❌ User dismissed install');
-                }
+                console.log(outcome === 'accepted' ? '✅ User accepted install' : '❌ User dismissed install');
                 deferredPrompt = null;
                 installBtn.style.display = 'none';
-            });
+            };
         });
     </script>
 </body>
