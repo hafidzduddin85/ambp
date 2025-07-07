@@ -43,6 +43,7 @@ def append_asset(data: dict):
     sheet = get_sheet()
     ws = sheet.worksheet("Assets")
 
+    asset_id = get_next_asset_id()
     asset_tag = generate_asset_tag(
         company=data["company"],
         category=data["category"],
@@ -53,7 +54,7 @@ def append_asset(data: dict):
     tahun = datetime.now().year
 
     ws.append_row([
-        "",  # ID
+        asset_id,  # ID
         data.get("item_name", ""),
         data.get("category", ""),
         data.get("type", ""),
@@ -77,3 +78,20 @@ def append_asset(data: dict):
         "Active",
         tahun
     ])
+
+
+def get_next_asset_id() -> str:
+    sheet = get_sheet()
+    ws = sheet.worksheet("Assets")
+    ids = ws.col_values(1)  # kolom A = ID
+
+    # Ambil ID terakhir yang valid
+    angka_terakhir = 0
+    for id_val in ids[1:]:  # skip header
+        if id_val.startswith("A") and id_val[1:].isdigit():
+            angka = int(id_val[1:])
+            angka_terakhir = max(angka_terakhir, angka)
+
+    # Tambahkan 1 dan format jadi A001, A002, ...
+    next_id = angka_terakhir + 1
+    return f"A{str(next_id).zfill(3)}"
