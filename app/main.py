@@ -1,39 +1,38 @@
 import io
+from collections import Counter
 from fastapi import FastAPI, Request, Form, Query
 from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, FileResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.staticfiles import StaticFiles
-from collections import Counter
 from openpyxl import Workbook
 
 from app.sheets import (
     append_asset,
     get_assets,
     get_reference_lists,
+    add_type_if_not_exists,
+    add_category_if_not_exists,
+    add_company_if_not_exists,
+    add_owner_if_not_exists,
 )
 
 app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
 
-# Serve static files (favicon, manifest, etc.)
+# Static & Favicon
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
-async def root(request: Request):
-    return templates.TemplateResponse("home.html", {"request": request})
-
-# Favicon
-@app.get("/favicon.ico", include_in_schema=False)
-async def favicon():
-    return FileResponse("app/static/favicon.ico")
-
-# Homepage
 @app.get("/home", response_class=HTMLResponse)
 async def show_home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("app/static/favicon.ico")
 
-# Form Input
+
+# ======= INPUT FORM =======
 @app.get("/input", response_class=HTMLResponse)
 async def show_form(request: Request):
     refs = get_reference_lists()
@@ -68,6 +67,13 @@ async def submit_form(
     journal: str = Form(""),
     owner: str = Form(...)
 ):
+    # Pastikan referensi tersedia
+    add_category_if_not_exists(category)
+    add_type_if_not_exists(type_, category)
+    add_company_if_not_exists(company)
+    add_owner_if_not_exists(owner)
+
+    # Tambah ke sheet
     append_asset({
         "item_name": item_name,
         "category": category,
@@ -91,33 +97,29 @@ async def submit_form(
     return RedirectResponse(url="/input", status_code=303)
 
 
-# Dashboard
+# ======= DASHBOARD =======
 @app.get("/dashboard", response_class=HTMLResponse)
 async def show_dashboard(request: Request, status: str = Query(default="All")):
-    data = get_assets(status)
-    if not data:
-        data = []
+    data = get_assets(status) or []
 
-    kategori_counter = Counter([row["Category"] for row in data if row.get("Category")])
+    kategori_counter = Counter([row.get("Category", "") for row in data if row.get("Category")])
     tahun_counter = Counter([str(row.get("Tahun", "")) for row in data if row.get("Tahun")])
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
         "assets": data,
         "selected_status": status,
-        "kategori_labels": list(kategori_counter.keys()),
+        "kategori_labels": list(kategori_counter),
         "kategori_values": list(kategori_counter.values()),
-        "tahun_labels": sorted(tahun_counter.keys()),
-        "tahun_values": [tahun_counter[t] for t in sorted(tahun_counter.keys())],
+        "tahun_labels": sorted(tahun_counter),
+        "tahun_values": [tahun_counter[t] for t in sorted(tahun_counter)],
     })
 
 
-# Export Excel
+# ======= EXPORT =======
 @app.get("/export")
 async def export_excel(status: str = Query(default="All")):
-    data = get_assets(status)
-    if not data:
-        data = []
+    data = get_assets(status) or []
 
     wb = Workbook()
     ws = wb.active
