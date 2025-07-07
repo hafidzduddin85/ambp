@@ -4,10 +4,13 @@
     <meta charset="UTF-8">
     <title>Input Aset</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- PWA -->
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#1976d2">
     <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
 
+    <!-- Tom Select -->
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
 
     <style>
@@ -87,19 +90,11 @@
         <label>Serial Number</label>
         <input type="text" name="serial_number">
 
-        <label>Company (Dropdown atau Manual)</label>
-        <select id="company_selector">
-            <option value="">-- Pilih Company (Code) --</option>
-            {% for c in companies %}
-                <option value="{{ c }}">{{ c }}</option>
-            {% endfor %}
-        </select>
-
-        <label>Company (manual atau hasil dropdown)</label>
-        <input type="text" name="company" id="company" required placeholder="Contoh: PT ABC XYZ">
+        <label>Company</label>
+        <select id="company" name="company" placeholder="Pilih atau ketik Company" required></select>
 
         <label>Code Company (3 huruf kapital)</label>
-        <input type="text" name="code_company" id="code_company" required maxlength="3" pattern="[A-Z]{3}" placeholder="Contoh: ABC" title="3 huruf kapital (A-Z)">
+        <input type="text" name="code_company" required pattern="[A-Z]{3}" title="Gunakan 3 huruf kapital, contoh: ABC">
 
         <label>Bisnis Unit</label>
         <input type="text" name="bisnis_unit">
@@ -144,8 +139,22 @@
         <button type="submit">💾 Simpan Aset</button>
     </form>
 
+    <!-- Service Worker -->
     <script>
-        const types = {{ types | tojson | safe }};  // [{Type, Category}]
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+                .catch(err => console.error('❌ Service Worker error:', err));
+        }
+    </script>
+
+    <!-- Tom Select + Filtering -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+    <script>
+        const types = {{ types | tojson | safe }};  // [{'Type': 'Laptop', 'Category': 'Elektronik', ...}]
+        const companies = {{ companies | tojson | safe }};  // ['PT A (ABC)', 'PT B (DEF)', ...]
+
+        // Type selector
         const typeSelect = new TomSelect("#type_", {
             create: true,
             persist: false,
@@ -154,41 +163,32 @@
         });
 
         const categorySelect = document.getElementById("category");
-        categorySelect.addEventListener("change", () => {
-            const selectedCategory = categorySelect.value;
+        function updateTypeOptions(selectedCategory) {
             const options = types
                 .filter(t => t.Category === selectedCategory)
                 .map(t => ({ value: t.Type, text: t.Type }));
+
             typeSelect.clearOptions();
             typeSelect.addOptions(options);
             typeSelect.refreshOptions(false);
-        });
+        }
 
-        // Auto isi company dan code_company dari dropdown
-        const companySelector = document.getElementById("company_selector");
-        const companyInput = document.getElementById("company");
-        const codeCompanyInput = document.getElementById("code_company");
-
-        companySelector.addEventListener("change", () => {
-            const value = companySelector.value; // Format: "PT XYZ (ABC)"
-            if (value.includes("(")) {
-                const match = value.match(/^(.*?) \((\w+)\)$/);
-                if (match) {
-                    companyInput.value = match[1].trim();
-                    codeCompanyInput.value = match[2].trim();
-                }
-            }
+        categorySelect.addEventListener("change", () => {
+            updateTypeOptions(categorySelect.value);
         });
 
         document.addEventListener("DOMContentLoaded", () => {
-            if (categorySelect.value) {
-                const event = new Event("change");
-                categorySelect.dispatchEvent(event);
-            }
+            if (categorySelect.value) updateTypeOptions(categorySelect.value);
+        });
+
+        // Company selector
+        new TomSelect("#company", {
+            create: true,
+            persist: false,
+            maxOptions: 500,
+            placeholder: "Ketik atau pilih Company",
+            options: companies.map(c => ({ value: c, text: c }))
         });
     </script>
-
-    <!-- Tom Select JS -->
-    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
 </body>
 </html>
