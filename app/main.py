@@ -148,7 +148,7 @@ def export_excel(status: str = "All"):
 # Admin User Setup
 # ===============================
 
-from app.models import Base, engine
+from app.database import Base, engine
 
 @app.get("/init-db")
 def init_db():
