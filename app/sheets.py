@@ -62,6 +62,21 @@ def get_ref_companies() -> list:
         logging.warning("Sheet 'Ref_Companies' not found.")
         return []
 
+def get_location_room_map() -> dict:
+    try:
+        ws = get_sheet().worksheet("Ref_Location")
+        records = ws.get_all_records()
+        location_map = {}
+        for row in records:
+            loc = row.get("Location", "").strip()
+            room = row.get("Room", "").strip()
+            if loc:
+                location_map.setdefault(loc, []).append(room)
+        return location_map
+    except gspread.exceptions.WorksheetNotFound:
+        logging.warning("Sheet 'Ref_Location' not found.")
+        return {}
+
 # ================================
 # Tambah Referensi Jika Belum Ada
 # ================================
