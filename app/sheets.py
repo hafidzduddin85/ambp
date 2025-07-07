@@ -32,25 +32,19 @@ def get_reference_lists() -> dict:
     refs = {}
 
     try:
-        refs["categories"] = sheet.worksheet("Ref_Categories").col_values(1)[1:]
+        categories = sheet.worksheet("Ref_Categories").col_values(1)[1:]
+        refs["categories"] = categories
     except gspread.exceptions.WorksheetNotFound:
         logging.warning("Sheet 'Ref_Categories' not found.")
         refs["categories"] = []
 
     try:
-        ws = sheet.worksheet("Ref_Types")
-        rows = ws.get_all_values()[1:]  # Skip header
-        refs["types"] = {}
-        for row in rows:
-            if len(row) >= 2:
-                type_name = row[0]
-                category = row[1]
-                if category not in refs["types"]:
-                    refs["types"][category] = []
-                refs["types"][category].append(type_name)
+        type_ws = sheet.worksheet("Ref_Types")
+        types_data = type_ws.get_all_records()
+        refs["types"] = types_data  # <-- akan return list of dict
     except gspread.exceptions.WorksheetNotFound:
         logging.warning("Sheet 'Ref_Types' not found.")
-        refs["types"] = {}
+        refs["types"] = []
 
     try:
         refs["companies"] = sheet.worksheet("Ref_Companies").col_values(1)[1:]

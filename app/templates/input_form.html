@@ -175,5 +175,34 @@
             });
         }
     </script>
+	
+	<script>
+		const allTypes = {{ types | tojson | safe }};
+
+		const categorySelect = document.querySelector('select[name="category"]');
+		const typeSelect = document.querySelector('select[name="type_"]');
+
+		function filterTypesByCategory(selectedCategory) {
+			typeSelect.innerHTML = '<option value="">-- Pilih Type --</option>';
+			allTypes.forEach(row => {
+				if (row.Category === selectedCategory) {
+					const option = document.createElement("option");
+					option.value = row.Type;
+					option.textContent = row.Type;
+					typeSelect.appendChild(option);
+				}
+			});
+		}
+
+		categorySelect.addEventListener("change", function () {
+			filterTypesByCategory(this.value);
+		});
+
+		// Trigger on load
+		window.addEventListener("DOMContentLoaded", function () {
+			filterTypesByCategory(categorySelect.value);
+		});
+	</script>
+
 </body>
 </html>
