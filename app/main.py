@@ -91,6 +91,8 @@ async def submit_form(
 @app.get("/dashboard", response_class=HTMLResponse)
 async def show_dashboard(request: Request, status: str = Query(default="All")):
     data = get_assets(status)
+    if not data:
+        data = []
 
     kategori_counter = Counter([row["Category"] for row in data if row.get("Category")])
     tahun_counter = Counter([str(row.get("Tahun", "")) for row in data if row.get("Tahun")])
@@ -110,6 +112,8 @@ async def show_dashboard(request: Request, status: str = Query(default="All")):
 @app.get("/export")
 async def export_excel(status: str = Query(default="All")):
     data = get_assets(status)
+    if not data:
+        data = []
 
     wb = Workbook()
     ws = wb.active
