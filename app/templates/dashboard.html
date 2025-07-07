@@ -27,7 +27,7 @@
             margin-bottom: 16px;
         }
 
-        h2 {
+        h2, h3 {
             margin-top: 30px;
         }
     </style>
@@ -35,7 +35,7 @@
 <body>
     <h1>📋 Aset Management Dashboard</h1>
 
-    <!-- 🔍 Filter Status -->
+    <!-- 🔍 Filter Status Aset -->
     <form method="get" action="/dashboard">
         <label><strong>Filter Status:</strong></label>
         <select name="status" onchange="this.form.submit()">
@@ -47,17 +47,24 @@
         </select>
     </form>
 
-    <h2>📊 Dashboard Aset ({{ selected_status }})</h2>
+    <h2>📊 Ringkasan Aset (Status: {{ selected_status }})</h2>
 
-    <!-- 📈 Grafik -->
-    <h3>Grafik Jumlah Aset per Kategori</h3>
+    <!-- 📈 Grafik per Kategori -->
+    <h3>📦 Jumlah Aset per Kategori</h3>
     <canvas id="kategoriChart" width="600" height="300"></canvas>
 
-    <h3>Grafik Jumlah Aset per Tahun</h3>
+    <!-- 📈 Grafik per Tahun -->
+    <h3>📅 Jumlah Aset per Tahun</h3>
     <canvas id="tahunChart" width="600" height="300"></canvas>
 
-    <!-- 📋 Tabel Aset -->
-    <h2>📑 Data Aset</h2>
+    <!-- 📤 Export Excel -->
+    <form method="get" action="/export" style="margin-bottom: 20px;">
+        <input type="hidden" name="status" value="{{ selected_status }}">
+        <button type="submit">📥 Export ke Excel ({{ selected_status }})</button>
+    </form>
+
+    <!-- 📑 Tabel Aset -->
+    <h2>🗃️ Data Aset</h2>
     <table>
         <thead>
             <tr>
