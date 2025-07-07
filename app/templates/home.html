@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Beranda Aset Management</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- PWA Support -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#1976d2">
+    <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f4f8;
+            margin: 0;
+            padding: 2rem;
+            text-align: center;
+        }
+
+        h1 {
+            color: #1976d2;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            margin-top: 2rem;
+            max-width: 300px;
+            margin-inline: auto;
+        }
+
+        .menu a {
+            display: block;
+            padding: 1rem;
+            background-color: #1976d2;
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .menu a:hover {
+            background-color: #125ea2;
+        }
+
+        footer {
+            margin-top: 4rem;
+            font-size: 0.9rem;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <h1>📦 Aset Management App</h1>
+    <p>Selamat datang! Silakan pilih menu:</p>
+
+    <div class="menu">
+        <a href="/dashboard">📊 Dashboard Aset</a>
+        <a href="/input">➕ Input Aset Baru</a>
+        <a href="/export">📥 Export Data Excel</a>
+    </div>
+
+    <footer>v1.0 — by YourCompany</footer>
+
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+                .catch(err => console.error('❌ Service Worker error:', err));
+        }
+    </script>
+</body>
+</html>

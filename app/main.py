@@ -18,15 +18,19 @@ templates = Jinja2Templates(directory="app/templates")
 # Serve static files (favicon, manifest, etc.)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-# Redirect root to dashboard
 @app.get("/", include_in_schema=False)
-async def root():
-    return RedirectResponse(url="/dashboard")
+async def root(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
 # Favicon
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return FileResponse("app/static/favicon.ico")
+
+# Homepage
+@app.get("/home", response_class=HTMLResponse)
+async def show_home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
 
 
 # Form Input
