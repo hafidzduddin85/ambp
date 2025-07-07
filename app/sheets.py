@@ -38,7 +38,12 @@ def get_reference_lists() -> dict:
         refs["categories"] = []
 
     try:
-        refs["types"] = sheet.worksheet("Ref_Types").col_values(1)[1:]
+        ws_types = sheet.worksheet("Ref_Types")
+        refs["types"] = [
+            {"type": row[0], "category": row[1]}
+            for row in ws_types.get_all_values()[1:]
+            if len(row) >= 2
+        ]
     except gspread.exceptions.WorksheetNotFound:
         logging.warning("Sheet 'Ref_Types' not found.")
         refs["types"] = []

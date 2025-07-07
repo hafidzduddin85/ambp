@@ -3,61 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <title>Input Aset</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- PWA Meta -->
-    <link rel="manifest" href="/static/manifest.json">
-    <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
-    <meta name="theme-color" content="#1976d2">
-    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <!-- Styling -->
+    <!-- PWA -->
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#1976d2">
+    <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+
     <style>
         body {
             font-family: Arial, sans-serif;
-            padding: 20px;
-            max-width: 640px;
-            margin: auto;
             background-color: #f5f5f5;
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 1rem;
         }
 
-        h2 {
+        h1 {
             text-align: center;
             color: #1976d2;
         }
 
         form {
-            background-color: #ffffff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+            display: grid;
+            gap: 12px;
         }
 
         label {
             font-weight: bold;
-            display: block;
-            margin-top: 10px;
         }
 
-        input, select {
-            width: 100%;
+        input, select, textarea {
             padding: 8px;
-            margin-top: 4px;
-            margin-bottom: 12px;
-            box-sizing: border-box;
             border: 1px solid #ccc;
             border-radius: 4px;
             font-size: 14px;
         }
 
         button {
-            width: 100%;
-            padding: 10px;
             background-color: #1976d2;
             color: white;
             border: none;
+            padding: 10px;
             font-size: 16px;
-            border-radius: 4px;
+            border-radius: 6px;
             cursor: pointer;
         }
 
@@ -67,91 +56,119 @@
     </style>
 </head>
 <body>
-    <h2>📥 Form Input Aset</h2>
-    <form method="post" action="/input">
+    <h1>📦 Input Aset</h1>
 
-        <label for="item_name">Item Name</label>
+    <form method="post" action="/input">
+        <label>Item Name</label>
         <input type="text" name="item_name" required>
 
-        <label for="category">Category</label>
-        <select name="category" required>
+        <label>Category</label>
+        <select name="category" id="category" required onchange="filterTypes()">
+            <option value="">-- Pilih Category --</option>
             {% for c in categories %}
                 <option value="{{ c }}">{{ c }}</option>
             {% endfor %}
         </select>
 
-        <label for="type_">Type</label>
-        <select name="type_" required>
+        <label>Type</label>
+        <select name="type_" id="type_" required>
+            <option value="">-- Pilih Type --</option>
             {% for t in types %}
-                <option value="{{ t }}">{{ t }}</option>
+                <option value="{{ t.type }}" data-category="{{ t.category }}">{{ t.type }}</option>
             {% endfor %}
         </select>
 
-        <label for="manufacture">Manufacture</label>
+        <label>Manufacture</label>
         <input type="text" name="manufacture">
 
-        <label for="model">Model</label>
+        <label>Model</label>
         <input type="text" name="model">
 
-        <label for="serial_number">Serial Number</label>
+        <label>Serial Number</label>
         <input type="text" name="serial_number">
 
-        <label for="company">Company</label>
+        <label>Company</label>
         <select name="company" required>
-            {% for co in companies %}
-                <option value="{{ co }}">{{ co }}</option>
+            {% for c in companies %}
+                <option value="{{ c }}">{{ c }}</option>
             {% endfor %}
         </select>
 
-        <label for="bisnis_unit">Bisnis Unit</label>
+        <label>Bisnis Unit</label>
         <input type="text" name="bisnis_unit">
 
-        <label for="location">Location</label>
+        <label>Location</label>
         <input type="text" name="location">
 
-        <label for="room_location">Room Location</label>
+        <label>Room Location</label>
         <input type="text" name="room_location">
 
-        <label for="notes">Notes</label>
-        <input type="text" name="notes">
+        <label>Notes</label>
+        <textarea name="notes" rows="2"></textarea>
 
-        <label for="condition">Condition</label>
+        <label>Condition</label>
         <input type="text" name="condition">
 
-        <label for="purchase_date">Purchase Date</label>
+        <label>Purchase Date</label>
         <input type="date" name="purchase_date" required>
 
-        <label for="purchase_cost">Purchase Cost</label>
+        <label>Purchase Cost</label>
         <input type="number" name="purchase_cost" required>
 
-        <label for="warranty">Warranty</label>
+        <label>Warranty</label>
         <select name="warranty">
+            <option value="No">No</option>
             <option value="Yes">Yes</option>
-            <option value="No" selected>No</option>
         </select>
 
-        <label for="supplier">Supplier</label>
+        <label>Supplier</label>
         <input type="text" name="supplier">
 
-        <label for="journal">No. Journal</label>
+        <label>Journal</label>
         <input type="text" name="journal">
 
-        <label for="owner">Owner</label>
+        <label>Owner</label>
         <select name="owner" required>
             {% for o in owners %}
                 <option value="{{ o }}">{{ o }}</option>
             {% endfor %}
         </select>
 
-        <button type="submit">🚀 Submit Aset</button>
+        <button type="submit">💾 Simpan Aset</button>
     </form>
 
-    <!-- Service Worker -->
+    <script>
+        function filterTypes() {
+            const selectedCategory = document.getElementById("category").value;
+            const typeSelect = document.getElementById("type_");
+            const options = typeSelect.querySelectorAll("option");
+
+            options.forEach(opt => {
+                const belongsTo = opt.getAttribute("data-category");
+                if (!belongsTo || belongsTo === selectedCategory) {
+                    opt.style.display = "";
+                } else {
+                    opt.style.display = "none";
+                }
+            });
+
+            typeSelect.value = "";
+        }
+
+        // Auto-filter saat halaman pertama kali load
+        document.addEventListener("DOMContentLoaded", filterTypes);
+    </script>
+
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/static/service-worker.js')
-                .then(() => console.log("✅ Service Worker registered"))
-                .catch(err => console.error("❌ Service Worker failed:", err));
+            window.addEventListener('load', function () {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then(function (registration) {
+                        console.log('✅ Service Worker registered with scope:', registration.scope);
+                    }).catch(function (error) {
+                        console.error('❌ Service Worker registration failed:', error);
+                    });
+            });
         }
     </script>
 </body>
