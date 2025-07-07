@@ -4,17 +4,63 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
+# ========================
+# Koneksi & Autentikasi
+# ========================
 def get_sheet():
-    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
-    creds_json = json.loads(os.getenv("GOOGLE_CREDS_JSON", "{}"))
+    scope = [
+        "https://spreadsheets.google.com/feeds",
+        "https://www.googleapis.com/auth/drive"
+    ]
 
-    # 🔧 Fix line breaks in private key
+    creds_json = json.loads(os.getenv("GOOGLE_CREDS_JSON", "{}"))
     if "private_key" in creds_json:
         creds_json["private_key"] = creds_json["private_key"].replace("\\n", "\n")
 
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
     client = gspread.authorize(creds)
-    return client
+
+    sheet_id = os.getenv("GOOGLE_SHEET_ID")
+    return client.open_by_key(sheet_id)
+
+# ========================
+# Referensi Dropdown Input
+# ========================
+def get_reference_lists() -> dict:
+    sheet = get_sheet()
+    return {
+        "categories": sheet.worksheet("Ref_Categories").col_values(1)[1:],
+        "types": sheet.worksheet("Ref_Types").col_values(1)[1:],
+        "companies": sheet.worksheet("Ref_Companies").col_values(1)[1:],
+        "owners": sheet.worksheet("Ref_Owners").col_values(1)[1:]
+    }
+
+# ========================
+# Ambil Data Aset
+# ========================
+def get_assets(status_filter: str = "All") -> list:
+    sheet = get_sheet()
+    data = sheet.worksheet("Assets").get_all_records()
+    if status_filter != "All":
+        return [row for row in data if row.get("Status", "").lower() == status_filter.lower()]
+    return data
+
+# ========================
+# ID & Tag Generator
+# ========================
+def get_next_asset_id() -> str:
+    sheet = get_sheet()
+    ws = sheet.worksheet("Assets")
+    ids = ws.col_values(1)  # kolom A = ID
+
+    angka_terakhir = 0
+    for id_val in ids[1:]:  # skip header
+        if id_val.startswith("A") and id_val[1:].isdigit():
+            angka = int(id_val[1:])
+            angka_terakhir = max(angka_terakhir, angka)
+
+    next_id = angka_terakhir + 1
+    return f"A{str(next_id).zfill(3)}"
 
 def generate_asset_tag(company: str, category: str, type_: str, owner: str) -> str:
     sheet = get_sheet()
@@ -39,6 +85,9 @@ def generate_asset_tag(company: str, category: str, type_: str, owner: str) -> s
     no_urut = str(count).zfill(4)
     return f"{code_company}-{code_category}{code_type}.{code_owner}{tahun}.{no_urut}"
 
+# ========================
+# Tambahkan Data Aset
+# ========================
 def append_asset(data: dict):
     sheet = get_sheet()
     ws = sheet.worksheet("Assets")
@@ -78,20 +127,3 @@ def append_asset(data: dict):
         "Active",
         tahun
     ])
-
-
-def get_next_asset_id() -> str:
-    sheet = get_sheet()
-    ws = sheet.worksheet("Assets")
-    ids = ws.col_values(1)  # kolom A = ID
-
-    # Ambil ID terakhir yang valid
-    angka_terakhir = 0
-    for id_val in ids[1:]:  # skip header
-        if id_val.startswith("A") and id_val[1:].isdigit():
-            angka = int(id_val[1:])
-            angka_terakhir = max(angka_terakhir, angka)
-
-    # Tambahkan 1 dan format jadi A001, A002, ...
-    next_id = angka_terakhir + 1
-    return f"A{str(next_id).zfill(3)}"

@@ -6,40 +6,39 @@ from fastapi.staticfiles import StaticFiles
 from collections import Counter
 from openpyxl import Workbook
 
-from app.sheets import append_asset, get_sheet
+from app.sheets import (
+    append_asset,
+    get_assets,
+    get_reference_lists,
+)
 
 app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
 
-# Serve static files (for manifest, icons, service worker, etc.)
+# Serve static files (favicon, manifest, etc.)
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-
+# Redirect root to dashboard
 @app.get("/", include_in_schema=False)
 async def root():
     return RedirectResponse(url="/dashboard")
 
-
+# Favicon
 @app.get("/favicon.ico", include_in_schema=False)
 async def favicon():
     return FileResponse("app/static/favicon.ico")
 
 
+# Form Input
 @app.get("/input", response_class=HTMLResponse)
 async def show_form(request: Request):
-    sheet = get_sheet()
-
-    ref_categories = sheet.worksheet("Ref_Categories").col_values(1)[1:]
-    ref_types = sheet.worksheet("Ref_Types").col_values(1)[1:]
-    ref_companies = sheet.worksheet("Ref_Companies").col_values(1)[1:]
-    ref_owners = sheet.worksheet("Ref_Owners").col_values(1)[1:]
-
+    refs = get_reference_lists()
     return templates.TemplateResponse("input_form.html", {
         "request": request,
-        "categories": ref_categories,
-        "types": ref_types,
-        "companies": ref_companies,
-        "owners": ref_owners
+        "categories": refs["categories"],
+        "types": refs["types"],
+        "companies": refs["companies"],
+        "owners": refs["owners"]
     })
 
 
@@ -88,22 +87,17 @@ async def submit_form(
     return RedirectResponse(url="/input", status_code=303)
 
 
+# Dashboard
 @app.get("/dashboard", response_class=HTMLResponse)
 async def show_dashboard(request: Request, status: str = Query(default="All")):
-    sheet = get_sheet()
-    data = sheet.worksheet("Assets").get_all_records()
+    data = get_assets(status)
 
-    if status != "All":
-        filtered = [row for row in data if row.get("Status", "").lower() == status.lower()]
-    else:
-        filtered = data
-
-    kategori_counter = Counter([row["Category"] for row in filtered if row.get("Category")])
-    tahun_counter = Counter([str(row.get("Tahun", "")) for row in filtered if row.get("Tahun")])
+    kategori_counter = Counter([row["Category"] for row in data if row.get("Category")])
+    tahun_counter = Counter([str(row.get("Tahun", "")) for row in data if row.get("Tahun")])
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "assets": filtered,
+        "assets": data,
         "selected_status": status,
         "kategori_labels": list(kategori_counter.keys()),
         "kategori_values": list(kategori_counter.values()),
@@ -112,13 +106,10 @@ async def show_dashboard(request: Request, status: str = Query(default="All")):
     })
 
 
+# Export Excel
 @app.get("/export")
 async def export_excel(status: str = Query(default="All")):
-    sheet = get_sheet()
-    data = sheet.worksheet("Assets").get_all_records()
-
-    if status != "All":
-        data = [row for row in data if row.get("Status", "").lower() == status.lower()]
+    data = get_assets(status)
 
     wb = Workbook()
     ws = wb.active
