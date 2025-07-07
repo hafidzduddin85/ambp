@@ -17,3 +17,17 @@ def get_sheet():
 
     sheet_id = os.getenv("SHEET_ID")
     return client.open_by_key(sheet_id)
+
+def append_asset(data: dict):
+    sheet = get_sheet()
+    ws = sheet.worksheet("Assets")
+    ws.append_row([
+        data.get("item_name", ""),
+        data.get("category", ""),
+        data.get("type", ""),
+        data.get("company", ""),
+        data.get("owner", ""),
+        data.get("purchase_date", ""),
+        data.get("purchase_cost", ""),
+        "Input dari Web",  # Notes
+    ])
