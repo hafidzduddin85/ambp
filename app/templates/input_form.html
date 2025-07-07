@@ -4,98 +4,43 @@
     <meta charset="UTF-8">
     <title>Input Aset Baru</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- PWA -->
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#1976d2">
     <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
-
-    <!-- Style -->
     <link rel="stylesheet" href="/static/style.css">
-
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            padding: 1rem;
-            max-width: 720px;
-            margin: auto;
-        }
-
-        h1 {
-            text-align: center;
-            color: #1976d2;
-        }
-
-        form {
-            background-color: white;
-            padding: 1rem;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.05);
-        }
-
-        label {
-            margin-top: 1rem;
-            font-weight: bold;
-            display: block;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 8px;
-            margin-top: 4px;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-            box-sizing: border-box;
-        }
-
-        button {
-            margin-top: 1.5rem;
-            background-color: #1976d2;
-            color: white;
-            padding: 10px;
-            border: none;
-            width: 100%;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #125ea2;
-        }
-
-        .back-link {
-            display: block;
-            margin: 1rem 0;
-            text-align: center;
-            text-decoration: none;
-            color: #1976d2;
-        }
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 1rem; max-width: 720px; margin: auto; }
+        h1 { text-align: center; color: #1976d2; }
+        form { background-color: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+        label { margin-top: 1rem; font-weight: bold; display: block; }
+        input, select, textarea { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
+        button { margin-top: 1.5rem; background-color: #1976d2; color: white; padding: 10px; border: none; width: 100%; font-size: 16px; border-radius: 6px; cursor: pointer; }
+        button:hover { background-color: #125ea2; }
+        .back-link { display: block; margin: 1rem 0; text-align: center; text-decoration: none; color: #1976d2; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <h1>➕ Input Aset Baru</h1>
-
     <a href="/" class="back-link">🔙 Kembali ke Beranda</a>
 
-    <form method="post">
+    <form method="post" action="/submit">
         <label>📦 Nama Aset</label>
         <input type="text" name="item_name" required>
 
         <label>📁 Kategori</label>
-        <input list="category_list" name="category" required>
-        <datalist id="category_list">
+        <select name="category" required>
+            <option value="">-- Pilih Kategori --</option>
             {% for cat in refs.categories %}
-                <option value="{{ cat }}">
+                <option value="{{ cat }}">{{ cat }}</option>
             {% endfor %}
-        </datalist>
+        </select>
 
         <label>🧩 Tipe</label>
         <input list="type_list" name="type" required>
         <datalist id="type_list">
             {% for t in refs.types %}
-                <option value="{{ t.Type }}">{{ t.Type }} ({{ t.Category }})
+                <option value="{{ t.Type }}">{{ t.Type }} ({{ t.Category }})</option>
             {% endfor %}
         </datalist>
 
@@ -109,31 +54,36 @@
         <input type="text" name="serial_number">
 
         <label>🏢 Perusahaan</label>
-        <input list="company_list" name="company" required>
+        <input list="company_list" name="company" id="company" onchange="toggleCodeCompany()" required>
         <datalist id="company_list">
             {% for c in refs.companies %}
                 <option value="{{ c }}">
             {% endfor %}
         </datalist>
 
-        <label>🏷️ Kode Perusahaan</label>
-        <input type="text" name="code_company" maxlength="3" required>
+        <div id="code_company_group" class="hidden">
+            <label>🏷️ Kode Perusahaan</label>
+            <input type="text" name="code_company" maxlength="3">
+        </div>
 
         <label>🏭 Unit Bisnis</label>
         <input type="text" name="bisnis_unit">
 
         <label>📍 Lokasi</label>
-        <select name="location" id="location" onchange="updateRooms()" required>
-            <option value="">-- Pilih Lokasi --</option>
+        <input list="location_list" name="location" id="location" onchange="updateRooms()" required>
+        <datalist id="location_list">
             {% for loc in refs.locations %}
-                <option value="{{ loc }}">{{ loc }}</option>
+                <option value="{{ loc }}">
             {% endfor %}
-        </select>
+        </datalist>
 
         <label>🏢 Ruangan</label>
-        <select name="room_location" id="room_location" required>
-            <option value="">-- Pilih Ruangan --</option>
-        </select>
+        <input list="room_list" name="room_location" id="room_location" required>
+        <datalist id="room_list">
+            {% for r in refs.rooms %}
+                <option value="{{ r }}">
+            {% endfor %}
+        </datalist>
 
         <label>📝 Catatan</label>
         <textarea name="notes" rows="2"></textarea>
@@ -159,34 +109,39 @@
         <label>📖 Jurnal</label>
         <input type="text" name="journal">
 
-        <label>👤 Owner Asset</label>
-        <input list="owner_list" name="owner" required>
-        <datalist id="owner_list">
+        <label>👤 Penanggung Jawab</label>
+        <select name="owner" required>
+            <option value="">-- Pilih Penanggung Jawab --</option>
             {% for o in refs.owners %}
-                <option value="{{ o }}">
+                <option value="{{ o }}">{{ o }}</option>
             {% endfor %}
-        </datalist>
+        </select>
 
         <button type="submit">✅ Simpan Aset</button>
     </form>
 
-    <!-- JS: Filter Room by Location -->
     <script>
         const roomMap = {{ location_room_map | tojson | safe }};
 
         function updateRooms() {
-            const loc = document.getElementById("location").value;
-            const roomSelect = document.getElementById("room_location");
-
-            roomSelect.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
-            if (roomMap[loc]) {
-                roomMap[loc].forEach(room => {
-                    const option = document.createElement("option");
-                    option.value = room;
-                    option.textContent = room;
-                    roomSelect.appendChild(option);
+            const location = document.getElementById("location").value;
+            const roomInput = document.getElementById("room_location");
+            const roomList = document.getElementById("room_list");
+            roomList.innerHTML = '';
+            if (roomMap[location]) {
+                roomMap[location].forEach(r => {
+                    const opt = document.createElement("option");
+                    opt.value = r;
+                    roomList.appendChild(opt);
                 });
             }
+        }
+
+        function toggleCodeCompany() {
+            const input = document.getElementById("company");
+            const known = [...document.querySelectorAll("#company_list option")].map(e => e.value);
+            const group = document.getElementById("code_company_group");
+            group.classList.toggle("hidden", known.includes(input.value));
         }
     </script>
 </body>
