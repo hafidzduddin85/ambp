@@ -1,51 +1,51 @@
-import io
-from collections import Counter
-from fastapi import FastAPI, Request, Form, Query
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, FileResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, Request, Form
+from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from openpyxl import Workbook
+from fastapi.templating import Jinja2Templates
+from starlette.middleware.cors import CORSMiddleware
 
-from app.sheets import (
-    append_asset,
-    get_assets,
+from datetime import datetime
+from typing import Optional
+import uvicorn
+
+from app.sheet import (
     get_reference_lists,
-    add_type_if_not_exists,
+    append_asset,
     add_category_if_not_exists,
+    add_type_if_not_exists,
     add_company_with_code_if_not_exists,
     add_owner_if_not_exists,
-    add_location_if_not_exists,
+    get_assets,
+    get_location_room_map,
+    add_location_if_not_exists
 )
 
 app = FastAPI()
-templates = Jinja2Templates(directory="app/templates")
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.mount("/static", StaticFiles(directory="static"), name="static")
+templates = Jinja2Templates(directory="templates")
 
 @app.get("/", response_class=HTMLResponse)
-@app.get("/home", response_class=HTMLResponse)
-async def show_home(request: Request):
+async def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
-@app.get("/favicon.ico", include_in_schema=False)
-async def favicon():
-    return FileResponse("app/static/favicon.ico")
-
-# ========================
-# Input Form Page
-# ========================
 @app.get("/input", response_class=HTMLResponse)
 async def show_form(request: Request):
     refs = get_reference_lists()
+    room_map = get_location_room_map()
     return templates.TemplateResponse("input_form.html", {
         "request": request,
-        "categories": refs["categories"],
-        "types": refs["types"],
-        "companies": refs["companies"],
-        "owners": refs["owners"],
-        "locations": refs["locations"],
-        "rooms": refs["rooms"]
+        **refs,
+        "room_map": room_map,
+        "locations": list(room_map.keys())
     })
-
 
 @app.post("/input")
 async def submit_form(
@@ -64,25 +64,20 @@ async def submit_form(
     notes: str = Form(""),
     condition: str = Form(""),
     purchase_date: str = Form(...),
-    purchase_cost: str = Form(...),
+    purchase_cost: float = Form(...),
     warranty: str = Form("No"),
     supplier: str = Form(""),
     journal: str = Form(""),
     owner: str = Form(...)
 ):
-    # Validasi: code company minimal 2 huruf/angka
-    if len(code_company.strip()) < 2:
-        return HTMLResponse(f"<h3>❌ Code Company harus minimal 2 karakter!</h3>", status_code=400)
-
-    # Tambah referensi jika belum ada
+    # Pastikan referensi ditambahkan jika belum ada
     add_category_if_not_exists(category)
     add_type_if_not_exists(type_, category)
     add_company_with_code_if_not_exists(company, code_company)
     add_owner_if_not_exists(owner)
     add_location_if_not_exists(location, room_location)
 
-    # Simpan ke Google Sheet
-    append_asset({
+    data = {
         "item_name": item_name,
         "category": category,
         "type": type_,
@@ -101,52 +96,54 @@ async def submit_form(
         "warranty": warranty,
         "supplier": supplier,
         "journal": journal,
-        "owner": owner,
-    })
-    return RedirectResponse(url="/input", status_code=303)
+        "owner": owner
+    }
 
-# ========================
-# Dashboard
-# ========================
+    append_asset(data)
+    return RedirectResponse("/input", status_code=303)
+
 @app.get("/dashboard", response_class=HTMLResponse)
-async def show_dashboard(request: Request, status: str = Query(default="All")):
-    data = get_assets(status) or []
+async def dashboard(request: Request, status: Optional[str] = "All"):
+    assets = get_assets(status)
+    kategori_count = {}
+    tahun_count = {}
+    for a in assets:
+        kategori = a.get("Category", "-")
+        kategori_count[kategori] = kategori_count.get(kategori, 0) + 1
 
-    kategori_counter = Counter([row.get("Category", "") for row in data if row.get("Category")])
-    tahun_counter = Counter([str(row.get("Tahun", "")) for row in data if row.get("Tahun")])
+        tahun = a.get("Tahun", datetime.now().year)
+        tahun_count[tahun] = tahun_count.get(tahun, 0) + 1
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
-        "assets": data,
+        "assets": assets,
         "selected_status": status,
-        "kategori_labels": list(kategori_counter),
-        "kategori_values": list(kategori_counter.values()),
-        "tahun_labels": sorted(tahun_counter),
-        "tahun_values": [tahun_counter[t] for t in sorted(tahun_counter)],
+        "kategori_labels": list(kategori_count.keys()),
+        "kategori_values": list(kategori_count.values()),
+        "tahun_labels": list(tahun_count.keys()),
+        "tahun_values": list(tahun_count.values()),
     })
 
-# ========================
-# Export Excel
-# ========================
 @app.get("/export")
-async def export_excel(status: str = Query(default="All")):
-    data = get_assets(status) or []
+async def export_excel(status: Optional[str] = "All"):
+    assets = get_assets(status)
 
-    wb = Workbook()
-    ws = wb.active
-    ws.title = "Assets"
+    from fastapi.responses import StreamingResponse
+    import io
+    import csv
 
-    if data:
-        ws.append(list(data[0].keys()))
-        for row in data:
-            ws.append(list(row.values()))
+    output = io.StringIO()
+    writer = csv.DictWriter(output, fieldnames=assets[0].keys())
+    writer.writeheader()
+    for row in assets:
+        writer.writerow(row)
 
-    stream = io.BytesIO()
-    wb.save(stream)
-    stream.seek(0)
-
+    output.seek(0)
     return StreamingResponse(
-        stream,
-        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        headers={"Content-Disposition": f"attachment; filename=assets_{status.lower()}.xlsx"}
+        output,
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename=assets_{status}.csv"}
     )
+
+if __name__ == "__main__":
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

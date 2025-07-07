@@ -1,193 +1,191 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Input Aset Baru</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta charset="UTF-8">
+    <title>Input Aset Baru</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <link rel="manifest" href="/static/manifest.json">
-  <meta name="theme-color" content="#1976d2">
-  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#1976d2">
+    <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
 
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f8f8f8;
-      padding: 2rem;
-      max-width: 800px;
-      margin: 0 auto;
-    }
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            padding: 1rem;
+            max-width: 720px;
+            margin: auto;
+        }
 
-    h1 {
-      color: #1976d2;
-      text-align: center;
-    }
+        h1 {
+            text-align: center;
+            color: #1976d2;
+        }
 
-    form {
-      background: #fff;
-      padding: 2rem;
-      border-radius: 8px;
-      box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
-    }
+        form {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
 
-    label {
-      display: block;
-      margin-top: 1rem;
-      font-weight: bold;
-    }
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
 
-    input, select, textarea {
-      width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.5rem;
-      border-radius: 4px;
-      border: 1px solid #ccc;
-      font-size: 14px;
-    }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
 
-    button {
-      margin-top: 2rem;
-      background-color: #1976d2;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 5px;
-      font-size: 16px;
-      cursor: pointer;
-    }
+        button {
+            margin-top: 1.5rem;
+            background-color: #1976d2;
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
 
-    button:hover {
-      background-color: #125ea2;
-    }
+        button:hover {
+            background-color: #125ea2;
+        }
 
-    .back-link {
-      text-align: center;
-      margin-top: 1rem;
-    }
-
-    .back-link a {
-      text-decoration: none;
-      color: #1976d2;
-    }
-  </style>
+        .back-link {
+            display: inline-block;
+            margin: 1rem 0;
+            text-decoration: none;
+            color: #1976d2;
+        }
+    </style>
 </head>
 <body>
-  <h1>➕ Tambah Aset Baru</h1>
-  <form method="post" action="/input">
-    <label>Nama Aset:</label>
-    <input type="text" name="item_name" required>
+    <h1>➕ Input Aset Baru</h1>
 
-    <label>Kategori:</label>
-    <input type="text" name="category" list="category-list" required>
-    <datalist id="category-list">
-      {% for c in categories %}
-      <option value="{{ c }}">
-      {% endfor %}
-    </datalist>
+    <p style="text-align: center;">
+        <a href="/" class="back-link">🔙 Kembali ke Beranda</a>
+    </p>
 
-    <label>Type:</label>
-    <input type="text" name="type_" list="type-list" required>
-    <datalist id="type-list">
-      {% for t in types %}
-      <option value="{{ t.Type }}">
-      {% endfor %}
-    </datalist>
+    <form method="post">
+        <label for="item_name">📦 Nama Aset</label>
+        <input type="text" id="item_name" name="item_name" required>
 
-    <label>Manufacture:</label>
-    <input type="text" name="manufacture">
+        <label for="category">📁 Kategori</label>
+        <input list="category_list" id="category" name="category" required>
+        <datalist id="category_list">
+            {% for cat in categories %}
+                <option value="{{ cat }}">
+            {% endfor %}
+        </datalist>
 
-    <label>Model:</label>
-    <input type="text" name="model">
+        <label for="type_">🧩 Tipe</label>
+        <input list="type_list" id="type_" name="type_" required>
+        <datalist id="type_list">
+            {% for t in types %}
+                <option value="{{ t['Type'] }}">{{ t['Type'] }} ({{ t['Category'] }})
+            {% endfor %}
+        </datalist>
 
-    <label>Serial Number:</label>
-    <input type="text" name="serial_number">
+        <label for="manufacture">🏭 Merk / Manufacture</label>
+        <input type="text" id="manufacture" name="manufacture">
 
-    <label>Perusahaan (Company):</label>
-    <input type="text" name="company" id="company" list="company-list" required>
-    <datalist id="company-list">
-      {% for c in companies %}
-      <option value="{{ c }}">
-      {% endfor %}
-    </datalist>
+        <label for="model">📎 Model</label>
+        <input type="text" id="model" name="model">
 
-    <label>Kode Perusahaan (Code Company):</label>
-    <input type="text" name="code_company" maxlength="3" required>
+        <label for="serial_number">🔢 Nomor Seri</label>
+        <input type="text" id="serial_number" name="serial_number">
 
-    <label>Bisnis Unit:</label>
-    <input type="text" name="bisnis_unit">
+        <label for="company">🏢 Perusahaan</label>
+        <input list="company_list" id="company" name="company" required>
+        <datalist id="company_list">
+            {% for c in companies %}
+                <option value="{{ c }}">
+            {% endfor %}
+        </datalist>
 
-    <label>Lokasi (Location):</label>
-    <input type="text" id="location" name="location" list="location-list" oninput="updateRoomOptions()" required>
-    <datalist id="location-list">
-      {% for loc in locations %}
-      <option value="{{ loc.Location }}">
-      {% endfor %}
-    </datalist>
+        <label for="code_company">🏷️ Kode Perusahaan</label>
+        <input type="text" id="code_company" name="code_company" required maxlength="3">
 
-    <label>Ruang (Room Location):</label>
-    <input type="text" id="room_location" name="room_location" list="room-options" required>
-    <datalist id="room-options">
-      <!-- populated by JS -->
-    </datalist>
+        <label for="bisnis_unit">🏭 Unit Bisnis</label>
+        <input type="text" id="bisnis_unit" name="bisnis_unit">
 
-    <label>Notes:</label>
-    <textarea name="notes" rows="2"></textarea>
+        <label for="location">📍 Lokasi</label>
+        <select id="location" name="location" required onchange="updateRooms()">
+            <option value="">Pilih Lokasi</option>
+            {% for loc in locations %}
+                <option value="{{ loc }}">{{ loc }}</option>
+            {% endfor %}
+        </select>
 
-    <label>Kondisi:</label>
-    <select name="condition">
-      <option value="">-- Pilih --</option>
-      <option value="Baik">Baik</option>
-      <option value="Rusak">Rusak</option>
-      <option value="Perlu Perbaikan">Perlu Perbaikan</option>
-    </select>
+        <label for="room_location">🏢 Ruangan</label>
+        <select id="room_location" name="room_location" required>
+            <option value="">Pilih Ruangan</option>
+        </select>
 
-    <label>Tanggal Pembelian:</label>
-    <input type="date" name="purchase_date" required>
+        <label for="notes">📝 Catatan</label>
+        <textarea id="notes" name="notes" rows="2"></textarea>
 
-    <label>Biaya Pembelian:</label>
-    <input type="number" name="purchase_cost" required>
+        <label for="condition">⚙️ Kondisi</label>
+        <input type="text" id="condition" name="condition">
 
-    <label>Garansi:</label>
-    <select name="warranty">
-      <option value="No">Tidak</option>
-      <option value="Yes">Ya</option>
-    </select>
+        <label for="purchase_date">🗓️ Tanggal Pembelian</label>
+        <input type="date" id="purchase_date" name="purchase_date" required>
 
-    <label>Supplier:</label>
-    <input type="text" name="supplier">
+        <label for="purchase_cost">💰 Harga Pembelian</label>
+        <input type="number" id="purchase_cost" name="purchase_cost" required>
 
-    <label>Journal:</label>
-    <input type="text" name="journal">
+        <label for="warranty">📜 Garansi</label>
+        <select id="warranty" name="warranty">
+            <option value="No">No</option>
+            <option value="Yes">Yes</option>
+        </select>
 
-    <label>Pemilik (Owner):</label>
-    <input type="text" name="owner" list="owner-list" required>
-    <datalist id="owner-list">
-      {% for o in owners %}
-      <option value="{{ o }}">
-      {% endfor %}
-    </datalist>
+        <label for="supplier">🚚 Supplier</label>
+        <input type="text" id="supplier" name="supplier">
 
-    <button type="submit">💾 Simpan Aset</button>
-  </form>
+        <label for="journal">📖 Jurnal</label>
+        <input type="text" id="journal" name="journal">
 
-  <div class="back-link">
-    <a href="/">← Kembali ke Beranda</a>
-  </div>
+        <label for="owner">👤 Penanggung Jawab</label>
+        <input list="owner_list" id="owner" name="owner" required>
+        <datalist id="owner_list">
+            {% for o in owners %}
+                <option value="{{ o }}">
+            {% endfor %}
+        </datalist>
 
-  <script>
-    const locations = {{ locations | tojson | safe }};
-    const roomOptions = document.getElementById('room-options');
+        <button type="submit">✅ Simpan Aset</button>
+    </form>
 
-    function updateRoomOptions() {
-      const selected = document.getElementById('location').value.trim().toLowerCase();
-      roomOptions.innerHTML = "";
-      const matched = locations.filter(loc => loc.Location.toLowerCase() === selected);
-      matched.forEach(loc => {
-        const opt = document.createElement("option");
-        opt.value = loc.Room;
-        roomOptions.appendChild(opt);
-      });
-    }
-  </script>
+    <!-- JavaScript: Filter Ruangan Berdasarkan Lokasi -->
+    <script>
+        const roomMap = {{ room_map | tojson | safe }};
+
+        function updateRooms() {
+            const loc = document.getElementById("location").value;
+            const roomSelect = document.getElementById("room_location");
+
+            roomSelect.innerHTML = '<option value="">Pilih Ruangan</option>';
+
+            if (roomMap[loc]) {
+                roomMap[loc].forEach(room => {
+                    const option = document.createElement("option");
+                    option.value = room;
+                    option.textContent = room;
+                    roomSelect.appendChild(option);
+                });
+            }
+        }
+    </script>
 </body>
 </html>
