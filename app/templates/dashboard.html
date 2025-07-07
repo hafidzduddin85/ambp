@@ -114,7 +114,13 @@
         <table>
             <thead>
                 <tr>
-                    {% for key in assets[0].keys() %}
+                    {% if assets %}
+						{% for key in assets[0].keys() %}
+							<!-- render kolom -->
+						{% endfor %}
+					{% else %}
+						<tr><td colspan="100%">Tidak ada data aset untuk status "{{ selected_status }}"</td></tr>
+					{% endif %}
                         <th>{{ key }}</th>
                     {% endfor %}
                 </tr>
