@@ -1,7 +1,8 @@
 import io
 from fastapi import FastAPI, Request, Form, Query
-from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, StreamingResponse, FileResponse
 from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
 from collections import Counter
 from openpyxl import Workbook
 
@@ -10,12 +11,24 @@ from app.sheets import append_asset, get_sheet
 app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
 
+# Serve static files (for manifest, icons, service worker, etc.)
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+
+
+@app.get("/", include_in_schema=False)
+async def root():
+    return RedirectResponse(url="/dashboard")
+
+
+@app.get("/favicon.ico", include_in_schema=False)
+async def favicon():
+    return FileResponse("app/static/favicon.ico")
+
 
 @app.get("/input", response_class=HTMLResponse)
 async def show_form(request: Request):
     sheet = get_sheet()
 
-    # Ambil data referensi dari Google Sheets
     ref_categories = sheet.worksheet("Ref_Categories").col_values(1)[1:]
     ref_types = sheet.worksheet("Ref_Types").col_values(1)[1:]
     ref_companies = sheet.worksheet("Ref_Companies").col_values(1)[1:]
@@ -80,13 +93,11 @@ async def show_dashboard(request: Request, status: str = Query(default="All")):
     sheet = get_sheet()
     data = sheet.worksheet("Assets").get_all_records()
 
-    # Filter berdasarkan status
     if status != "All":
         filtered = [row for row in data if row.get("Status", "").lower() == status.lower()]
     else:
         filtered = data
 
-    # Hitung jumlah aset per kategori dan per tahun
     kategori_counter = Counter([row["Category"] for row in filtered if row.get("Category")])
     tahun_counter = Counter([str(row.get("Tahun", "")) for row in filtered if row.get("Tahun")])
 
@@ -96,7 +107,7 @@ async def show_dashboard(request: Request, status: str = Query(default="All")):
         "selected_status": status,
         "kategori_labels": list(kategori_counter.keys()),
         "kategori_values": list(kategori_counter.values()),
-        "tahun_labels": sorted(tahun_counter.keys()),  # urut tahun
+        "tahun_labels": sorted(tahun_counter.keys()),
         "tahun_values": [tahun_counter[t] for t in sorted(tahun_counter.keys())],
     })
 
@@ -106,21 +117,18 @@ async def export_excel(status: str = Query(default="All")):
     sheet = get_sheet()
     data = sheet.worksheet("Assets").get_all_records()
 
-    # Filter berdasarkan status jika diminta
     if status != "All":
         data = [row for row in data if row.get("Status", "").lower() == status.lower()]
 
-    # Buat workbook Excel
     wb = Workbook()
     ws = wb.active
     ws.title = "Assets"
 
     if data:
-        ws.append(list(data[0].keys()))  # header
+        ws.append(list(data[0].keys()))
         for row in data:
             ws.append(list(row.values()))
 
-    # Simpan ke memori
     stream = io.BytesIO()
     wb.save(stream)
     stream.seek(0)

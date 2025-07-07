@@ -1,63 +1,158 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Input Aset</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- PWA Meta -->
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+    <meta name="theme-color" content="#1976d2">
+    <meta name="mobile-web-app-capable" content="yes">
+
+    <!-- Styling -->
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            max-width: 640px;
+            margin: auto;
+            background-color: #f5f5f5;
+        }
+
+        h2 {
+            text-align: center;
+            color: #1976d2;
+        }
+
+        form {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0px 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        label {
+            font-weight: bold;
+            display: block;
+            margin-top: 10px;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #1976d2;
+            color: white;
+            border: none;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #145ea8;
+        }
+    </style>
 </head>
 <body>
-    <h2>Form Input Aset</h2>
+    <h2>📥 Form Input Aset</h2>
     <form method="post" action="/input">
-        <label>Item Name:</label><br><input type="text" name="item_name" required><br><br>
 
-        <label>Category:</label><br>
+        <label for="item_name">Item Name</label>
+        <input type="text" name="item_name" required>
+
+        <label for="category">Category</label>
         <select name="category" required>
             {% for c in categories %}
                 <option value="{{ c }}">{{ c }}</option>
             {% endfor %}
-        </select><br><br>
+        </select>
 
-        <label>Type:</label><br>
+        <label for="type_">Type</label>
         <select name="type_" required>
             {% for t in types %}
                 <option value="{{ t }}">{{ t }}</option>
             {% endfor %}
-        </select><br><br>
+        </select>
 
-        <label>Manufacture:</label><br><input type="text" name="manufacture"><br><br>
-        <label>Model:</label><br><input type="text" name="model"><br><br>
-        <label>Serial Number:</label><br><input type="text" name="serial_number"><br><br>
+        <label for="manufacture">Manufacture</label>
+        <input type="text" name="manufacture">
 
-        <label>Company:</label><br>
+        <label for="model">Model</label>
+        <input type="text" name="model">
+
+        <label for="serial_number">Serial Number</label>
+        <input type="text" name="serial_number">
+
+        <label for="company">Company</label>
         <select name="company" required>
             {% for co in companies %}
                 <option value="{{ co }}">{{ co }}</option>
             {% endfor %}
-        </select><br><br>
+        </select>
 
-        <label>Bisnis Unit:</label><br><input type="text" name="bisnis_unit"><br><br>
-        <label>Location:</label><br><input type="text" name="location"><br><br>
-        <label>Room Location:</label><br><input type="text" name="room_location"><br><br>
-        <label>Notes:</label><br><input type="text" name="notes"><br><br>
-        <label>Condition:</label><br><input type="text" name="condition"><br><br>
-        <label>Purchase Date:</label><br><input type="date" name="purchase_date" required><br><br>
-        <label>Purchase Cost:</label><br><input type="number" name="purchase_cost" required><br><br>
+        <label for="bisnis_unit">Bisnis Unit</label>
+        <input type="text" name="bisnis_unit">
 
-        <label>Warranty:</label><br>
+        <label for="location">Location</label>
+        <input type="text" name="location">
+
+        <label for="room_location">Room Location</label>
+        <input type="text" name="room_location">
+
+        <label for="notes">Notes</label>
+        <input type="text" name="notes">
+
+        <label for="condition">Condition</label>
+        <input type="text" name="condition">
+
+        <label for="purchase_date">Purchase Date</label>
+        <input type="date" name="purchase_date" required>
+
+        <label for="purchase_cost">Purchase Cost</label>
+        <input type="number" name="purchase_cost" required>
+
+        <label for="warranty">Warranty</label>
         <select name="warranty">
             <option value="Yes">Yes</option>
             <option value="No" selected>No</option>
-        </select><br><br>
+        </select>
 
-        <label>Supplier:</label><br><input type="text" name="supplier"><br><br>
-        <label>No. Journal:</label><br><input type="text" name="journal"><br><br>
+        <label for="supplier">Supplier</label>
+        <input type="text" name="supplier">
 
-        <label>Owner:</label><br>
+        <label for="journal">No. Journal</label>
+        <input type="text" name="journal">
+
+        <label for="owner">Owner</label>
         <select name="owner" required>
             {% for o in owners %}
                 <option value="{{ o }}">{{ o }}</option>
             {% endfor %}
-        </select><br><br>
+        </select>
 
-        <button type="submit">Submit</button>
+        <button type="submit">🚀 Submit Aset</button>
     </form>
+
+    <!-- Service Worker -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/static/service-worker.js')
+                .then(() => console.log("✅ Service Worker registered"))
+                .catch(err => console.error("❌ Service Worker failed:", err));
+        }
+    </script>
 </body>
 </html>
