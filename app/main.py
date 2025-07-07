@@ -31,7 +31,8 @@ async def show_home(request: Request):
 async def favicon():
     return FileResponse("app/static/favicon.ico")
 
-# ======= INPUT FORM =======
+
+# ========== INPUT FORM ==========
 @app.get("/input", response_class=HTMLResponse)
 async def show_form(request: Request):
     refs = get_reference_lists()
@@ -43,6 +44,7 @@ async def show_form(request: Request):
         "owners": refs["owners"]
     })
 
+
 @app.post("/input")
 async def submit_form(
     request: Request,
@@ -52,8 +54,11 @@ async def submit_form(
     manufacture: str = Form(""),
     model: str = Form(""),
     serial_number: str = Form(""),
-    company: str = Form(...),
-    code_company: str = Form(...),
+
+    company_select: str = Form(...),
+    company: str = Form(""),
+    code_company: str = Form(""),
+
     bisnis_unit: str = Form(""),
     location: str = Form(""),
     room_location: str = Form(""),
@@ -66,26 +71,37 @@ async def submit_form(
     journal: str = Form(""),
     owner: str = Form(...)
 ):
-    # Normalisasi input
-    company = company.strip().upper()
-    code_company = code_company.strip().upper()
+    # ===============================
+    # Penentuan company dan code_company
+    # ===============================
+    if company_select == "__add_new__":
+        # Validasi input baru
+        if not company or not code_company:
+            return HTMLResponse("<h3>❌ Harap isi Company dan Code Company baru.</h3>", status_code=400)
+        if not code_company.isalpha() or len(code_company) != 3 or not code_company.isupper():
+            return HTMLResponse("<h3>❌ Code Company harus 3 huruf kapital!</h3>", status_code=400)
 
-    # Validasi code_company: harus 3 huruf kapital
-    if not code_company.isalpha() or len(code_company) != 3:
-        return HTMLResponse(
-            "<h3>❌ Code Company harus terdiri dari 3 huruf kapital (contoh: ABC)</h3>", status_code=400
-        )
-
-    # Tambah referensi jika belum ada
-    try:
-        add_category_if_not_exists(category)
-        add_type_if_not_exists(type_, category)
+        company = company.strip().upper()
+        code_company = code_company.strip().upper()
         add_company_with_code_if_not_exists(company, code_company)
-        add_owner_if_not_exists(owner)
-    except ValueError as e:
-        return HTMLResponse(f"<h3>❌ {e}</h3>", status_code=400)
+    else:
+        # Ekstrak dari "PT ABC (ABC)"
+        if "(" in company_select and ")" in company_select:
+            company = company_select.split(" (")[0].strip().upper()
+            code_company = company_select.split(" (")[1].replace(")", "").strip().upper()
+        else:
+            return HTMLResponse("<h3>❌ Format Company tidak valid.</h3>", status_code=400)
 
-    # Tambahkan data aset ke sheet
+    # ===============================
+    # Tambah referensi lainnya jika perlu
+    # ===============================
+    add_category_if_not_exists(category)
+    add_type_if_not_exists(type_, category)
+    add_owner_if_not_exists(owner)
+
+    # ===============================
+    # Tambah ke sheet
+    # ===============================
     append_asset({
         "item_name": item_name,
         "category": category,
@@ -110,7 +126,8 @@ async def submit_form(
 
     return RedirectResponse(url="/input", status_code=303)
 
-# ======= DASHBOARD =======
+
+# ========== DASHBOARD ==========
 @app.get("/dashboard", response_class=HTMLResponse)
 async def show_dashboard(request: Request, status: str = Query(default="All")):
     data = get_assets(status) or []
@@ -128,7 +145,8 @@ async def show_dashboard(request: Request, status: str = Query(default="All")):
         "tahun_values": [tahun_counter[t] for t in sorted(tahun_counter)],
     })
 
-# ======= EXPORT EXCEL =======
+
+# ========== EXPORT ==========
 @app.get("/export")
 async def export_excel(status: str = Query(default="All")):
     data = get_assets(status) or []

@@ -4,13 +4,9 @@
     <meta charset="UTF-8">
     <title>Input Aset</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
-    <!-- PWA -->
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#1976d2">
     <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
-
-    <!-- Tom Select -->
     <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
 
     <style>
@@ -91,10 +87,15 @@
         <input type="text" name="serial_number">
 
         <label>Company</label>
-        <select id="company" name="company" placeholder="Pilih atau ketik Company" required></select>
+        <select id="company_select" name="company_select" required></select>
 
-        <label>Code Company (3 huruf kapital)</label>
-        <input type="text" name="code_company" required pattern="[A-Z]{3}" title="Gunakan 3 huruf kapital, contoh: ABC">
+        <div id="new-company-fields" style="display: none;">
+            <label>Nama Company Baru</label>
+            <input type="text" id="new_company" name="company">
+
+            <label>Code Company (3 huruf kapital)</label>
+            <input type="text" id="new_code_company" name="code_company" pattern="[A-Z]{3}" title="Gunakan 3 huruf kapital">
+        </div>
 
         <label>Bisnis Unit</label>
         <input type="text" name="bisnis_unit">
@@ -151,10 +152,10 @@
     <!-- Tom Select + Filtering -->
     <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
     <script>
-        const types = {{ types | tojson | safe }};  // [{'Type': 'Laptop', 'Category': 'Elektronik', ...}]
-        const companies = {{ companies | tojson | safe }};  // ['PT A (ABC)', 'PT B (DEF)', ...]
+        const types = {{ types | tojson | safe }};  // [{Type, Category}]
+        const companies = {{ companies | tojson | safe }};  // ["PT ABC (ABC)"]
 
-        // Type selector
+        // === Type Dropdown ===
         const typeSelect = new TomSelect("#type_", {
             create: true,
             persist: false,
@@ -181,13 +182,35 @@
             if (categorySelect.value) updateTypeOptions(categorySelect.value);
         });
 
-        // Company selector
-        new TomSelect("#company", {
-            create: true,
+        // === Company Dropdown with Add New ===
+        const companySelect = new TomSelect("#company_select", {
+            create: false,
             persist: false,
-            maxOptions: 500,
-            placeholder: "Ketik atau pilih Company",
+            placeholder: "Pilih atau ketik Company",
             options: companies.map(c => ({ value: c, text: c }))
+                .concat([{ value: "__add_new__", text: "➕ Tambah Company Baru" }])
+        });
+
+        const newCompanyFields = document.getElementById("new-company-fields");
+        const newCompanyInput = document.getElementById("new_company");
+        const newCodeCompanyInput = document.getElementById("new_code_company");
+
+        companySelect.on('change', function(value) {
+            if (value === "__add_new__") {
+                newCompanyFields.style.display = "block";
+                newCompanyInput.required = true;
+                newCodeCompanyInput.required = true;
+            } else {
+                newCompanyFields.style.display = "none";
+                newCompanyInput.required = false;
+                newCodeCompanyInput.required = false;
+            }
+        });
+
+        document.addEventListener("DOMContentLoaded", () => {
+            if (companySelect.getValue() === "__add_new__") {
+                newCompanyFields.style.display = "block";
+            }
         });
     </script>
 </body>
