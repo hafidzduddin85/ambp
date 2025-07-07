@@ -1,16 +1,22 @@
 # app/cache.py
 import time
+from typing import Callable, Any
 
-_ref_cache = {}
-_ref_expiry_seconds = 300  # 5 menit
+_cache_store = {}
+_default_ttl = 300  # default 5 menit
 
-def get_cached_data(key: str, loader_fn):
+def get_cached_data(key: str, loader_fn: Callable[[], Any], ttl: int = _default_ttl) -> Any:
     now = time.time()
-    if key in _ref_cache:
-        data, timestamp = _ref_cache[key]
-        if now - timestamp < _ref_expiry_seconds:
+    entry = _cache_store.get(key)
+
+    if entry:
+        data, timestamp = entry
+        if now - timestamp < ttl:
             return data
 
     data = loader_fn()
-    _ref_cache[key] = (data, now)
+    _cache_store[key] = (data, now)
     return data
+
+def clear_cache(key: str):
+    _cache_store.pop(key, None)
