@@ -13,11 +13,9 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
-
 
 @app.get("/input", response_class=HTMLResponse)
 def show_form(request: Request):
@@ -28,7 +26,6 @@ def show_form(request: Request):
         "refs": refs,
         "location_room_map": location_room_map
     })
-
 
 @app.post("/submit")
 def submit_asset(
@@ -52,33 +49,22 @@ def submit_asset(
     supplier: str = Form(""),
     journal: str = Form(""),
     owner: str = Form(...),
-
-    # Tambahan opsi input baru
-    new_type: str = Form(""),
-    new_location: str = Form(""),
-    new_room_location: str = Form(""),
     new_company: str = Form(""),
     new_code_company: str = Form(""),
 ):
-    # Tambah Company baru jika diberikan
+    # Tambah perusahaan baru jika ada input
     if new_company and new_code_company:
         sheets.add_company_with_code_if_not_exists(new_company, new_code_company)
         company = new_company
         code_company = new_code_company
 
-    # Tambah Lokasi dan Ruangan jika diberikan
-    if new_location and new_room_location:
-        sheets.add_location_if_not_exists(new_location, new_room_location)
-        location = new_location
-        room_location = new_room_location
+    # Tambah lokasi-ruangan jika belum ada
+    sheets.add_location_if_not_exists(location, room_location)
 
-    # Tambah Type jika diberikan
-    if new_type:
-        sheets.add_type_if_not_exists(new_type, category)
-        type = new_type
-
-    # Kategori dan Owner dari dropdown (tidak ditambah)
-    # Validasi tetap bisa dilakukan jika perlu
+    # Tambah referensi kategori, type, owner jika belum ada
+    sheets.add_category_if_not_exists(category)
+    sheets.add_type_if_not_exists(type, category)
+    sheets.add_owner_if_not_exists(owner)
 
     data = {
         "item_name": item_name,
@@ -105,7 +91,6 @@ def submit_asset(
     sheets.append_asset(data)
     return RedirectResponse(url="/input", status_code=303)
 
-
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, status: str = "All"):
     data = sheets.get_assets(status)
@@ -130,7 +115,6 @@ def dashboard(request: Request, status: str = "All"):
         "tahun_values": list(tahun_summary.values()),
     })
 
-
 @app.get("/export")
 def export_excel(status: str = "All"):
     data = sheets.get_assets(status)
@@ -146,11 +130,9 @@ def export_excel(status: str = "All"):
         headers={"Content-Disposition": f"attachment; filename=assets_{status}.csv"}
     )
 
-
 @app.get("/favicon.ico", include_in_schema=False)
-async def favicon():
+def favicon():
     return FileResponse("app/static/favicon.ico")
-
 
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

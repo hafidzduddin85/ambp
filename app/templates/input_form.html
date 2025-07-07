@@ -1,177 +1,174 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Input Aset Baru</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#1976d2">
-    <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
-    <link rel="stylesheet" href="/static/style.css">
-    <style>
-        body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 1rem; max-width: 720px; margin: auto; }
-        h1 { text-align: center; color: #1976d2; }
-        form { background-color: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
-        label { margin-top: 1rem; font-weight: bold; display: block; }
-        input, select, textarea { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-        button { margin-top: 1.5rem; background-color: #1976d2; color: white; padding: 10px; border: none; width: 100%; font-size: 16px; border-radius: 6px; cursor: pointer; }
-        button:hover { background-color: #125ea2; }
-        .back-link { display: block; margin: 1rem 0; text-align: center; text-decoration: none; color: #1976d2; }
-        .hidden { display: none; }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Input Aset Baru</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="manifest" href="/static/manifest.json" />
+  <meta name="theme-color" content="#1976d2" />
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 1rem; max-width: 720px; margin: auto; }
+    form { background: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
+    label { margin-top: 1rem; font-weight: bold; display: block; }
+    input, select, textarea { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; }
+    button { margin-top: 1.5rem; background: #1976d2; color: white; padding: 10px; border: none; width: 100%; font-size: 16px; border-radius: 6px; cursor: pointer; }
+    button:hover { background-color: #125ea2; }
+    .back-link { display: block; margin: 1rem 0; text-align: center; text-decoration: none; color: #1976d2; }
+    .hidden { display: none; }
+  </style>
 </head>
 <body>
-    <h1>➕ Input Aset Baru</h1>
-    <a href="/" class="back-link">🔙 Kembali ke Beranda</a>
+  <h1>➕ Input Aset Baru</h1>
+  <a href="/" class="back-link">🔙 Kembali ke Beranda</a>
 
-    <form method="post" action="/submit">
-        <label for="item_name">📦 Nama Aset</label>
-        <input type="text" id="item_name" name="item_name" required>
+  <form method="post" action="/submit">
+    <label>📦 Nama Aset</label>
+    <input type="text" name="item_name" required />
 
-        <label for="category">📁 Kategori</label>
-        <select id="category" name="category" required>
-            <option value="">-- Pilih Kategori --</option>
-            {% for cat in refs.categories %}
-                <option value="{{ cat }}">{{ cat }}</option>
-            {% endfor %}
-        </select>
+    <label>📁 Kategori</label>
+    <select name="category" required>
+      <option value="">-- Pilih Kategori --</option>
+      {% for cat in refs.categories %}
+        <option value="{{ cat }}">{{ cat }}</option>
+      {% endfor %}
+    </select>
 
-        <label for="type">🧩 Tipe</label>
-        <input list="type_list" id="type" name="type" required>
-        <datalist id="type_list">
-            {% for t in refs.types %}
-                <option value="{{ t.Type }}">{{ t.Type }} ({{ t.Category }})</option>
-            {% endfor %}
-        </datalist>
+    <label>🧩 Tipe</label>
+    <input list="type_list" name="type" id="type" />
+    <datalist id="type_list">
+      {% for t in refs.types %}
+        <option value="{{ t.Type }}">{{ t.Type }} ({{ t.Category }})</option>
+      {% endfor %}
+    </datalist>
 
-        <label for="manufacture">🏭 Merk / Manufacture</label>
-        <input type="text" id="manufacture" name="manufacture">
+    <label>🏭 Merk / Manufacture</label>
+    <input type="text" name="manufacture" />
 
-        <label for="model">📎 Model</label>
-        <input type="text" id="model" name="model">
+    <label>📎 Model</label>
+    <input type="text" name="model" />
 
-        <label for="serial_number">🔢 Nomor Seri</label>
-        <input type="text" id="serial_number" name="serial_number">
+    <label>🔢 Nomor Seri</label>
+    <input type="text" name="serial_number" />
 
-        <label for="company">🏢 Perusahaan</label>
-        <input list="company_list" id="company" name="company" onchange="toggleCodeCompany()" required>
-        <datalist id="company_list">
-            {% for c in refs.companies %}
-                <option value="{{ c }}">
-            {% endfor %}
-        </datalist>
+    <label>🏢 Perusahaan</label>
+    <input list="company_list" name="company" id="company" required oninput="checkCompanyNew()" />
+    <datalist id="company_list">
+      {% for c in refs.companies %}
+        <option value="{{ c }}">
+      {% endfor %}
+    </datalist>
+    <button type="button" id="add_company_btn" class="hidden" onclick="confirmAddCompany()">➕ Tambah Perusahaan Baru</button>
 
-        <div id="code_company_group" class="hidden">
-            <label for="code_company">🏷️ Kode Perusahaan</label>
-            <input type="text" id="code_company" name="code_company" maxlength="3">
-        </div>
+    <div id="new_company_group" class="hidden">
+      <label>🏢 Nama Perusahaan Baru</label>
+      <input type="text" name="new_company" id="new_company" />
 
-        <label for="bisnis_unit">🏭 Unit Bisnis</label>
-        <input type="text" id="bisnis_unit" name="bisnis_unit">
+      <label>🏷️ Kode Perusahaan Baru</label>
+      <input type="text" name="new_code_company" id="new_code_company" maxlength="3" />
+    </div>
 
-        <label for="location">📍 Lokasi</label>
-        <input list="location_list" id="location" name="location" onchange="updateRooms()" required>
-        <datalist id="location_list">
-            {% for loc in refs.locations %}
-                <option value="{{ loc }}">
-            {% endfor %}
-        </datalist>
+    <div id="code_company_group">
+      <label>🏷️ Kode Perusahaan</label>
+      <input type="text" name="code_company" id="code_company" maxlength="3" required />
+    </div>
 
-        <label for="room_location">🏢 Ruangan</label>
-        <input list="room_list" id="room_location" name="room_location" required>
-        <datalist id="room_list">
-            <!-- Populated via JS -->
-        </datalist>
+    <label>🏭 Unit Bisnis</label>
+    <input type="text" name="bisnis_unit" />
 
-        <label for="notes">📝 Catatan</label>
-        <textarea id="notes" name="notes" rows="2"></textarea>
+    <label>📍 Lokasi</label>
+    <input list="location_list" name="location" id="location" onchange="updateRooms()" required />
+    <datalist id="location_list">
+      {% for loc in refs.locations %}
+        <option value="{{ loc }}">
+      {% endfor %}
+    </datalist>
 
-        <label for="condition">⚙️ Kondisi</label>
-        <input type="text" id="condition" name="condition">
+    <label>🏢 Ruangan</label>
+    <input list="room_list" name="room_location" id="room_location" required />
+    <datalist id="room_list">
+      {% for r in refs.rooms %}
+        <option value="{{ r }}">
+      {% endfor %}
+    </datalist>
 
-        <label for="purchase_date">🗓️ Tanggal Pembelian</label>
-        <input type="date" id="purchase_date" name="purchase_date" required>
+    <label>📝 Catatan</label>
+    <textarea name="notes" rows="2"></textarea>
 
-        <label for="purchase_cost">💰 Harga Pembelian</label>
-        <input type="number" id="purchase_cost" name="purchase_cost" required>
+    <label>⚙️ Kondisi</label>
+    <input type="text" name="condition" />
 
-        <label for="warranty">📜 Garansi</label>
-        <select id="warranty" name="warranty">
-            <option value="No">No</option>
-            <option value="Yes">Yes</option>
-        </select>
+    <label>🗓️ Tanggal Pembelian</label>
+    <input type="date" name="purchase_date" required />
 
-        <label for="supplier">🚚 Supplier</label>
-        <input type="text" id="supplier" name="supplier">
+    <label>💰 Harga Pembelian</label>
+    <input type="number" name="purchase_cost" required />
 
-        <label for="journal">📖 Jurnal</label>
-        <input type="text" id="journal" name="journal">
+    <label>📜 Garansi</label>
+    <select name="warranty">
+      <option value="No">No</option>
+      <option value="Yes">Yes</option>
+    </select>
 
-        <label for="owner">👤 Penanggung Jawab</label>
-        <select id="owner" name="owner" required>
-            <option value="">-- Pilih Penanggung Jawab --</option>
-            {% for o in refs.owners %}
-                <option value="{{ o }}">{{ o }}</option>
-            {% endfor %}
-        </select>
+    <label>🚚 Supplier</label>
+    <input type="text" name="supplier" />
 
-        <button type="submit">✅ Simpan Aset</button>
-    </form>
+    <label>📖 Jurnal</label>
+    <input type="text" name="journal" />
 
-    <script>
-        const roomMap = {{ location_room_map | tojson | safe }};
+    <label>👤 Penanggung Jawab</label>
+    <select name="owner" required>
+      <option value="">-- Pilih Penanggung Jawab --</option>
+      {% for o in refs.owners %}
+        <option value="{{ o }}">{{ o }}</option>
+      {% endfor %}
+    </select>
 
-        function updateRooms() {
-            const loc = document.getElementById("location").value;
-            const roomList = document.getElementById("room_list");
-            roomList.innerHTML = "";
+    <button type="submit">✅ Simpan Aset</button>
+  </form>
 
-            if (roomMap[loc]) {
-                roomMap[loc].forEach(room => {
-                    const opt = document.createElement("option");
-                    opt.value = room;
-                    roomList.appendChild(opt);
-                });
-            }
-        }
+  <script>
+    const roomMap = {{ location_room_map | tojson | safe }};
 
-        function toggleCodeCompany() {
-            const input = document.getElementById("company").value;
-            const knownCompanies = [...document.querySelectorAll("#company_list option")].map(opt => opt.value);
-            const group = document.getElementById("code_company_group");
+    function updateRooms() {
+      const location = document.getElementById("location").value;
+      const roomList = document.getElementById("room_list");
+      roomList.innerHTML = '';
+      if (roomMap[location]) {
+        roomMap[location].forEach(room => {
+          const opt = document.createElement("option");
+          opt.value = room;
+          roomList.appendChild(opt);
+        });
+      }
+    }
 
-            group.classList.toggle("hidden", knownCompanies.includes(input));
-        }
-    </script>
-	<script>
-		const knownTypes = [...document.querySelectorAll("#type_list option")].map(opt => opt.value);
-		const knownLocations = [...document.querySelectorAll("#location_list option")].map(opt => opt.value);
-		const knownRooms = [...document.querySelectorAll("#room_list option")].map(opt => opt.value);
+    function checkCompanyNew() {
+      const input = document.getElementById("company").value;
+      const known = [...document.querySelectorAll("#company_list option")].map(o => o.value);
+      const btn = document.getElementById("add_company_btn");
+      const group = document.getElementById("new_company_group");
+      const codeGroup = document.getElementById("code_company_group");
 
-		const form = document.querySelector("form");
+      if (!known.includes(input)) {
+        btn.classList.remove("hidden");
+        codeGroup.classList.add("hidden");
+      } else {
+        btn.classList.add("hidden");
+        group.classList.add("hidden");
+        codeGroup.classList.remove("hidden");
+        document.getElementById("new_company").value = "";
+        document.getElementById("new_code_company").value = "";
+      }
+    }
 
-		form.addEventListener("submit", function (e) {
-			const type = document.querySelector("[name='type']").value;
-			const location = document.querySelector("[name='location']").value;
-			const room = document.querySelector("[name='room_location']").value;
-
-			let confirmMessage = "";
-
-			if (!knownTypes.includes(type)) {
-				confirmMessage += `🧩 Tipe "${type}" belum terdaftar. Tambah baru?\n`;
-			}
-			if (!knownLocations.includes(location)) {
-				confirmMessage += `📍 Lokasi "${location}" belum terdaftar. Tambah baru?\n`;
-			}
-			if (!knownRooms.includes(room)) {
-				confirmMessage += `🏢 Ruangan "${room}" belum terdaftar. Tambah baru?\n`;
-			}
-
-			if (confirmMessage && !confirm(confirmMessage)) {
-				e.preventDefault();
-			}
-		});
-	</script>
-
+    function confirmAddCompany() {
+      if (confirm("Perusahaan belum terdaftar. Tambah perusahaan dan kode perusahaan baru?")) {
+        document.getElementById("new_company_group").classList.remove("hidden");
+        document.getElementById("add_company_btn").classList.add("hidden");
+      }
+    }
+  </script>
 </body>
 </html>
