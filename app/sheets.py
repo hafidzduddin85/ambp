@@ -33,7 +33,7 @@ def get_reference_lists() -> dict:
 
     refs["categories"] = get_ref_column("Ref_Categories", 1)
     refs["types"] = get_ref_types()
-    refs["companies"] = get_ref_column("Ref_Companies", 1)
+    refs["companies"] = get_ref_companies()
     refs["owners"] = get_ref_column("Ref_Owners", 1)
 
     return refs
@@ -52,6 +52,14 @@ def get_ref_types() -> list:
         return ws.get_all_records()
     except gspread.exceptions.WorksheetNotFound:
         logging.warning("Sheet 'Ref_Types' not found.")
+        return []
+
+def get_ref_companies() -> list:
+    try:
+        ws = get_sheet().worksheet("Ref_Companies")
+        return [f"{r['Company']} ({r['Code Company']})" for r in ws.get_all_records()]
+    except gspread.exceptions.WorksheetNotFound:
+        logging.warning("Sheet 'Ref_Companies' not found.")
         return []
 
 # ================================
@@ -78,16 +86,26 @@ def add_category_if_not_exists(category_name: str):
     except Exception as e:
         logging.warning(f"Gagal menambahkan Category '{category_name}': {e}")
 
-def add_company_if_not_exists(company_name: str):
+def add_company_with_code_if_not_exists(company: str, code_company: str):
+    company = company.strip().upper()
+    code_company = code_company.strip().upper()
+
+    if not code_company.isalpha() or len(code_company) != 3:
+        raise ValueError("Code Company harus 3 huruf kapital")
+
     sheet = get_sheet()
     try:
         ws = sheet.worksheet("Ref_Companies")
-        companies = ws.col_values(1)[1:]
-        if company_name not in companies:
-            next_code = str(len(companies) + 1).zfill(2)
-            ws.append_row([company_name, next_code])
+        records = ws.get_all_records()
+        companies = [r['Company'].upper() for r in records]
+        codes = [r['Code Company'].upper() for r in records]
+
+        if company not in companies:
+            if code_company in codes:
+                raise ValueError("Code Company sudah digunakan")
+            ws.append_row([company, code_company])
     except Exception as e:
-        logging.warning(f"Gagal menambahkan Company '{company_name}': {e}")
+        logging.warning(f"Gagal menambahkan Company '{company}': {e}")
 
 def add_owner_if_not_exists(owner_name: str):
     sheet = get_sheet()
@@ -127,24 +145,22 @@ def get_next_asset_id() -> str:
     next_id = angka_terakhir + 1
     return f"A{str(next_id).zfill(3)}"
 
-def generate_asset_tag(company: str, category: str, type_: str, owner: str) -> str:
+def generate_asset_tag(code_company: str, category: str, type_: str, owner: str) -> str:
     sheet = get_sheet()
 
-    ref_companies = sheet.worksheet("Ref_Companies").get_all_records()
     ref_categories = sheet.worksheet("Ref_Categories").get_all_records()
     ref_types = sheet.worksheet("Ref_Types").get_all_records()
     ref_owners = sheet.worksheet("Ref_Owners").get_all_records()
     assets = sheet.worksheet("Assets").get_all_records()
 
-    code_company = next((r["Code Company"] for r in ref_companies if r["Company"] == company), "XXX")
     code_category = next((r["Code Category"] for r in ref_categories if r["Category"] == category), "XXX")
-    code_type = next((r["Code Type"] for r in ref_types if r["Type"] == type_ and r["Category"] == category), "XXX")
-    code_owner = next((r["Code Owner"] for r in ref_owners if r["Owner"] == owner), "XXX")
+    code_type = next((r["Code Type"] for r in ref_types if r["Type"] == type_ and r["Category"] == category), "XX")
+    code_owner = next((r["Code Owner"] for r in ref_owners if r["Owner"] == owner), "XX")
     tahun = datetime.now().year
 
     count = 1
     for a in assets:
-        if a["Company"] == company and a["Type"] == type_ and str(a["Tahun"]) == str(tahun):
+        if a["Company"] and a["Type"] == type_ and str(a["Tahun"]) == str(tahun):
             count += 1
 
     no_urut = str(count).zfill(4)
@@ -159,7 +175,7 @@ def append_asset(data: dict):
 
     asset_id = get_next_asset_id()
     asset_tag = generate_asset_tag(
-        company=data["company"],
+        code_company=data["code_company"].upper(),
         category=data["category"],
         type_=data["type"],
         owner=data["owner"]
@@ -176,7 +192,7 @@ def append_asset(data: dict):
         data.get("model", ""),
         data.get("serial_number", ""),
         asset_tag,
-        data.get("company", ""),
+        data.get("company", "").upper(),
         data.get("bisnis_unit", ""),
         data.get("location", ""),
         data.get("room_location", ""),

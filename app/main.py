@@ -12,7 +12,7 @@ from app.sheets import (
     get_reference_lists,
     add_type_if_not_exists,
     add_category_if_not_exists,
-    add_company_if_not_exists,
+    add_company_with_code_if_not_exists,
     add_owner_if_not_exists,
 )
 
@@ -31,7 +31,6 @@ async def show_home(request: Request):
 async def favicon():
     return FileResponse("app/static/favicon.ico")
 
-
 # ======= INPUT FORM =======
 @app.get("/input", response_class=HTMLResponse)
 async def show_form(request: Request):
@@ -44,7 +43,6 @@ async def show_form(request: Request):
         "owners": refs["owners"]
     })
 
-
 @app.post("/input")
 async def submit_form(
     request: Request,
@@ -55,6 +53,7 @@ async def submit_form(
     model: str = Form(""),
     serial_number: str = Form(""),
     company: str = Form(...),
+    code_company: str = Form(...),
     bisnis_unit: str = Form(""),
     location: str = Form(""),
     room_location: str = Form(""),
@@ -67,13 +66,26 @@ async def submit_form(
     journal: str = Form(""),
     owner: str = Form(...)
 ):
-    # Pastikan referensi tersedia
-    add_category_if_not_exists(category)
-    add_type_if_not_exists(type_, category)
-    add_company_if_not_exists(company)
-    add_owner_if_not_exists(owner)
+    # Normalisasi input
+    company = company.strip().upper()
+    code_company = code_company.strip().upper()
 
-    # Tambah ke sheet
+    # Validasi code_company: harus 3 huruf kapital
+    if not code_company.isalpha() or len(code_company) != 3:
+        return HTMLResponse(
+            "<h3>❌ Code Company harus terdiri dari 3 huruf kapital (contoh: ABC)</h3>", status_code=400
+        )
+
+    # Tambah referensi jika belum ada
+    try:
+        add_category_if_not_exists(category)
+        add_type_if_not_exists(type_, category)
+        add_company_with_code_if_not_exists(company, code_company)
+        add_owner_if_not_exists(owner)
+    except ValueError as e:
+        return HTMLResponse(f"<h3>❌ {e}</h3>", status_code=400)
+
+    # Tambahkan data aset ke sheet
     append_asset({
         "item_name": item_name,
         "category": category,
@@ -82,6 +94,7 @@ async def submit_form(
         "model": model,
         "serial_number": serial_number,
         "company": company,
+        "code_company": code_company,
         "bisnis_unit": bisnis_unit,
         "location": location,
         "room_location": room_location,
@@ -94,8 +107,8 @@ async def submit_form(
         "journal": journal,
         "owner": owner,
     })
-    return RedirectResponse(url="/input", status_code=303)
 
+    return RedirectResponse(url="/input", status_code=303)
 
 # ======= DASHBOARD =======
 @app.get("/dashboard", response_class=HTMLResponse)
@@ -115,8 +128,7 @@ async def show_dashboard(request: Request, status: str = Query(default="All")):
         "tahun_values": [tahun_counter[t] for t in sorted(tahun_counter)],
     })
 
-
-# ======= EXPORT =======
+# ======= EXPORT EXCEL =======
 @app.get("/export")
 async def export_excel(status: str = Query(default="All")):
     data = get_assets(status) or []
