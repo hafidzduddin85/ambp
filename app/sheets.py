@@ -24,17 +24,19 @@ def get_sheet():
     sheet_id = os.getenv("GOOGLE_SHEET_ID")
     return client.open_by_key(sheet_id)
 
-
 # ========================
 # Referensi Dropdown Input
 # ========================
 def get_reference_lists() -> dict:
-    refs = {}
-    refs["categories"] = get_ref_column("Ref_Categories", 1)
-    refs["types"] = get_ref_types()
-    refs["companies"] = get_ref_companies()
-    refs["owners"] = get_ref_column("Ref_Owners", 1)
-    return refs
+    sheet = get_sheet()
+    return {
+        "categories": get_ref_column("Ref_Categories", 1),
+        "types": get_ref_types(),
+        "companies": get_ref_companies(),
+        "owners": get_ref_column("Ref_Owners", 1),
+        "locations": get_ref_column("Ref_Location", 1),
+        "rooms": get_ref_column("Ref_Location", 2)
+    }
 
 def get_ref_column(sheet_name: str, col: int) -> list:
     try:
@@ -60,54 +62,47 @@ def get_ref_companies() -> list:
         logging.warning("Sheet 'Ref_Companies' not found.")
         return []
 
-
 # ================================
-# Tambah ke Sheet Referensi Jika Belum Ada
+# Tambah Referensi Jika Belum Ada
 # ================================
 def add_type_if_not_exists(type_name: str, category: str):
+    sheet = get_sheet()
     try:
-        ws = get_sheet().worksheet("Ref_Types")
-        types = ws.col_values(1)[1:]
-        if type_name not in types:
-            next_code = str(len(types) + 1).zfill(2)
+        ws = sheet.worksheet("Ref_Types")
+        existing = ws.get_all_records()
+        if not any(r["Type"] == type_name and r["Category"] == category for r in existing):
+            next_code = str(len(existing) + 1).zfill(2)
             ws.append_row([type_name, category, next_code])
     except Exception as e:
         logging.warning(f"Gagal menambahkan Type '{type_name}': {e}")
 
 def add_category_if_not_exists(category_name: str):
+    sheet = get_sheet()
     try:
-        ws = get_sheet().worksheet("Ref_Categories")
-        categories = ws.col_values(1)[1:]
-        if category_name not in categories:
+        ws = sheet.worksheet("Ref_Categories")
+        existing = ws.col_values(1)[1:]
+        if category_name not in existing:
             ws.append_row([category_name, "100", "5"])
     except Exception as e:
         logging.warning(f"Gagal menambahkan Category '{category_name}': {e}")
 
 def add_company_with_code_if_not_exists(company: str, code_company: str):
-    company = company.strip().upper()
-    code_company = code_company.strip().upper()
-
-    if not code_company.isalpha() or len(code_company) != 3:
-        raise ValueError("❌ Code Company harus 3 huruf kapital")
-
+    sheet = get_sheet()
     try:
-        ws = get_sheet().worksheet("Ref_Companies")
-        existing = ws.get_all_records()
-
-        if any(r["Company"].strip().upper() == company for r in existing):
-            return  # Sudah ada
-
-        if any(r["Code Company"].strip().upper() == code_company for r in existing):
-            raise ValueError("❌ Code Company sudah digunakan")
-
-        ws.append_row([company, code_company])
+        ws = sheet.worksheet("Ref_Companies")
+        companies = [r["Company"] for r in ws.get_all_records()]
+        codes = [r["Code Company"] for r in ws.get_all_records()]
+        if company not in companies:
+            if code_company in codes:
+                raise ValueError("Code Company sudah digunakan")
+            ws.append_row([company, code_company])
     except Exception as e:
         logging.warning(f"Gagal menambahkan Company '{company}': {e}")
-        raise
 
 def add_owner_if_not_exists(owner_name: str):
+    sheet = get_sheet()
     try:
-        ws = get_sheet().worksheet("Ref_Owners")
+        ws = sheet.worksheet("Ref_Owners")
         owners = ws.col_values(1)[1:]
         if owner_name not in owners:
             next_code = str(len(owners) + 1).zfill(2)
@@ -115,26 +110,40 @@ def add_owner_if_not_exists(owner_name: str):
     except Exception as e:
         logging.warning(f"Gagal menambahkan Owner '{owner_name}': {e}")
 
+def add_location_if_not_exists(location: str, room: str):
+    sheet = get_sheet()
+    try:
+        ws = sheet.worksheet("Ref_Location")
+        records = ws.get_all_records()
+        if not any(r["Location"] == location and r["Room"] == room for r in records):
+            ws.append_row([location, room])
+    except Exception as e:
+        logging.warning(f"Gagal menambahkan Lokasi '{location} - {room}': {e}")
 
 # ========================
 # Ambil Data Aset
 # ========================
 def get_assets(status_filter: str = "All") -> list:
-    data = get_sheet().worksheet("Assets").get_all_records()
+    sheet = get_sheet()
+    data = sheet.worksheet("Assets").get_all_records()
     if status_filter != "All":
         return [row for row in data if row.get("Status", "").lower() == status_filter.lower()]
     return data
-
 
 # ========================
 # ID & Tag Generator
 # ========================
 def get_next_asset_id() -> str:
-    ids = get_sheet().worksheet("Assets").col_values(1)
-    angka_terakhir = max(
-        (int(id_val[1:]) for id_val in ids[1:] if id_val.startswith("A") and id_val[1:].isdigit()),
-        default=0
-    )
+    sheet = get_sheet()
+    ws = sheet.worksheet("Assets")
+    ids = ws.col_values(1)
+
+    angka_terakhir = 0
+    for id_val in ids[1:]:
+        if id_val.startswith("A") and id_val[1:].isdigit():
+            angka = int(id_val[1:])
+            angka_terakhir = max(angka_terakhir, angka)
+
     return f"A{str(angka_terakhir + 1).zfill(3)}"
 
 def generate_asset_tag(code_company: str, category: str, type_: str, owner: str) -> str:
@@ -144,9 +153,9 @@ def generate_asset_tag(code_company: str, category: str, type_: str, owner: str)
     ref_owners = sheet.worksheet("Ref_Owners").get_all_records()
     assets = sheet.worksheet("Assets").get_all_records()
 
-    code_category = next((r["Code Category"] for r in ref_categories if r["Category"] == category), "XXX")
-    code_type = next((r["Code Type"] for r in ref_types if r["Type"] == type_ and r["Category"] == category), "XXX")
-    code_owner = next((r["Code Owner"] for r in ref_owners if r["Owner"] == owner), "XXX")
+    code_category = next((r["Code Category"] for r in ref_categories if r["Category"] == category), "XX")
+    code_type = next((r["Code Type"] for r in ref_types if r["Type"] == type_ and r["Category"] == category), "XX")
+    code_owner = next((r["Code Owner"] for r in ref_owners if r["Owner"] == owner), "XX")
     tahun = datetime.now().year
 
     count = 1
@@ -156,7 +165,6 @@ def generate_asset_tag(code_company: str, category: str, type_: str, owner: str)
 
     no_urut = str(count).zfill(4)
     return f"{code_company}-{code_category}{code_type}.{code_owner}{tahun}.{no_urut}"
-
 
 # ========================
 # Tambahkan Data Aset
@@ -172,6 +180,7 @@ def append_asset(data: dict):
         type_=data["type"],
         owner=data["owner"]
     )
+
     tahun = datetime.now().year
 
     ws.append_row([

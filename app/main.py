@@ -14,12 +14,11 @@ from app.sheets import (
     add_category_if_not_exists,
     add_company_with_code_if_not_exists,
     add_owner_if_not_exists,
+    add_location_if_not_exists,
 )
 
 app = FastAPI()
 templates = Jinja2Templates(directory="app/templates")
-
-# Static & Favicon
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
 @app.get("/", response_class=HTMLResponse)
@@ -31,8 +30,9 @@ async def show_home(request: Request):
 async def favicon():
     return FileResponse("app/static/favicon.ico")
 
-
-# ========== INPUT FORM ==========
+# ========================
+# Input Form Page
+# ========================
 @app.get("/input", response_class=HTMLResponse)
 async def show_form(request: Request):
     refs = get_reference_lists()
@@ -41,7 +41,9 @@ async def show_form(request: Request):
         "categories": refs["categories"],
         "types": refs["types"],
         "companies": refs["companies"],
-        "owners": refs["owners"]
+        "owners": refs["owners"],
+        "locations": refs["locations"],
+        "rooms": refs["rooms"]
     })
 
 
@@ -54,14 +56,11 @@ async def submit_form(
     manufacture: str = Form(""),
     model: str = Form(""),
     serial_number: str = Form(""),
-
-    company_select: str = Form(...),
-    company: str = Form(""),
-    code_company: str = Form(""),
-
+    company: str = Form(...),
+    code_company: str = Form(...),
     bisnis_unit: str = Form(""),
-    location: str = Form(""),
-    room_location: str = Form(""),
+    location: str = Form(...),
+    room_location: str = Form(...),
     notes: str = Form(""),
     condition: str = Form(""),
     purchase_date: str = Form(...),
@@ -71,37 +70,18 @@ async def submit_form(
     journal: str = Form(""),
     owner: str = Form(...)
 ):
-    # ===============================
-    # Penentuan company dan code_company
-    # ===============================
-    if company_select == "__add_new__":
-        # Validasi input baru
-        if not company or not code_company:
-            return HTMLResponse("<h3>❌ Harap isi Company dan Code Company baru.</h3>", status_code=400)
-        if not code_company.isalpha() or len(code_company) != 3 or not code_company.isupper():
-            return HTMLResponse("<h3>❌ Code Company harus 3 huruf kapital!</h3>", status_code=400)
+    # Validasi: code company minimal 2 huruf/angka
+    if len(code_company.strip()) < 2:
+        return HTMLResponse(f"<h3>❌ Code Company harus minimal 2 karakter!</h3>", status_code=400)
 
-        company = company.strip().upper()
-        code_company = code_company.strip().upper()
-        add_company_with_code_if_not_exists(company, code_company)
-    else:
-        # Ekstrak dari "PT ABC (ABC)"
-        if "(" in company_select and ")" in company_select:
-            company = company_select.split(" (")[0].strip().upper()
-            code_company = company_select.split(" (")[1].replace(")", "").strip().upper()
-        else:
-            return HTMLResponse("<h3>❌ Format Company tidak valid.</h3>", status_code=400)
-
-    # ===============================
-    # Tambah referensi lainnya jika perlu
-    # ===============================
+    # Tambah referensi jika belum ada
     add_category_if_not_exists(category)
     add_type_if_not_exists(type_, category)
+    add_company_with_code_if_not_exists(company, code_company)
     add_owner_if_not_exists(owner)
+    add_location_if_not_exists(location, room_location)
 
-    # ===============================
-    # Tambah ke sheet
-    # ===============================
+    # Simpan ke Google Sheet
     append_asset({
         "item_name": item_name,
         "category": category,
@@ -123,11 +103,11 @@ async def submit_form(
         "journal": journal,
         "owner": owner,
     })
-
     return RedirectResponse(url="/input", status_code=303)
 
-
-# ========== DASHBOARD ==========
+# ========================
+# Dashboard
+# ========================
 @app.get("/dashboard", response_class=HTMLResponse)
 async def show_dashboard(request: Request, status: str = Query(default="All")):
     data = get_assets(status) or []
@@ -145,8 +125,9 @@ async def show_dashboard(request: Request, status: str = Query(default="All")):
         "tahun_values": [tahun_counter[t] for t in sorted(tahun_counter)],
     })
 
-
-# ========== EXPORT ==========
+# ========================
+# Export Excel
+# ========================
 @app.get("/export")
 async def export_excel(status: str = Query(default="All")):
     data = get_assets(status) or []
