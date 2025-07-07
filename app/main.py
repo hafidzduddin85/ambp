@@ -153,7 +153,7 @@ def init_admin(db: Session = Depends(get_db)):
     if db.query(User).filter_by(username="admin").first():
         return {"message": "User already exists"}
 
-    new_user = User(username="admin", password_hash=User.hash_password("admin123"))
+    new_user = User(username="admin", password_hash=User.hash_password("admin57588"))
     db.add(new_user)
     db.commit()
     return {"message": "✅ User admin created"}
