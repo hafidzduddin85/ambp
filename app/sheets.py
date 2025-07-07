@@ -5,16 +5,16 @@ from oauth2client.service_account import ServiceAccountCredentials
 from datetime import datetime
 
 def get_sheet():
-    scope = [
-        "https://spreadsheets.google.com/feeds",
-        "https://www.googleapis.com/auth/spreadsheets",
-        "https://www.googleapis.com/auth/drive"
-    ]
+    scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
     creds_json = json.loads(os.getenv("GOOGLE_CREDS_JSON", "{}"))
+
+    # 🔧 Fix line breaks in private key
+    if "private_key" in creds_json:
+        creds_json["private_key"] = creds_json["private_key"].replace("\\n", "\n")
+
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
     client = gspread.authorize(creds)
-    sheet_id = os.getenv("SHEET_ID")
-    return client.open_by_key(sheet_id)
+    return client
 
 def generate_asset_tag(company: str, category: str, type_: str, owner: str) -> str:
     sheet = get_sheet()
