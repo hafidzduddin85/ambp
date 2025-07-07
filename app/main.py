@@ -8,6 +8,7 @@ from datetime import datetime
 from typing import Optional
 import uvicorn
 
+from .cache import get_cached_data
 from app.sheets import (
     get_reference_lists,
     append_asset,
@@ -38,13 +39,12 @@ async def home(request: Request):
 
 @app.get("/input", response_class=HTMLResponse)
 async def show_form(request: Request):
-    refs = get_reference_lists()
-    room_map = get_location_room_map()
+    refs = get_cached_data("refs", get_reference_lists)
+    location_room_map = get_cached_data("location_map", get_location_room_map)
     return templates.TemplateResponse("input_form.html", {
         "request": request,
-        **refs,
-        "room_map": room_map,
-        "locations": list(room_map.keys())
+        "refs": refs,
+        "location_room_map": location_room_map,
     })
 
 @app.post("/input")
