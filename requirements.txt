@@ -1,7 +1,8 @@
 fastapi
-uvicorn
+uvicorn[standard]
 jinja2
 python-multipart
 gspread
 oauth2client
 openpyxl
+toml
