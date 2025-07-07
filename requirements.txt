@@ -6,3 +6,6 @@ gspread
 oauth2client
 openpyxl
 toml
+passlib[argon2]
+psycopg2-binary
+sqlalchemy
