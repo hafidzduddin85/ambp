@@ -48,23 +48,14 @@ def submit_asset(
     warranty: str = Form("No"),
     supplier: str = Form(""),
     journal: str = Form(""),
-    owner: str = Form(...),
-    new_company: str = Form(""),
-    new_code_company: str = Form(""),
+    owner: str = Form(...)
 ):
-    # Tambah perusahaan baru jika ada input
-    if new_company and new_code_company:
-        sheets.add_company_with_code_if_not_exists(new_company, new_code_company)
-        company = new_company
-        code_company = new_code_company
-
-    # Tambah lokasi-ruangan jika belum ada
-    sheets.add_location_if_not_exists(location, room_location)
-
-    # Tambah referensi kategori, type, owner jika belum ada
-    sheets.add_category_if_not_exists(category)
+    # Tambahkan referensi jika belum ada
     sheets.add_type_if_not_exists(type, category)
+    sheets.add_location_if_not_exists(location, room_location)
+    sheets.add_company_with_code_if_not_exists(company, code_company)
     sheets.add_owner_if_not_exists(owner)
+    sheets.add_category_if_not_exists(category)
 
     data = {
         "item_name": item_name,
@@ -90,6 +81,7 @@ def submit_asset(
 
     sheets.append_asset(data)
     return RedirectResponse(url="/input", status_code=303)
+
 
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, status: str = "All"):
