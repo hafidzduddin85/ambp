@@ -2,24 +2,85 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Login</title>
+    <title>Login Aset Management</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#1976d2">
+    <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f7fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-box {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h2 {
+            text-align: center;
+            color: #1976d2;
+        }
+        form {
+            margin-top: 1rem;
+        }
+        label {
+            font-weight: bold;
+            margin-top: 1rem;
+            display: block;
+        }
+        input {
+            width: 100%;
+            padding: 0.6rem;
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            margin-top: 1.5rem;
+            padding: 0.8rem;
+            background-color: #1976d2;
+            color: white;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #125ea2;
+        }
+        .error {
+            color: red;
+            text-align: center;
+            margin-top: 1rem;
+        }
+    </style>
 </head>
 <body>
-    <h1 style="text-align:center; color:#1976d2;">🔐 Login</h1>
-    <form method="post" action="/login" style="max-width:400px;margin:auto;">
-        <label>👤 Username</label>
-        <input type="text" name="username" required>
+    <div class="login-box">
+        <h2>🔐 Login</h2>
+        <form method="post" action="/login">
+            <label for="username">👤 Username</label>
+            <input type="text" id="username" name="username" required>
 
-        <label>🔑 Password</label>
-        <input type="password" name="password" required>
+            <label for="password">🔑 Password</label>
+            <input type="password" id="password" name="password" required>
 
+            <button type="submit">Login</button>
+        </form>
         {% if error %}
-            <p style="color:red;">{{ error }}</p>
+        <div class="error">{{ error }}</div>
         {% endif %}
-
-        <button type="submit">🔓 Login</button>
-    </form>
+    </div>
 </body>
 </html>
