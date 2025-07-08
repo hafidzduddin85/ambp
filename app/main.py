@@ -49,7 +49,7 @@ def login(request: Request, response: Response, username: str = Form(...), passw
         return templates.TemplateResponse("login.html", {"request": request, "error": "Username atau password salah"})
 
     request.session["user"] = user.username
-    return RedirectResponse(url="/dashboard", status_code=302)
+    return RedirectResponse(url="/", status_code=302)
 
 @app.get("/logout")
 def logout(request: Request):
