@@ -98,7 +98,12 @@
             <a href="/dashboard">📊 Dashboard Aset</a>
             <a href="/input">➕ Input Aset Baru</a>
             <a href="/export">📥 Export Data Excel</a>
+
+            {% if user.role == 'admin' %}
+                <a href="/settings/users">⚙️ Pengaturan User</a>
+            {% endif %}
         </div>
+
         <div class="logout">
             <form method="post" action="/logout">
                 <button type="submit">🚪 Logout</button>
@@ -145,3 +150,4 @@
     </script>
 </body>
 </html>
+
