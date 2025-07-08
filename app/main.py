@@ -1,13 +1,10 @@
-from fastapi import FastAPI, Request, Form, Depends, HTTPException
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-
 from app import sheets
 from app.models import User
 from app.database import SessionLocal
-from sqlalchemy.orm import Session
-
 import uvicorn
 import csv
 from io import StringIO
@@ -18,24 +15,9 @@ app = FastAPI()
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-# ===============================
-# Dependency: DB Session
-# ===============================
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-# ===============================
-# Routes
-# ===============================
-
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
-
 
 @app.get("/input", response_class=HTMLResponse)
 def show_form(request: Request):
@@ -46,7 +28,6 @@ def show_form(request: Request):
         "refs": refs,
         "location_room_map": location_room_map
     })
-
 
 @app.post("/submit")
 def submit_asset(
@@ -69,14 +50,14 @@ def submit_asset(
     warranty: str = Form("No"),
     supplier: str = Form(""),
     journal: str = Form(""),
-    owner: str = Form(...),
+    owner: str = Form(...)
 ):
     # Tambahkan referensi jika belum ada
-    sheets.add_category_if_not_exists(category)
     sheets.add_type_if_not_exists(type, category)
     sheets.add_location_if_not_exists(location, room_location)
     sheets.add_company_with_code_if_not_exists(company, code_company)
     sheets.add_owner_if_not_exists(owner)
+    sheets.add_category_if_not_exists(category)
 
     data = {
         "item_name": item_name,
@@ -103,7 +84,6 @@ def submit_asset(
     sheets.append_asset(data)
     return RedirectResponse(url="/input", status_code=303)
 
-
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, status: str = "All"):
     data = sheets.get_assets(status)
@@ -128,7 +108,6 @@ def dashboard(request: Request, status: str = "All"):
         "tahun_values": list(tahun_summary.values()),
     })
 
-
 @app.get("/export")
 def export_excel(status: str = "All"):
     data = sheets.get_assets(status)
@@ -144,37 +123,9 @@ def export_excel(status: str = "All"):
         headers={"Content-Disposition": f"attachment; filename=assets_{status}.csv"}
     )
 
-# ===============================
-# Admin User Setup
-# ===============================
-
-from app.database import Base, engine
-
-@app.get("/init-db")
-def init_db():
-    Base.metadata.create_all(bind=engine)
-    return {"message": "✅ Tables created"}
-
-
-@app.get("/init-user")
-def init_admin(db: Session = Depends(get_db)):
-    if db.query(User).filter_by(username="admin").first():
-        return {"message": "User already exists"}
-
-    new_user = User(username="admin", password_hash=User.hash_password("admin57588"))
-    db.add(new_user)
-    db.commit()
-    return {"message": "✅ User admin created"}
-
-# ===============================
-# Favicon
-# ===============================
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
     return FileResponse("app/static/favicon.ico")
 
-# ===============================
-# Run Locally
-# ===============================
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

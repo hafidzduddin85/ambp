@@ -9,3 +9,4 @@ toml
 passlib[argon2]
 psycopg2-binary
 sqlalchemy
+itsdangerous
