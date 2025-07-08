@@ -4,7 +4,7 @@ from sqlalchemy import create_engine, text
 import os
 
 # Gunakan DATABASE_URL dari environment variable, atau fallback lokal
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://user:password@localhost/dbname")
+DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Buat koneksi ke database
 engine = create_engine(DATABASE_URL)
