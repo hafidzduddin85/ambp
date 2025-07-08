@@ -1,26 +1,63 @@
-from fastapi import FastAPI, Request, Form
+from fastapi import FastAPI, Request, Form, Response, Depends
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
+from itsdangerous import URLSafeSerializer
+
 from app import sheets
 from app.models import User
 from app.database import SessionLocal
+
 import uvicorn
 import csv
 from io import StringIO
+import os
 
 app = FastAPI()
+
+# Middleware for sessions
+app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET", "supersecret"))
+serializer = URLSafeSerializer(os.getenv("SESSION_SECRET", "supersecret"))
 
 # Static & Templates
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
+# Helper for login
+
+def get_current_user(request: Request):
+    user = request.session.get("user")
+    if not user:
+        raise RedirectResponse(url="/login", status_code=302)
+    return user
+
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
+@app.get("/login", response_class=HTMLResponse)
+def login_form(request: Request):
+    return templates.TemplateResponse("login.html", {"request": request, "error": ""})
+
+@app.post("/login")
+def login(request: Request, response: Response, username: str = Form(...), password: str = Form(...)):
+    db = SessionLocal()
+    user = db.query(User).filter_by(username=username).first()
+
+    if not user or not user.verify_password(password):
+        return templates.TemplateResponse("login.html", {"request": request, "error": "Username atau password salah"})
+
+    request.session["user"] = user.username
+    return RedirectResponse(url="/dashboard", status_code=302)
+
+@app.get("/logout")
+def logout(request: Request):
+    request.session.clear()
+    return RedirectResponse(url="/login", status_code=302)
+
 @app.get("/input", response_class=HTMLResponse)
-def show_form(request: Request):
+def show_form(request: Request, user: str = Depends(get_current_user)):
     refs = sheets.get_reference_lists()
     location_room_map = sheets.get_location_room_map()
     return templates.TemplateResponse("input_form.html", {
@@ -50,9 +87,9 @@ def submit_asset(
     warranty: str = Form("No"),
     supplier: str = Form(""),
     journal: str = Form(""),
-    owner: str = Form(...)
+    owner: str = Form(...),
+    user: str = Depends(get_current_user)
 ):
-    # Tambahkan referensi jika belum ada
     sheets.add_type_if_not_exists(type, category)
     sheets.add_location_if_not_exists(location, room_location)
     sheets.add_company_with_code_if_not_exists(company, code_company)
@@ -85,7 +122,7 @@ def submit_asset(
     return RedirectResponse(url="/input", status_code=303)
 
 @app.get("/dashboard", response_class=HTMLResponse)
-def dashboard(request: Request, status: str = "All"):
+def dashboard(request: Request, status: str = "All", user: str = Depends(get_current_user)):
     data = sheets.get_assets(status)
 
     kategori_summary = {}
@@ -109,7 +146,7 @@ def dashboard(request: Request, status: str = "All"):
     })
 
 @app.get("/export")
-def export_excel(status: str = "All"):
+def export_excel(status: str = "All", user: str = Depends(get_current_user)):
     data = sheets.get_assets(status)
     output = StringIO()
     writer = csv.DictWriter(output, fieldnames=data[0].keys())
