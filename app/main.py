@@ -59,7 +59,7 @@ def home(request: Request, user: str = Depends(get_current_user)):
 @app.get("/migrate/add-role")
 def migrate_add_role(db: Session = Depends(get_db)):
     try:
-        db.execute("ALTER TABLE users ADD COLUMN role VARCHAR DEFAULT 'user';")
+        db.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR DEFAULT 'user';"))
         db.commit()
         return {"message": "✅ Kolom role berhasil ditambahkan"}
     except Exception as e:
