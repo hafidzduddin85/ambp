@@ -1,45 +1,145 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Manajemen User</title>
+    <meta charset="UTF-8">
+    <title>👥 Manajemen Pengguna</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="manifest" href="/static/manifest.json">
+    <meta name="theme-color" content="#1976d2">
+    <link rel="icon" href="/static/icon-192.png" type="image/png">
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            max-width: 800px;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+            color: #1976d2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background-color: white;
+            box-shadow: 0 0 4px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #1976d2;
+            color: white;
+        }
+
+        a {
+            text-decoration: none;
+            color: #1976d2;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        form {
+            margin-top: 2rem;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            margin-top: 1.5rem;
+            background-color: #1976d2;
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #125ea2;
+        }
+
+        .back-link {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
-    <h2 style="text-align:center">👥 Pengaturan Pengguna</h2>
-    <p style="text-align:center;"><a href="/home">🔙 Kembali ke Beranda</a></p>
+    <h2>👥 Pengaturan Pengguna</h2>
 
-    <table border="1" style="width:100%;margin-top:1rem;">
-        <tr>
-            <th>ID</th>
-            <th>Username</th>
-            <th>Role</th>
-            <th>Aksi</th>
-        </tr>
-        {% for user in users %}
-        <tr>
-            <td>{{ user.id }}</td>
-            <td>{{ user.username }}</td>
-            <td>{{ user.role }}</td>
-            <td>
-                <a href="/settings/users/edit/{{ user.id }}">✏️ Edit</a> |
-                <a href="/settings/users/delete/{{ user.id }}" onclick="return confirm('Yakin?')">🗑️ Hapus</a>
-            </td>
-        </tr>
-        {% endfor %}
+    <div class="back-link">
+        <a href="/home">🔙 Kembali ke Beranda</a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.id }}</td>
+                <td>{{ user.username }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    <a href="/settings/users/edit/{{ user.id }}">✏️ Edit</a> |
+                    <a href="/settings/users/delete/{{ user.id }}" onclick="return confirm('Yakin ingin hapus user ini?')">🗑️ Hapus</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
     </table>
 
-    <form method="post" action="/settings/users/add" style="margin-top:2rem;">
+    <form method="post" action="/settings/users/add">
         <h3>➕ Tambah User Baru</h3>
+
         <label>Username</label>
         <input type="text" name="username" required>
+
         <label>Password</label>
         <input type="password" name="password" required>
+
         <label>Role</label>
-        <select name="role">
+        <select name="role" required>
             <option value="user">User</option>
             <option value="admin">Admin</option>
         </select>
+
         <button type="submit">✅ Simpan</button>
     </form>
 </body>

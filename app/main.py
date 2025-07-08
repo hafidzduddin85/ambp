@@ -207,8 +207,39 @@ def add_user(
     db.add(new_user)
     db.commit()
     return RedirectResponse(url="/settings/users", status_code=303)
+
+@app.get("/settings/users/edit/{user_id}", response_class=HTMLResponse)
+def edit_user_form(user_id: int, request: Request, db: Session = Depends(get_db), user: User = Depends(get_admin_user)):
+    target = db.query(User).filter_by(id=user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="User tidak ditemukan")
+    return templates.TemplateResponse("users_edit.html", {
+        "request": request,
+        "user": target
+    })
+
+@app.post("/settings/users/update/{user_id}")
+def update_user(
+    user_id: int,
+    username: str = Form(...),
+    password: str = Form(""),
+    role: str = Form(...),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_admin_user)
+):
+    target = db.query(User).filter_by(id=user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="User tidak ditemukan")
+
+    target.username = username
+    target.role = role
+    if password:
+        target.password_hash = User.hash_password(password)
+
+    db.commit()
+    return RedirectResponse(url="/settings/users", status_code=303)
     
- @app.get("/init-admin", include_in_schema=False)
+@app.get("/init-admin", include_in_schema=False)
 def init_admin(db: Session = Depends(get_db)):
     # Update user 'admin' ke role admin
     user = db.query(User).filter_by(username="admin").first()
@@ -217,6 +248,16 @@ def init_admin(db: Session = Depends(get_db)):
         db.commit()
         return {"message": "✅ Role user 'admin' diubah menjadi 'admin'"}
     return {"message": "❌ User 'admin' tidak ditemukan"}
+
+@app.get("/settings/users/delete/{user_id}")
+def delete_user(user_id: int, db: Session = Depends(get_db), user: User = Depends(get_admin_user)):
+    target = db.query(User).filter_by(id=user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="User tidak ditemukan")
+    db.delete(target)
+    db.commit()
+    return RedirectResponse(url="/settings/users", status_code=303)
+
 
 @app.get("/add-user", include_in_schema=False)
 def add_user(db: Session = Depends(get_db)):

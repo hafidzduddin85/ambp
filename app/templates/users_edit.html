@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Edit User</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2rem;
+            max-width: 600px;
+            margin: auto;
+            background-color: #f0f4f8;
+        }
+
+        h2 {
+            text-align: center;
+            color: #1976d2;
+        }
+
+        form {
+            background-color: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.05);
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            margin-top: 1.5rem;
+            background-color: #1976d2;
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #125ea2;
+        }
+
+        .back {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .back a {
+            color: #1976d2;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <h2>✏️ Edit User</h2>
+
+    <form method="post" action="/settings/users/update/{{ user.id }}">
+        <label>Username</label>
+        <input type="text" name="username" value="{{ user.username }}" required>
+
+        <label>Password Baru (kosongkan jika tidak diubah)</label>
+        <input type="password" name="password">
+
+        <label>Role</label>
+        <select name="role" required>
+            <option value="user" {% if user.role == 'user' %}selected{% endif %}>User</option>
+            <option value="admin" {% if user.role == 'admin' %}selected{% endif %}>Admin</option>
+        </select>
+
+        <button type="submit">💾 Simpan Perubahan</button>
+    </form>
+
+    <div class="back">
+        <a href="/settings/users">🔙 Kembali ke Daftar User</a>
+    </div>
+</body>
+</html>
