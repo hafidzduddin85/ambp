@@ -55,6 +55,21 @@ def root_redirect():
 @app.get("/home", response_class=HTMLResponse)
 def home(request: Request, user: str = Depends(get_current_user)):
     return templates.TemplateResponse("home.html", {"request": request, "user": user})
+    
+@app.get("/init-admin")
+def init_admin(db: Session = Depends(get_db)):
+    if db.query(User).filter_by(username="admin").first():
+        return {"message": "❌ Admin sudah ada"}
+
+    admin = User(
+        username="admin",
+        password_hash=User.hash_password("admin123"),
+        role="admin"
+    )
+    db.add(admin)
+    db.commit()
+    return {"message": "✅ Admin berhasil dibuat"}
+
 
 @app.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
