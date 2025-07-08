@@ -69,11 +69,11 @@ def login(request: Request, response: Response, username: str = Form(...), passw
     request.session["user"] = user.username
     return RedirectResponse(url="/home", status_code=302)
 
-@app.get("/logout")
+@app.api_route("/logout", methods=["GET", "POST"])
 def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/login", status_code=302)
-
+    
 @app.get("/input", response_class=HTMLResponse)
 def show_form(request: Request, user: str = Depends(get_current_user)):
     refs = sheets.get_reference_lists()
