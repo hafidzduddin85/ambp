@@ -56,19 +56,14 @@ def root_redirect():
 def home(request: Request, user: str = Depends(get_current_user)):
     return templates.TemplateResponse("home.html", {"request": request, "user": user})
     
-@app.get("/init-admin")
-def init_admin(db: Session = Depends(get_db)):
-    if db.query(User).filter_by(username="admin").first():
-        return {"message": "❌ Admin sudah ada"}
-
-    admin = User(
-        username="admin",
-        password_hash=User.hash_password("admin123"),
-        role="admin"
-    )
-    db.add(admin)
-    db.commit()
-    return {"message": "✅ Admin berhasil dibuat"}
+@app.get("/migrate/add-role")
+def migrate_add_role(db: Session = Depends(get_db)):
+    try:
+        db.execute("ALTER TABLE users ADD COLUMN role VARCHAR DEFAULT 'user';")
+        db.commit()
+        return {"message": "✅ Kolom role berhasil ditambahkan"}
+    except Exception as e:
+        return {"error": str(e)}
 
 
 @app.get("/login", response_class=HTMLResponse)
