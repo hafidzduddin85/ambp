@@ -209,27 +209,38 @@ def add_user(
     return RedirectResponse(url="/settings/users", status_code=303)
 
 @app.get("/settings/users/edit/{user_id}", response_class=HTMLResponse)
-def edit_user_form(user_id: int, request: Request, db: Session = Depends(get_db), user: User = Depends(get_admin_user)):
+def edit_user(request: Request, user_id: int, db: Session = Depends(get_db), user: User = Depends(get_admin_user)):
     target = db.query(User).filter_by(id=user_id).first()
     if not target:
         raise HTTPException(status_code=404, detail="User tidak ditemukan")
     return templates.TemplateResponse("users_edit.html", {
         "request": request,
-        "user": target
+        "user": target,
+        "error": None
     })
 
-@app.post("/settings/users/update/{user_id}")
+@app.post("/settings/users/update/{user_id}", response_class=HTMLResponse)
 def update_user(
+    request: Request,
     user_id: int,
     username: str = Form(...),
     password: str = Form(""),
     role: str = Form(...),
     db: Session = Depends(get_db),
-    user: User = Depends(get_admin_user)
+    current_user: User = Depends(get_admin_user)
 ):
     target = db.query(User).filter_by(id=user_id).first()
     if not target:
         raise HTTPException(status_code=404, detail="User tidak ditemukan")
+
+    # 🔐 Validasi username unik
+    existing_user = db.query(User).filter(User.username == username, User.id != user_id).first()
+    if existing_user:
+        return templates.TemplateResponse("users_edit.html", {
+            "request": request,
+            "user": target,
+            "error": "Username sudah digunakan oleh pengguna lain"
+        })
 
     target.username = username
     target.role = role
