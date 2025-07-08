@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Beranda Aset Management</title>
@@ -9,97 +9,106 @@
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#1976d2">
     <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
-	
-	<link rel="stylesheet" href="/static/style.css">
+    <link rel="stylesheet" href="/static/style.css">
 
     <style>
-        :root {
-            --primary: #1976d2;
-            --primary-dark: #125ea2;
-            --success: #28a745;
-            --success-dark: #218838;
-            --bg: #f0f4f8;
-            --text-muted: #666;
-        }
-
         body {
             font-family: Arial, sans-serif;
-            background-color: var(--bg);
+            background-color: #f0f4f8;
             margin: 0;
-            padding: 2rem 1rem;
+            padding: 2rem;
             text-align: center;
         }
 
         h1 {
-            color: var(--primary);
-            margin-bottom: 0.5rem;
-        }
-
-        p {
-            margin: 0.5rem 0 2rem;
+            color: #1976d2;
         }
 
         .menu {
             display: flex;
             flex-direction: column;
             gap: 1rem;
-            max-width: 320px;
+            margin-top: 2rem;
+            max-width: 300px;
             margin-inline: auto;
         }
 
         .menu a {
             display: block;
             padding: 1rem;
-            background-color: var(--primary);
+            background-color: #1976d2;
             color: white;
             text-decoration: none;
-            border-radius: 10px;
+            border-radius: 8px;
             font-size: 1.1rem;
             font-weight: bold;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            transition: background-color 0.2s ease;
         }
 
         .menu a:hover {
-            background-color: var(--primary-dark);
+            background-color: #125ea2;
         }
 
         #installBtn {
             display: none;
             margin-top: 2rem;
             padding: 0.75rem 1.5rem;
-            background-color: var(--success);
+            background-color: #28a745;
             color: white;
             border: none;
             border-radius: 8px;
             font-size: 1rem;
             font-weight: bold;
             cursor: pointer;
-            transition: background-color 0.2s ease;
         }
 
         #installBtn:hover {
-            background-color: var(--success-dark);
+            background-color: #218838;
         }
 
         footer {
             margin-top: 4rem;
             font-size: 0.9rem;
-            color: var(--text-muted);
+            color: #666;
+        }
+
+        .logout {
+            margin-top: 2rem;
+        }
+        .logout form button {
+            background-color: #dc3545;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            color: white;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+        .logout form button:hover {
+            background-color: #b02a37;
         }
     </style>
 </head>
 <body>
     <h1>📦 Aset Management App</h1>
-    <p>Selamat datang! Silakan pilih menu:</p>
 
-    <div class="menu">
-        <a href="/dashboard">📊 Dashboard Aset</a>
-        <a href="/input">➕ Input Aset Baru</a>
-        <a href="/export">📥 Export Data Excel</a>
-    </div>
+    {% if user %}
+        <p>👋 Selamat datang, <strong>{{ user.username }}</strong>!</p>
+        <div class="menu">
+            <a href="/dashboard">📊 Dashboard Aset</a>
+            <a href="/input">➕ Input Aset Baru</a>
+            <a href="/export">📥 Export Data Excel</a>
+        </div>
+        <div class="logout">
+            <form method="post" action="/logout">
+                <button type="submit">🚪 Logout</button>
+            </form>
+        </div>
+    {% else %}
+        <p>Silakan login untuk menggunakan aplikasi.</p>
+        <a href="/login" class="menu-link">🔐 Login</a>
+    {% endif %}
 
-    <!-- Tombol Install App -->
     <button id="installBtn">📲 Install Aplikasi</button>
 
     <footer>v1.0 — by Asset Management & Business Process Division</footer>
@@ -109,12 +118,9 @@
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('/static/service-worker.js')
                 .then(reg => console.log('✅ Service Worker registered:', reg.scope))
-                .catch(err => console.error('❌ Service Worker registration failed:', err));
+                .catch(err => console.error('❌ Service Worker error:', err));
         }
-    </script>
 
-    <!-- Manual Install Button for PWA -->
-    <script>
         let deferredPrompt;
         const installBtn = document.getElementById('installBtn');
 
@@ -123,14 +129,18 @@
             deferredPrompt = e;
             installBtn.style.display = 'inline-block';
 
-            installBtn.onclick = async () => {
+            installBtn.addEventListener('click', async () => {
                 installBtn.disabled = true;
                 deferredPrompt.prompt();
                 const { outcome } = await deferredPrompt.userChoice;
-                console.log(outcome === 'accepted' ? '✅ User accepted install' : '❌ User dismissed install');
+                if (outcome === 'accepted') {
+                    console.log('✅ User accepted install');
+                } else {
+                    console.log('❌ User dismissed install');
+                }
                 deferredPrompt = null;
                 installBtn.style.display = 'none';
-            };
+            });
         });
     </script>
 </body>
