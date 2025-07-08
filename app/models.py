@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String
-from app.database import Base
+from app.database import Base, engine
 from passlib.hash import argon2
 
 class User(Base):
