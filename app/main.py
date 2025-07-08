@@ -3,7 +3,6 @@ from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, Stre
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
-from itsdangerous import URLSafeSerializer
 
 from app import sheets
 from app.models import User
@@ -18,13 +17,14 @@ app = FastAPI()
 
 # Middleware for sessions
 app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET", "supersecret"))
-serializer = URLSafeSerializer(os.getenv("SESSION_SECRET", "supersecret"))
 
 # Static & Templates
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-# Helper for login
+# ============================
+# Session Helper
+# ============================
 
 def get_current_user(request: Request):
     user = request.session.get("user")
@@ -32,8 +32,16 @@ def get_current_user(request: Request):
         raise RedirectResponse(url="/login", status_code=302)
     return user
 
-@app.get("/", response_class=HTMLResponse)
-def home(request: Request):
+# ============================
+# ROUTES
+# ============================
+
+@app.get("/", include_in_schema=False)
+def root():
+    return RedirectResponse(url="/home")
+
+@app.get("/home", response_class=HTMLResponse)
+def home_page(request: Request, user: str = Depends(get_current_user)):
     return templates.TemplateResponse("home.html", {"request": request})
 
 @app.get("/login", response_class=HTMLResponse)
@@ -44,12 +52,10 @@ def login_form(request: Request):
 def login(request: Request, response: Response, username: str = Form(...), password: str = Form(...)):
     db = SessionLocal()
     user = db.query(User).filter_by(username=username).first()
-
     if not user or not user.verify_password(password):
         return templates.TemplateResponse("login.html", {"request": request, "error": "Username atau password salah"})
-
     request.session["user"] = user.username
-    return RedirectResponse(url="/", status_code=302)
+    return RedirectResponse(url="/home", status_code=302)
 
 @app.get("/logout")
 def logout(request: Request):
@@ -130,7 +136,6 @@ def dashboard(request: Request, status: str = "All", user: str = Depends(get_cur
     for row in data:
         kategori = row.get("Category", "Lainnya")
         kategori_summary[kategori] = kategori_summary.get(kategori, 0) + 1
-
         tahun = str(row.get("Tahun", ""))
         if tahun:
             tahun_summary[tahun] = tahun_summary.get(tahun, 0) + 1
