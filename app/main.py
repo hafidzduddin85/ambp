@@ -239,16 +239,6 @@ def update_user(
     db.commit()
     return RedirectResponse(url="/settings/users", status_code=303)
     
-@app.get("/init-admin", include_in_schema=False)
-def init_admin(db: Session = Depends(get_db)):
-    # Update user 'admin' ke role admin
-    user = db.query(User).filter_by(username="admin").first()
-    if user:
-        user.role = "admin"
-        db.commit()
-        return {"message": "✅ Role user 'admin' diubah menjadi 'admin'"}
-    return {"message": "❌ User 'admin' tidak ditemukan"}
-
 @app.get("/settings/users/delete/{user_id}")
 def delete_user(user_id: int, db: Session = Depends(get_db), user: User = Depends(get_admin_user)):
     target = db.query(User).filter_by(id=user_id).first()
@@ -257,28 +247,7 @@ def delete_user(user_id: int, db: Session = Depends(get_db), user: User = Depend
     db.delete(target)
     db.commit()
     return RedirectResponse(url="/settings/users", status_code=303)
-
-
-@app.get("/add-user", include_in_schema=False)
-def add_user(db: Session = Depends(get_db)):
-    # Tambah user baru
-    username = "operator"
-    password = "operator123"
-    role = "user"
-
-    if db.query(User).filter_by(username=username).first():
-        return {"message": f"⚠️ User '{username}' sudah ada"}
-
-    new_user = User(
-        username=username,
-        password_hash=User.hash_password(password),
-        role=role
-    )
-    db.add(new_user)
-    db.commit()
-    return {"message": f"✅ User '{username}' berhasil ditambahkan"}
-   
-
+ 
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
     return FileResponse("app/static/favicon.ico")
