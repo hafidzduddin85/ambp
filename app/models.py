@@ -16,6 +16,6 @@ class User(Base):
     @staticmethod
     def hash_password(password):
         return argon2.hash(password)
-        
-# Create tables if not exists
+
+# Create table if not exists (jika belum)
 Base.metadata.create_all(bind=engine)

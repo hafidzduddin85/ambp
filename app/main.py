@@ -7,7 +7,6 @@ from sqlalchemy.orm import Session
 from itsdangerous import URLSafeSerializer
 import os, csv
 from io import StringIO
-from sqlalchemy import create_engine, text
 
 from app import sheets
 from app.models import User
@@ -39,15 +38,6 @@ def get_current_user(request: Request):
         return RedirectResponse(url="/login", status_code=302)
     return user
 
-def get_admin_user(request: Request, db: Session = Depends(get_db)):
-    username = request.session.get("user")
-    if not username:
-        return RedirectResponse(url="/login", status_code=302)
-    user = db.query(User).filter_by(username=username).first()
-    if not user or user.role != "admin":
-        raise HTTPException(status_code=403, detail="Unauthorized")
-    return user
-
 # === Routes ===
 @app.get("/", response_class=HTMLResponse)
 def root_redirect():
@@ -56,17 +46,7 @@ def root_redirect():
 @app.get("/home", response_class=HTMLResponse)
 def home(request: Request, user: str = Depends(get_current_user)):
     return templates.TemplateResponse("home.html", {"request": request, "user": user})
-    
-@app.get("/migrate/add-role")
-def migrate_add_role(db: Session = Depends(get_db)):
-    try:
-        db.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR DEFAULT 'user';"))
-        db.commit()
-        return {"message": "✅ Kolom role berhasil ditambahkan"}
-    except Exception as e:
-        return {"error": str(e)}
-
-
+   
 @app.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
     return templates.TemplateResponse("login.html", {"request": request, "error": ""})
