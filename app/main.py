@@ -1,48 +1,60 @@
-from fastapi import FastAPI, Request, Form, Response, Depends
+from fastapi import FastAPI, Request, Form, Response, Depends, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse, FileResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from starlette.middleware.sessions import SessionMiddleware
+from sqlalchemy.orm import Session
+from itsdangerous import URLSafeSerializer
+import os, csv
+from io import StringIO
 
 from app import sheets
 from app.models import User
 from app.database import SessionLocal
 
-import uvicorn
-import csv
-from io import StringIO
-import os
-
 app = FastAPI()
 
-# Middleware for sessions
-app.add_middleware(SessionMiddleware, secret_key=os.getenv("SESSION_SECRET", "supersecret"))
+# Session Middleware
+SESSION_SECRET = os.getenv("SESSION_SECRET", "supersecret")
+app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
+serializer = URLSafeSerializer(SESSION_SECRET)
 
 # Static & Templates
 app.mount("/static", StaticFiles(directory="app/static"), name="static")
 templates = Jinja2Templates(directory="app/templates")
 
-# ============================
-# Session Helper
-# ============================
+# === DB Dependency ===
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
 
+# === Auth Dependency ===
 def get_current_user(request: Request):
     user = request.session.get("user")
     if not user:
-        return RedirectResponse(url="/login", status_code=302)
+        raise RedirectResponse(url="/login", status_code=302)
     return user
 
-# ============================
-# ROUTES
-# ============================
+def get_admin_user(request: Request, db: Session = Depends(get_db)):
+    username = request.session.get("user")
+    if not username:
+        raise RedirectResponse(url="/login", status_code=302)
+    user = db.query(User).filter_by(username=username).first()
+    if not user or user.role != "admin":
+        raise HTTPException(status_code=403, detail="Unauthorized")
+    return user
 
-@app.get("/", include_in_schema=False)
-def root():
+# === Routes ===
+@app.get("/", response_class=HTMLResponse)
+def root_redirect():
     return RedirectResponse(url="/home")
 
 @app.get("/home", response_class=HTMLResponse)
-def home_page(request: Request, user: str = Depends(get_current_user)):
-    return templates.TemplateResponse("home.html", {"request": request})
+def home(request: Request, user: str = Depends(get_current_user)):
+    return templates.TemplateResponse("home.html", {"request": request, "user": user})
 
 @app.get("/login", response_class=HTMLResponse)
 def login_form(request: Request):
@@ -130,9 +142,8 @@ def submit_asset(
 @app.get("/dashboard", response_class=HTMLResponse)
 def dashboard(request: Request, status: str = "All", user: str = Depends(get_current_user)):
     data = sheets.get_assets(status)
+    kategori_summary, tahun_summary = {}, {}
 
-    kategori_summary = {}
-    tahun_summary = {}
     for row in data:
         kategori = row.get("Category", "Lainnya")
         kategori_summary[kategori] = kategori_summary.get(kategori, 0) + 1
@@ -165,9 +176,37 @@ def export_excel(status: str = "All", user: str = Depends(get_current_user)):
         headers={"Content-Disposition": f"attachment; filename=assets_{status}.csv"}
     )
 
+# ===========================
+# ✅ Admin - Manage Users
+# ===========================
+@app.get("/settings/users", response_class=HTMLResponse)
+def manage_users(request: Request, db: Session = Depends(get_db), user: User = Depends(get_admin_user)):
+    users = db.query(User).all()
+    return templates.TemplateResponse("users.html", {
+        "request": request,
+        "users": users
+    })
+
+@app.post("/settings/users/add")
+def add_user(
+    request: Request,
+    username: str = Form(...),
+    password: str = Form(...),
+    role: str = Form("user"),
+    db: Session = Depends(get_db),
+    user: User = Depends(get_admin_user)
+):
+    if db.query(User).filter_by(username=username).first():
+        raise HTTPException(status_code=400, detail="Username sudah ada")
+    new_user = User(username=username, password_hash=User.hash_password(password), role=role)
+    db.add(new_user)
+    db.commit()
+    return RedirectResponse(url="/settings/users", status_code=303)
+
 @app.get("/favicon.ico", include_in_schema=False)
 def favicon():
     return FileResponse("app/static/favicon.ico")
 
+# Uvicorn
 if __name__ == "__main__":
     uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

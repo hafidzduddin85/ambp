@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Manajemen User</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <h2 style="text-align:center">👥 Pengaturan Pengguna</h2>
+    <p style="text-align:center;"><a href="/home">🔙 Kembali ke Beranda</a></p>
+
+    <table border="1" style="width:100%;margin-top:1rem;">
+        <tr>
+            <th>ID</th>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Aksi</th>
+        </tr>
+        {% for user in users %}
+        <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.role }}</td>
+            <td>
+                <a href="/settings/users/edit/{{ user.id }}">✏️ Edit</a> |
+                <a href="/settings/users/delete/{{ user.id }}" onclick="return confirm('Yakin?')">🗑️ Hapus</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </table>
+
+    <form method="post" action="/settings/users/add" style="margin-top:2rem;">
+        <h3>➕ Tambah User Baru</h3>
+        <label>Username</label>
+        <input type="text" name="username" required>
+        <label>Password</label>
+        <input type="password" name="password" required>
+        <label>Role</label>
+        <select name="role">
+            <option value="user">User</option>
+            <option value="admin">Admin</option>
+        </select>
+        <button type="submit">✅ Simpan</button>
+    </form>
+</body>
+</html>
