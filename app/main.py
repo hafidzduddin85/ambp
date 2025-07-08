@@ -74,7 +74,7 @@ def login(request: Request, response: Response, username: str = Form(...), passw
     request.session["user"] = user.username
     return RedirectResponse(url="/home", status_code=302)
 
-@app.api_route("/logout", methods=["GET", "POST"])
+@app.api_route("/logout", methods=["POST"])
 def logout(request: Request):
     request.session.clear()
     return RedirectResponse(url="/login", status_code=302)
