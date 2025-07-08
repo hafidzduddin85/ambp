@@ -29,7 +29,7 @@ templates = Jinja2Templates(directory="app/templates")
 def get_current_user(request: Request):
     user = request.session.get("user")
     if not user:
-        raise RedirectResponse(url="/login", status_code=302)
+        return RedirectResponse(url="/login", status_code=302)
     return user
 
 # ============================

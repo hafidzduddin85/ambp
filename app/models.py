@@ -8,10 +8,14 @@ class User(Base):
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
-
+    role = Column(String, default="user")  # 'admin' or 'user'
+    
     def verify_password(self, plain_password):
         return argon2.verify(plain_password, self.password_hash)
 
     @staticmethod
     def hash_password(password):
         return argon2.hash(password)
+        
+# Create tables if not exists
+Base.metadata.create_all(bind=engine)
