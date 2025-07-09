@@ -1,6 +1,6 @@
 # === 4. main.py ===
 from fastapi.staticfiles import StaticFiles
-from fastapi.middleware.sessions import SessionMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 from fastapi.responses import FileResponse
 from app.init import create_app
 from app.config import SESSION_SECRET
