@@ -247,3 +247,86 @@ def append_asset(data: dict):
         ])
     except Exception as e:
         logging.warning(f"Gagal menambahkan data aset: {e}")
+
+# ========================
+# Sync Data Aset
+# ========================
+def sync_assets_data():
+    sheet = get_sheet()
+    assets_ws = sheet.worksheet("Assets")
+    ref_cat_ws = sheet.worksheet("Ref_Categories")
+    ref_type_ws = sheet.worksheet("Ref_Types")
+    ref_comp_ws = sheet.worksheet("Ref_Companies")
+    ref_own_ws = sheet.worksheet("Ref_Owners")
+
+    # Load referensi
+    ref_categories = {row[0]: row[1:] for row in ref_cat_ws.get_all_values()[1:]}
+    ref_types = {(row[0], row[1]): row[2] for row in ref_type_ws.get_all_values()[1:]}
+    ref_companies = {row[0]: row[1] for row in ref_comp_ws.get_all_values()[1:]}
+    ref_owners = {row[0]: row[1] for row in ref_own_ws.get_all_values()[1:]}
+
+    headers = assets_ws.row_values(1)
+    data = assets_ws.get_all_values()[1:]
+    updated_data = []
+    no_urut_tracker = defaultdict(int)
+
+    for i, row in enumerate(data):
+        row_dict = dict(zip(headers, row))
+        updated = row.copy()
+
+        updated[headers.index("ID")] = str(i + 1)
+        try:
+            tahun_pembelian = datetime.strptime(row_dict["Purchase Date"], "%Y-%m-%d").year
+        except:
+            tahun_pembelian = datetime.now().year
+        updated[headers.index("Tahun")] = str(tahun_pembelian)
+
+        # Kategori
+        cat_data = ref_categories.get(row_dict["Category"], ["", "0", "0"])
+        code_category, residual_percent, useful_life = cat_data
+        residual_percent = Decimal(residual_percent)
+        useful_life = int(useful_life)
+
+        updated[headers.index("Residual Percent")] = str(residual_percent)
+        updated[headers.index("Useful Life")] = str(useful_life)
+        updated[headers.index("Code Category")] = code_category
+
+        try:
+            purchase_cost = Decimal(row_dict["Purchase Cost"])
+        except:
+            purchase_cost = Decimal(0)
+
+        residual_value = (purchase_cost * residual_percent / 100).quantize(Decimal("0.01"))
+        updated[headers.index("Residual Value")] = str(residual_value)
+
+        try:
+            depreciation_value = ((purchase_cost - residual_value) / useful_life).quantize(Decimal("0.01"))
+        except:
+            depreciation_value = Decimal(0)
+        updated[headers.index("Depreciation Value")] = str(depreciation_value)
+
+        tahun_berjalan = datetime.now().year
+        umur_dipakai = max(0, tahun_berjalan - tahun_pembelian)
+        book_value = (purchase_cost - (depreciation_value * umur_dipakai)).quantize(Decimal("0.01"))
+        updated[headers.index("Book Value")] = str(book_value)
+
+        code_company = ref_companies.get(row_dict["Company"], "")
+        updated[headers.index("Code Company")] = code_company
+
+        code_owner = ref_owners.get(row_dict["Owner"], "")
+        updated[headers.index("Code Owner")] = code_owner
+
+        code_type = ref_types.get((row_dict["Type"], row_dict["Category"]), "")
+        updated[headers.index("Code Type")] = code_type
+
+        no_urut_key = (code_company, code_type, str(tahun_pembelian))
+        no_urut_tracker[no_urut_key] += 1
+        no_urut_str = str(no_urut_tracker[no_urut_key]).zfill(3)
+        tahun_2digit = str(tahun_pembelian)[-2:]
+        asset_tag = f"{code_company}-{code_category}{code_type}.{code_owner}{tahun_2digit}.{no_urut_str}"
+        updated[headers.index("Asset Tag")] = asset_tag
+
+        updated_data.append(updated)
+
+    # Simpan semua
+    assets_ws.update([headers] + updated_data)
