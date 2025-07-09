@@ -1,14 +1,17 @@
 # === 4. main.py ===
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.sessions import SessionMiddleware
+from fastapi.middleware.sessions import SessionMiddleware
 from fastapi.responses import FileResponse
 from app.init import create_app
 from app.config import SESSION_SECRET
 
 app = create_app()
 app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+import os
+app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
-@app.get("/favicon.ico", include_in_schema=False)
 def favicon():
+    import os
+    favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
+    return FileResponse(favicon_path)
     return FileResponse("app/static/favicon.ico")

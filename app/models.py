@@ -17,5 +17,4 @@ class User(Base):
     def hash_password(password):
         return argon2.hash(password)
 
-# Create table if not exists (jika belum)
-Base.metadata.create_all(bind=engine)
+# Table creation should be handled in your application entry point, not in the model definition file.

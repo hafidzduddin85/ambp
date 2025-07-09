@@ -17,16 +17,22 @@ def get_sheet():
     if _sheet_cache:
         return _sheet_cache
 
+    creds_json_str = os.getenv("GOOGLE_CREDS_JSON")
+    sheet_id = os.getenv("GOOGLE_SHEET_ID")
+    if not creds_json_str or not sheet_id:
+        logging.error("GOOGLE_CREDS_JSON dan/atau GOOGLE_SHEET_ID belum di-set di environment.")
+        raise RuntimeError("Google Sheets credentials or sheet ID not set.")
+
     scope = [
         "https://spreadsheets.google.com/feeds",
         "https://www.googleapis.com/auth/drive"
     ]
-    creds_json = json.loads(os.getenv("GOOGLE_CREDS_JSON", "{}"))
+    creds_json = json.loads(creds_json_str)
     if "private_key" in creds_json:
         creds_json["private_key"] = creds_json["private_key"].replace("\\n", "\n")
     creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
     client = gspread.authorize(creds)
-    _sheet_cache = client.open_by_key(os.getenv("GOOGLE_SHEET_ID"))
+    _sheet_cache = client.open_by_key(sheet_id)
     return _sheet_cache
 
 # ========================
@@ -151,78 +157,93 @@ def add_location_if_not_exists(location: str, room: str):
 # Ambil Data Aset
 # ========================
 def get_assets(status_filter: str = "All") -> list:
-    data = get_sheet().worksheet("Assets").get_all_records()
-    if status_filter != "All":
-        return [row for row in data if row.get("Status", "").lower() == status_filter.lower()]
-    return data
+    try:
+        data = get_sheet().worksheet("Assets").get_all_records()
+        if status_filter != "All":
+            return [row for row in data if row.get("Status", "").lower() == status_filter.lower()]
+        return data
+    except Exception as e:
+        logging.warning(f"Gagal mengambil data aset: {e}")
+        return []
 
 # ========================
 # ID & Tag Generator
 # ========================
 def get_next_asset_id() -> str:
-    ids = get_sheet().worksheet("Assets").col_values(1)
-    angka_terakhir = max(
-        (int(i[1:]) for i in ids[1:] if i.startswith("A") and i[1:].isdigit()),
-        default=0
-    )
-    return f"A{str(angka_terakhir + 1).zfill(3)}"
+    try:
+        ids = get_sheet().worksheet("Assets").col_values(1)
+        angka_terakhir = max(
+            (int(i[1:]) for i in ids[1:] if i.startswith("A") and i[1:].isdigit()),
+            default=0
+        )
+        return f"A{str(angka_terakhir + 1).zfill(3)}"
+    except Exception as e:
+        logging.warning(f"Gagal generate asset ID: {e}")
+        return "A001"
 
 def generate_asset_tag(code_company: str, category: str, type_: str, owner: str) -> str:
-    sheet = get_sheet()
-    ref_categories = sheet.worksheet("Ref_Categories").get_all_records()
-    ref_types = sheet.worksheet("Ref_Types").get_all_records()
-    ref_owners = sheet.worksheet("Ref_Owners").get_all_records()
-    assets = sheet.worksheet("Assets").get_all_records()
+    try:
+        sheet = get_sheet()
+        ref_categories = sheet.worksheet("Ref_Categories").get_all_records()
+        ref_types = sheet.worksheet("Ref_Types").get_all_records()
+        ref_owners = sheet.worksheet("Ref_Owners").get_all_records()
+        assets = sheet.worksheet("Assets").get_all_records()
 
-    code_category = next((r["Code Category"] for r in ref_categories if r["Category"] == category), "XX")
-    code_type = next((r["Code Type"] for r in ref_types if r["Type"] == type_ and r["Category"] == category), "XX")
-    code_owner = next((r["Code Owner"] for r in ref_owners if r["Owner"] == owner), "XX")
-    tahun = datetime.now().year
+        code_category = next((r["Code Category"] for r in ref_categories if r["Category"] == category), "XX")
+        code_type = next((r["Code Type"] for r in ref_types if r["Type"] == type_ and r["Category"] == category), "XX")
+        code_owner = next((r["Code Owner"] for r in ref_owners if r["Owner"] == owner), "XX")
+        tahun = datetime.now().year
 
-    count = sum(
-        1 for a in assets
-        if a.get("Company") and a.get("Type") == type_ and str(a.get("Tahun")) == str(tahun)
-    ) + 1
+        count = sum(
+            1 for a in assets
+            if a.get("Company") and a.get("Type") == type_ and str(a.get("Tahun")) == str(tahun)
+        ) + 1
 
-    no_urut = str(count).zfill(4)
-    return f"{code_company}-{code_category}{code_type}.{code_owner}{tahun}.{no_urut}"
+        no_urut = str(count).zfill(4)
+        return f"{code_company}-{code_category}{code_type}.{code_owner}{tahun}.{no_urut}"
+    except Exception as e:
+        logging.warning(f"Gagal generate asset tag: {e}")
+        return "TAG-ERROR"
 
 # ========================
 # Tambahkan Data Aset
 # ========================
 def append_asset(data: dict):
-    ws = get_sheet().worksheet("Assets")
-    asset_id = get_next_asset_id()
-    asset_tag = generate_asset_tag(
-        code_company=data["code_company"],
-        category=data["category"],
-        type_=data["type"],
-        owner=data["owner"]
-    )
-    tahun = datetime.now().year
+    try:
+        ws = get_sheet().worksheet("Assets")
+        asset_id = get_next_asset_id()
+        asset_tag = generate_asset_tag(
+            code_company=data["code_company"],
+            category=data["category"],
+            type_=data["type"],
+            owner=data["owner"]
+        )
+        tahun = datetime.now().year
 
-    ws.append_row([
-        asset_id,
-        data.get("item_name", ""),
-        data.get("category", ""),
-        data.get("type", ""),
-        data.get("manufacture", ""),
-        data.get("model", ""),
-        data.get("serial_number", ""),
-        asset_tag,
-        data.get("company", ""),
-        data.get("bisnis_unit", ""),
-        data.get("location", ""),
-        data.get("room_location", ""),
-        data.get("notes", "Input dari Web"),
-        data.get("condition", ""),
-        data.get("purchase_date", ""),
-        data.get("purchase_cost", ""),
-        data.get("warranty", "No"),
-        data.get("supplier", ""),
-        data.get("journal", ""),
-        data.get("owner", ""),
-        "", "", "", "", "",
-        "Active",
-        tahun
-    ])
+        ws.append_row([
+            asset_id,
+            data.get("item_name", ""),
+            data.get("category", ""),
+            data.get("type", ""),
+            data.get("manufacture", ""),
+            data.get("model", ""),
+            data.get("serial_number", ""),
+            asset_tag,
+            data.get("company", ""),
+            data.get("bisnis_unit", ""),
+            data.get("location", ""),
+            data.get("room_location", ""),
+            data.get("notes", "Input dari Web"),
+            data.get("condition", ""),
+            data.get("purchase_date", ""),
+            data.get("purchase_cost", ""),
+            data.get("warranty", "No"),
+            data.get("supplier", ""),
+            data.get("journal", ""),
+            data.get("owner", ""),
+            "", "", "", "", "",
+            "Active",
+            tahun
+        ])
+    except Exception as e:
+        logging.warning(f"Gagal menambahkan data aset: {e}")
