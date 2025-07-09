@@ -1,163 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Login Aset Management</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#1976d2">
-    <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
-    <link rel="stylesheet" href="/static/style.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f5f7fb;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-        }
-        .login-box {
-            background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-width: 400px;
-            width: 100%;
-        }
-        h2 {
-            text-align: center;
-            color: #1976d2;
-        }
-        form {
-            margin-top: 1rem;
-        }
-        label {
-            font-weight: bold;
-            margin-top: 1rem;
-            display: block;
-        }
-        input {
-            width: 100%;
-            padding: 0.6rem;
-            margin-top: 5px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            box-sizing: border-box;
-        }
-        button {
-            width: 100%;
-            margin-top: 1.5rem;
-            padding: 0.8rem;
-            background-color: #1976d2;
-            color: white;
-            font-weight: bold;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-        button:hover {
-            background-color: #125ea2;
-        }
-        .error {
-            color: red;
-            text-align: center;
-            margin-top: 1rem;
-        }
-        .toggle-btn {
-            position: absolute;
-            top: 7px;
-            right: 8px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            padding: 0;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Login</title>
+
+  <!-- Font Awesome for icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+  <style>
+    body {
+      font-family: sans-serif;
+      background-color: #f5f5f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .login-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      width: 100%;
+      max-width: 400px;
+    }
+
+    h2 {
+      margin-bottom: 1.5rem;
+      text-align: center;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      box-sizing: border-box;
+      transition: border 0.2s;
+    }
+
+    .input-group input:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    .input-group .toggle-icon {
+      position: absolute;
+      right: 0.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #555;
+      transition: color 0.2s, transform 0.2s;
+    }
+
+    .input-group .toggle-icon:hover {
+      color: #007bff;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 0.75rem;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
-    <div class="login-box">
-        <h2>🔐 Login</h2>
-        <form method="post" action="/login" id="loginForm" autocomplete="on">
-            <label for="username">👤 Username</label>
-            <input type="text" id="username" name="username" required autocomplete="username">
 
-            <label for="password">🔑 Password</label>
-            <div style="position:relative;">
-                <input type="password" id="password" name="password" required autocomplete="current-password" style="padding-right:36px;">
-                <button type="button" id="togglePwd" class="toggle-btn" tabindex="-1" aria-label="Toggle Password">
-                    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="gray" viewBox="0 0 24 24">
-                        <path id="eyePath" d="M12 4.5c-4.7 0-8.8 3-10.5 7.5 1.7 4.5 5.8 7.5 10.5 7.5s8.8-3 10.5-7.5c-1.7-4.5-5.8-7.5-10.5-7.5zm0 13c-3.2 0-6.1-2-7.5-5 1.4-3 4.3-5 7.5-5s6.1 2 7.5 5c-1.4 3-4.3 5-7.5 5z"/>
-                        <circle id="eyeDot" cx="12" cy="12" r="2.5"/>
-                    </svg>
-                </button>
-            </div>
+  <div class="login-container">
+    <h2>Login</h2>
+    <form method="post" action="/login">
+      <div class="input-group">
+        <input type="password" name="password" id="password" placeholder="Enter your password" required>
+        <span class="toggle-icon" onclick="togglePassword()">
+          <i id="toggleIcon" class="fa-solid fa-lock"></i>
+        </span>
+      </div>
+      <button type="submit">Login</button>
+    </form>
+  </div>
 
-            <button type="submit" id="loginBtn">Login</button>
-        </form>
-        {% if error %}
-        <div class="error" id="errorBox">{{ error }}</div>
-        {% endif %}
+  <script>
+    function togglePassword() {
+      const passwordInput = document.getElementById("password");
+      const icon = document.getElementById("toggleIcon");
 
-        <script>
-            // Autofocus username
-            document.getElementById('username').focus();
+      const isPassword = passwordInput.type === "password";
+      passwordInput.type = isPassword ? "text" : "password";
 
-            // Show/hide password with SVG
-            document.getElementById('togglePwd').onclick = function () {
-                const pwd = document.getElementById('password');
-                const eyePath = document.getElementById('eyePath');
-                const eyeDot = document.getElementById('eyeDot');
+      icon.classList.toggle("fa-lock", !isPassword);
+      icon.classList.toggle("fa-lock-open", isPassword);
+    }
+  </script>
 
-                if (pwd.type === "password") {
-                    pwd.type = "text";
-                    eyePath.setAttribute("d", "M1 1l22 22");
-                    eyeDot.style.display = "none";
-                } else {
-                    pwd.type = "password";
-                    eyePath.setAttribute("d", "M12 4.5c-4.7 0-8.8 3-10.5 7.5 1.7 4.5 5.8 7.5 10.5 7.5s8.8-3 10.5-7.5c-1.7-4.5-5.8-7.5-10.5-7.5zm0 13c-3.2 0-6.1-2-7.5-5 1.4-3 4.3-5 7.5-5s6.1 2 7.5 5c-1.4 3-4.3 5-7.5 5z");
-                    eyeDot.style.display = "inline";
-                }
-            };
-
-            // Real-time validation
-            document.querySelectorAll("#loginForm input[required]").forEach(el => {
-                el.addEventListener("invalid", function () {
-                    this.style.borderColor = "#dc3545";
-                });
-                el.addEventListener("input", function () {
-                    this.style.borderColor = "";
-                });
-            });
-
-            // Loading spinner on submit
-            document.getElementById('loginForm').addEventListener('submit', function (e) {
-                const btn = document.getElementById('loginBtn');
-                btn.disabled = true;
-                btn.innerHTML = '<span class="spinner" style="margin-right:8px;vertical-align:middle;width:18px;height:18px;border:2px solid #fff;border-top:2px solid #1976d2;border-radius:50%;display:inline-block;animation:spin 1s linear infinite;"></span>Memproses...';
-            });
-
-            // Spinner CSS
-            const style = document.createElement('style');
-            style.innerHTML = `
-                @keyframes spin { 100% { transform: rotate(360deg); } }
-                .spinner { box-sizing: border-box; }
-                .error { animation: shake 0.3s; }
-                @keyframes shake {
-                    10%, 90% { transform: translateX(-2px); }
-                    20%, 80% { transform: translateX(4px); }
-                    30%, 50%, 70% { transform: translateX(-8px); }
-                    40%, 60% { transform: translateX(8px); }
-                }
-            `;
-            document.head.appendChild(style);
-
-            // Error animation
-            const errorBox = document.getElementById('errorBox');
-            if (errorBox) {
-                setTimeout(() => errorBox.style.animation = '', 500);
-            }
-        </script>
-    </div>
 </body>
 </html>
