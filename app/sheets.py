@@ -317,62 +317,7 @@ def _load_tag_references() -> dict:
         return ref_data
     except Exception as e:
         logging.warning(f"Gagal load tag references: {e}")
-        return ref_datay:
-        # Get cached reference data to avoid multiple API calls
-        ref_data = get_cached_data("tag_references", _load_tag_references)
-        
-        code_category = ref_data["categories"].get(category, "XX")
-        code_type = ref_data["types"].get((type_, category), "XX")
-        code_owner = ref_data["owners"].get(owner, "XX")
-        tahun = datetime.now().year
-
-        # Count existing assets for this type and year
-        assets = get_worksheet("Assets")
-        if assets:
-            count = sum(
-                1 for a in assets.get_all_records()
-                if a.get("Company") and a.get("Type") == type_ and str(a.get("Tahun")) == str(tahun)
-            ) + 1
-        else:
-            count = 1
-
-        no_urut = str(count).zfill(4)
-        return f"{code_company}-{code_category}{code_type}.{code_owner}{tahun}.{no_urut}"
-    except Exception as e:
-        logging.warning(f"Gagal generate asset tag: {e}")
-        return "TAG-ERROR"
-
-def _load_tag_references() -> dict:
-    """Load reference data for tag generation"""
-    try:
-        ref_data = {
-            "categories": {},
-            "types": {},
-            "owners": {}
-        }
-        
-        # Load categories
-        ws = get_worksheet("Ref_Categories")
-        if ws:
-            for r in ws.get_all_records():
-                ref_data["categories"][r["Category"]] = r["Code Category"]
-        
-        # Load types
-        ws = get_worksheet("Ref_Types")
-        if ws:
-            for r in ws.get_all_records():
-                ref_data["types"][(r["Type"], r["Category"])] = r["Code Type"]
-        
-        # Load owners
-        ws = get_worksheet("Ref_Owners")
-        if ws:
-            for r in ws.get_all_records():
-                ref_data["owners"][r["Owner"]] = r["Code Owner"]
-        
         return ref_data
-    except Exception as e:
-        logging.warning(f"Gagal load tag references: {e}")
-        return {"categories": {}, "types": {}, "owners": {}}
 
 # ========================
 # Tambahkan Data Aset
