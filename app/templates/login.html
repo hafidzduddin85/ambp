@@ -69,18 +69,79 @@
 <body>
     <div class="login-box">
         <h2>🔐 Login</h2>
-        <form method="post" action="/login">
+        <form method="post" action="/login" id="loginForm" autocomplete="on">
             <label for="username">👤 Username</label>
-            <input type="text" id="username" name="username" required>
+            <input type="text" id="username" name="username" required autocomplete="username">
 
             <label for="password">🔑 Password</label>
-            <input type="password" id="password" name="password" required>
+            <div style="position:relative;">
+                <input type="password" id="password" name="password" required autocomplete="current-password" style="padding-right:36px;">
+                <button type="button" id="togglePwd" style="position:absolute;top:7px;right:8px;background:none;border:none;cursor:pointer;" tabindex="-1">
+                    <span id="eye" aria-label="Show password">👁️</span>
+                </button>
+            </div>
 
-            <button type="submit">Login</button>
+            <button type="submit" id="loginBtn">Login</button>
         </form>
         {% if error %}
-        <div class="error">{{ error }}</div>
+        <div class="error" id="errorBox">{{ error }}</div>
         {% endif %}
+
+        <script>
+            // Autofocus username
+            document.getElementById('username').focus();
+
+            // Show/hide password
+            document.getElementById('togglePwd').onclick = function() {
+                const pwd = document.getElementById('password');
+                const eye = document.getElementById('eye');
+                if (pwd.type === "password") {
+                    pwd.type = "text";
+                    eye.textContent = "🙈";
+                } else {
+                    pwd.type = "password";
+                    eye.textContent = "👁️";
+                }
+            };
+
+            // Real-time validation
+            document.querySelectorAll("#loginForm input[required]").forEach(el => {
+                el.addEventListener("invalid", function() {
+                    this.style.borderColor = "#dc3545";
+                });
+                el.addEventListener("input", function() {
+                    this.style.borderColor = "";
+                });
+            });
+
+            // Loading spinner on submit
+            document.getElementById('loginForm').addEventListener('submit', function(e) {
+                const btn = document.getElementById('loginBtn');
+                btn.disabled = true;
+                btn.innerHTML = '<span class="spinner" style="margin-right:8px;vertical-align:middle;width:18px;height:18px;border:2px solid #fff;border-top:2px solid #1976d2;border-radius:50%;display:inline-block;animation:spin 1s linear infinite;"></span>Memproses...';
+            });
+
+            // Spinner CSS
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @keyframes spin { 100% { transform: rotate(360deg); } }
+                .spinner { box-sizing: border-box; }
+                .error { animation: shake 0.3s; }
+                @keyframes shake {
+                    10%, 90% { transform: translateX(-2px); }
+                    20%, 80% { transform: translateX(4px); }
+                    30%, 50%, 70% { transform: translateX(-8px); }
+                    40%, 60% { transform: translateX(8px); }
+                }
+            `;
+            document.head.appendChild(style);
+
+            // Error animation
+            const errorBox = document.getElementById('errorBox');
+            if (errorBox) {
+                setTimeout(() => errorBox.style.animation = '', 500);
+            }
+        </script>
     </div>
 </body>
 </html>
