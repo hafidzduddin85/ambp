@@ -23,8 +23,7 @@ def home(request: Request, current_user: User = Depends(get_current_user)):
     if current_user is None:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
-    return templates.TemplateResponse(
-        "home.html",
+    return templates.TemplateResponse("home.html",
         {"request": request, "user": current_user}
     )
 
