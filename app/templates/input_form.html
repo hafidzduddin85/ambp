@@ -142,7 +142,7 @@
       create: true,
       placeholder: "-- Pilih Tipe --"
     });
-    typeSelectInstance.clear();
+    typeSelectInstance.clear(); // reset value
   }
 
   function updateRoomOptions() {
@@ -178,58 +178,11 @@
     group.classList.toggle("hidden", known.includes(input.value));
   }
 
-  // --- Interaktif tambahan ---
   window.addEventListener("DOMContentLoaded", () => {
-    document.querySelector("input[name='item_name']").focus();
     new TomSelect("#category", { create: false, placeholder: "-- Pilih Kategori --" });
     new TomSelect("#location", { create: false, placeholder: "-- Pilih Lokasi --" });
     new TomSelect("select[name='owner']", { create: false, placeholder: "-- Pilih Penanggung Jawab --" });
-
-    // Sinkronisasi awal tipe dan ruangan jika ada value default
-    updateTypeOptions();
-    updateRoomOptions();
-
-    // Validasi real-time
-    document.querySelectorAll("input[required], select[required]").forEach(el => {
-      el.addEventListener("invalid", function() {
-        this.style.borderColor = "#dc3545";
-      });
-      el.addEventListener("input", function() {
-        this.style.borderColor = "";
-      });
-    });
   });
-
-  // Loading spinner saat submit
-  const form = document.querySelector("form");
-  if (form) {
-    form.addEventListener("submit", function(e) {
-      let valid = true;
-      this.querySelectorAll("input[required], select[required]").forEach(el => {
-        if (!el.value) {
-          el.style.borderColor = "#dc3545";
-          valid = false;
-        }
-      });
-      if (!valid) {
-        e.preventDefault();
-        alert("Mohon lengkapi semua field wajib!");
-        return false;
-      }
-      // Spinner
-      const btn = this.querySelector("button[type='submit']");
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spinner" style="margin-right:8px;vertical-align:middle;width:18px;height:18px;border:2px solid #fff;border-top:2px solid #1976d2;border-radius:50%;display:inline-block;animation:spin 1s linear infinite;"></span>Memproses...';
-    });
-  }
-
-  // Spinner CSS
-  const style = document.createElement('style');
-  style.innerHTML = `
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-    .spinner { box-sizing: border-box; }
-  `;
-  document.head.appendChild(style);
 </script>
 </body>
 </html>
