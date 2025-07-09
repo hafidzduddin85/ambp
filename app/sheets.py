@@ -2,7 +2,7 @@ import os
 import json
 import gspread
 import logging
-from decimal import Decimal
+from decimal import Decimal, InvalidOperation
 from collections import defaultdict
 from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
@@ -253,82 +253,101 @@ def append_asset(data: dict):
 # ========================
 # Sync Data Aset
 # ========================
+def to_decimal(value, default=Decimal(0)):
+    try:
+        return Decimal(str(value).replace(",", "").replace("Rp", "").strip())
+    except (InvalidOperation, AttributeError, ValueError):
+        return default
+
+def to_int(value, default=1):
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        return default
+
 def sync_assets_data():
-    sheet = get_sheet()
-    assets_ws = sheet.worksheet("Assets")
-    ref_cat_ws = sheet.worksheet("Ref_Categories")
-    ref_type_ws = sheet.worksheet("Ref_Types")
-    ref_comp_ws = sheet.worksheet("Ref_Companies")
-    ref_own_ws = sheet.worksheet("Ref_Owners")
+    try:
+        sheet = get_sheet()
+        assets_ws = sheet.worksheet("Assets")
+        ref_cat = {r[0]: r[1:] for r in sheet.worksheet("Ref_Categories").get_all_values()[1:]}
+        ref_types = {(r[0], r[1]): r[2] for r in sheet.worksheet("Ref_Types").get_all_values()[1:]}
+        ref_companies = {r[0]: r[1] for r in sheet.worksheet("Ref_Companies").get_all_values()[1:]}
+        ref_owners = {r[0]: r[1] for r in sheet.worksheet("Ref_Owners").get_all_values()[1:]}
 
-    # Load referensi
-    ref_categories = {row[0]: row[1:] for row in ref_cat_ws.get_all_values()[1:]}
-    ref_types = {(row[0], row[1]): row[2] for row in ref_type_ws.get_all_values()[1:]}
-    ref_companies = {row[0]: row[1] for row in ref_comp_ws.get_all_values()[1:]}
-    ref_owners = {row[0]: row[1] for row in ref_own_ws.get_all_values()[1:]}
-
-    headers = assets_ws.row_values(1)
-    data = assets_ws.get_all_values()[1:]
-    updated_data = []
-    no_urut_tracker = defaultdict(int)
-
-    for i, row in enumerate(data):
-        row_dict = dict(zip(headers, row))
-        updated = row.copy()
-
-        updated[headers.index("ID")] = str(i + 1)
-        try:
-            tahun_pembelian = datetime.strptime(row_dict["Purchase Date"], "%Y-%m-%d").year
-        except:
-            tahun_pembelian = datetime.now().year
-        updated[headers.index("Tahun")] = str(tahun_pembelian)
-
-        # Kategori
-        cat_data = ref_categories.get(row_dict["Category"], ["", "0", "0"])
-        code_category, residual_percent, useful_life = cat_data
-        residual_percent = Decimal(residual_percent)
-        useful_life = int(useful_life)
-
-        updated[headers.index("Residual Percent")] = str(residual_percent)
-        updated[headers.index("Useful Life")] = str(useful_life)
-        updated[headers.index("Code Category")] = code_category
-
-        try:
-            purchase_cost = Decimal(row_dict["Purchase Cost"])
-        except:
-            purchase_cost = Decimal(0)
-
-        residual_value = (purchase_cost * residual_percent / 100).quantize(Decimal("0.01"))
-        updated[headers.index("Residual Value")] = str(residual_value)
-
-        try:
-            depreciation_value = ((purchase_cost - residual_value) / useful_life).quantize(Decimal("0.01"))
-        except:
-            depreciation_value = Decimal(0)
-        updated[headers.index("Depreciation Value")] = str(depreciation_value)
-
+        headers = assets_ws.row_values(1)
+        data = assets_ws.get_all_values()[1:]
+        updated_data = []
+        tracker = defaultdict(int)
         tahun_berjalan = datetime.now().year
-        umur_dipakai = max(0, tahun_berjalan - tahun_pembelian)
-        book_value = (purchase_cost - (depreciation_value * umur_dipakai)).quantize(Decimal("0.01"))
-        updated[headers.index("Book Value")] = str(book_value)
 
-        code_company = ref_companies.get(row_dict["Company"], "")
-        updated[headers.index("Code Company")] = code_company
+        for i, row in enumerate(data):
+            row_dict = dict(zip(headers, row))
+            updated = row[:]
+            updated[headers.index("ID")] = str(i + 1)
 
-        code_owner = ref_owners.get(row_dict["Owner"], "")
-        updated[headers.index("Code Owner")] = code_owner
+            try:
+                tahun_pembelian = datetime.strptime(row_dict.get("Purchase Date", ""), "%Y-%m-%d").year
+            except:
+                tahun_pembelian = tahun_berjalan
 
-        code_type = ref_types.get((row_dict["Type"], row_dict["Category"]), "")
-        updated[headers.index("Code Type")] = code_type
+            mapping = {
+                "Tahun": str(tahun_pembelian),
+                "Code Category": "",
+                "Residual Percent": "0",
+                "Useful Life": "1",
+                "Residual Value": "0",
+                "Depreciation Value": "0",
+                "Book Value": "0",
+                "Code Company": "",
+                "Code Owner": "",
+                "Code Type": "",
+                "Asset Tag": ""
+            }
 
-        no_urut_key = (code_company, code_type, str(tahun_pembelian))
-        no_urut_tracker[no_urut_key] += 1
-        no_urut_str = str(no_urut_tracker[no_urut_key]).zfill(3)
-        tahun_2digit = str(tahun_pembelian)[-2:]
-        asset_tag = f"{code_company}-{code_category}{code_type}.{code_owner}{tahun_2digit}.{no_urut_str}"
-        updated[headers.index("Asset Tag")] = asset_tag
+            cat_data = ref_cat.get(row_dict.get("Category", ""), ["", "0", "1"])
+            code_category, residual_percent_raw, useful_life_raw = cat_data
+            residual_percent = to_decimal(residual_percent_raw)
+            useful_life = to_int(useful_life_raw)
 
-        updated_data.append(updated)
+            mapping["Code Category"] = code_category
+            mapping["Residual Percent"] = str(residual_percent)
+            mapping["Useful Life"] = str(useful_life)
 
-    # Simpan semua
-    assets_ws.update([headers] + updated_data)
+            purchase_cost = to_decimal(row_dict.get("Purchase Cost", "0"))
+            residual_value = (purchase_cost * residual_percent / 100).quantize(Decimal("0.01"))
+            try:
+                depreciation_value = ((purchase_cost - residual_value) / useful_life).quantize(Decimal("0.01"))
+            except:
+                depreciation_value = Decimal(0)
+
+            umur = max(0, tahun_berjalan - tahun_pembelian)
+            book_value = (purchase_cost - (depreciation_value * umur)).quantize(Decimal("0.01"))
+
+            mapping["Residual Value"] = str(residual_value)
+            mapping["Depreciation Value"] = str(depreciation_value)
+            mapping["Book Value"] = str(book_value)
+
+            code_company = ref_companies.get(row_dict.get("Company", ""), "")
+            code_owner = ref_owners.get(row_dict.get("Owner", ""), "")
+            code_type = ref_types.get((row_dict.get("Type", ""), row_dict.get("Category", "")), "")
+
+            mapping["Code Company"] = code_company
+            mapping["Code Owner"] = code_owner
+            mapping["Code Type"] = code_type
+
+            key = (code_company, code_type, str(tahun_pembelian))
+            tracker[key] += 1
+            no_urut = str(tracker[key]).zfill(3)
+            tahun_2digit = str(tahun_pembelian)[-2:]
+            mapping["Asset Tag"] = f"{code_company}-{code_category}{code_type}.{code_owner}{tahun_2digit}.{no_urut}"
+
+            for field, value in mapping.items():
+                if field in headers:
+                    updated[headers.index(field)] = value
+
+            updated_data.append(updated)
+
+        assets_ws.update([headers] + updated_data)
+
+    except Exception as e:
+        logging.error(f"Gagal sinkronisasi data aset: {e}")
