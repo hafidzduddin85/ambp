@@ -9,7 +9,103 @@
     <link rel="icon" href="/static/icon-192.png" type="image/png">
     <link rel="stylesheet" href="/static/style.css">
     <style>
-        /* ... (semua style tetap seperti versi kamu) ... */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 1rem;
+            max-width: 900px;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+            color: #1976d2;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            background-color: white;
+            box-shadow: 0 0 4px rgba(0,0,0,0.1);
+        }
+
+        th, td {
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        th {
+            background-color: #1976d2;
+            color: white;
+        }
+
+        a {
+            text-decoration: none;
+            color: #1976d2;
+            margin-right: 6px;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        form {
+            margin-top: 2rem;
+            background-color: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 0 5px rgba(0,0,0,0.05);
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 8px;
+            margin-top: 4px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            margin-top: 1.5rem;
+            background-color: #1976d2;
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #125ea2;
+        }
+
+        .back-link {
+            margin-top: 1.5rem;
+            text-align: center;
+        }
+
+        .actions a {
+            margin-right: 8px;
+        }
+
+        .actions a:last-child {
+            margin-right: 0;
+        }
+
+        .add-user-title {
+            margin-bottom: 0.5rem;
+            color: #1976d2;
+        }
     </style>
 </head>
 <body>
@@ -34,8 +130,9 @@
                 <td>{{ user.id }}</td>
                 <td>{{ user.username }}</td>
                 <td>{{ user.role }}</td>
-                <td>
-                    <a href="/settings/users/edit/{{ user.id }}">✏️ Edit</a> |
+                <td class="actions">
+                    <a href="/settings/users/edit/{{ user.id }}">✏️ Edit</a>
+                    <a href="/settings/users/reset/{{ user.id }}" onclick="return confirm('Reset password ke default (123456)?')">🔁 Reset</a>
                     <a href="/settings/users/delete/{{ user.id }}" onclick="return confirm('Yakin ingin hapus user ini?')">🗑️ Hapus</a>
                 </td>
             </tr>
@@ -44,7 +141,7 @@
     </table>
 
     <form method="post" action="/settings/users/add">
-        <h3>➕ Tambah User Baru</h3>
+        <h3 class="add-user-title">➕ Tambah User Baru</h3>
 
         <label>Username</label>
         <input type="text" name="username" required>
