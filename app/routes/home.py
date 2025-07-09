@@ -6,7 +6,7 @@ from app.dependencies import get_current_user
 from app.models import User
 
 router = APIRouter()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="app/templates")
 
 # Root: redirect ke /home atau /login
 @router.get("/", response_class=RedirectResponse)
