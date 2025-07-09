@@ -121,9 +121,13 @@
     <script>
         // Service Worker
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/static/service-worker.js')
-                .then(reg => console.log('✅ Service Worker registered:', reg.scope))
-                .catch(err => console.error('❌ Service Worker error:', err));
+            try {
+                navigator.serviceWorker.register('/static/service-worker.js')
+                    .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+                    .catch(err => console.error('❌ Service Worker error:', err));
+            } catch (e) {
+                console.error('Service Worker error:', e);
+            }
         }
 
         // Install PWA
@@ -147,10 +151,14 @@
             const now = new Date();
             const clock = document.getElementById('clock');
             if (clock) {
-                clock.textContent = '🕒 ' + now.toLocaleString('id-ID', {
-                    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                });
+                try {
+                    clock.textContent = '🕒 ' + now.toLocaleString('id-ID', {
+                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                        hour: '2-digit', minute: '2-digit', second: '2-digit'
+                    });
+                } catch (e) {
+                    console.error('Error updating clock:', e);
+                }
             }
         }
         setInterval(updateClock, 1000);
@@ -167,12 +175,16 @@
         const msg = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
         const welcomeMsg = document.getElementById('welcome-msg');
         if (welcomeMsg) {
-            welcomeMsg.innerHTML = msg;
-            welcomeMsg.style.opacity = 0;
-            setTimeout(() => {
-                welcomeMsg.style.transition = 'opacity 1s';
-                welcomeMsg.style.opacity = 1;
-            }, 300);
+            try {
+                welcomeMsg.innerHTML = msg;
+                welcomeMsg.style.opacity = 0;
+                setTimeout(() => {
+                    welcomeMsg.style.transition = 'opacity 1s';
+                    welcomeMsg.style.opacity = 1;
+                }, 300);
+            } catch (e) {
+                console.error('Error showing welcome message:', e);
+            }
         }
     </script>
 </body>
