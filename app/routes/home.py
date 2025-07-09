@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from sqlalchemy.orm import Session
 from app.database import SessionLocal
 from app.models import User
-from app.routes.auth import get_current_user
+from app.routes.dependencies import get_current_user
 from fastapi.templating import Jinja2Templates
 
 templates = Jinja2Templates(directory="app/templates")
