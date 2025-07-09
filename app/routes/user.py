@@ -24,7 +24,7 @@ def users_list(request: Request, status: str, db: Session = Depends(get_db), use
     else:
         users = db.query(User).filter_by(role=status).all()
 
-    return templates.TemplateResponse("user.html", {
+    return templates.TemplateResponse("users.html", {
         "request": request,
         "users": users,
         "status": status
