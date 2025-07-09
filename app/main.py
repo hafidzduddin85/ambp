@@ -10,8 +10,8 @@ app.add_middleware(SessionMiddleware, secret_key=SESSION_SECRET)
 import os
 app.mount("/static", StaticFiles(directory=os.path.join(os.path.dirname(__file__), "static")), name="static")
 
+@app.get("/favicon.ico")
 def favicon():
     import os
     favicon_path = os.path.join(os.path.dirname(__file__), "static", "favicon.ico")
     return FileResponse(favicon_path)
-    return FileResponse("app/static/favicon.ico")
