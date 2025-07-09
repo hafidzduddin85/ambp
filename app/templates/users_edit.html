@@ -1,21 +1,84 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-    <title>Edit User</title>
+    <meta charset="UTF-8">
+    <title>✏️ Edit Pengguna</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="stylesheet" href="/static/style.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding: 2rem;
+            max-width: 600px;
+            margin: auto;
+        }
+
+        h2 {
+            text-align: center;
+            color: #1976d2;
+        }
+
+        form {
+            background-color: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 0 8px rgba(0,0,0,0.1);
+        }
+
+        label {
+            display: block;
+            margin-top: 1rem;
+            font-weight: bold;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 0.75rem;
+            margin-top: 0.25rem;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+        }
+
+        button {
+            margin-top: 1.5rem;
+            background-color: #1976d2;
+            color: white;
+            padding: 10px;
+            border: none;
+            width: 100%;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #125ea2;
+        }
+
+        .back {
+            text-align: center;
+            margin-top: 1rem;
+        }
+
+        .error {
+            text-align: center;
+            color: red;
+            font-weight: bold;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
-    <h2 style="text-align:center">✏️ Edit Pengguna</h2>
-    <p style="text-align:center;"><a href="/settings/users">🔙 Kembali</a></p>
+    <h2>✏️ Edit Pengguna</h2>
 
     {% if error %}
-    <div style="color: red; text-align: center; font-weight: bold;">
+    <div class="error">
         ⚠️ {{ error }}
     </div>
     {% endif %}
 
-    <form method="post" action="/settings/users/update/{{ user.id }}" style="max-width: 400px; margin: auto;">
+    <form method="post" action="/settings/users/update/{{ user.id }}">
         <label>Username</label>
         <input type="text" name="username" value="{{ user.username }}" required>
 
@@ -30,5 +93,9 @@
 
         <button type="submit">💾 Simpan Perubahan</button>
     </form>
+
+    <div class="back">
+        <a href="/settings/users">🔙 Kembali ke Daftar Pengguna</a>
+    </div>
 </body>
 </html>
