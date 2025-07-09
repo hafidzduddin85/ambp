@@ -42,3 +42,21 @@ def clear_cache(key: str) -> None:
     if key in _cache_store:
         del _cache_store[key]
 
+_cache = {}
+
+def get_cached_data(key, builder, timeout=300):
+    now = time()
+    if key in _cache:
+        value, ts = _cache[key]
+        if now - ts < timeout:
+            return value
+    value = builder()
+    _cache[key] = (value, now)
+    return value
+
+def clear_cache(key=None):
+    if key:
+        _cache.pop(key, None)
+    else:
+        _cache.clear()
+
