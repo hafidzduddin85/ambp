@@ -8,6 +8,7 @@ from datetime import datetime
 from oauth2client.service_account import ServiceAccountCredentials
 from app.cache import get_cached_data, clear_cache
 from functools import wraps
+import time
 
 # ========================
 # Koneksi & Autentikasi
@@ -15,29 +16,38 @@ from functools import wraps
 _sheet_cache = None
 _worksheets_cache = {}
 
-def retry_on_api_error(max_retries=3):
-    """Decorator for retrying API calls"""
+def retry_on_api_error(max_retries=3, backoff_factor=1):
+    """Decorator for retrying API calls with exponential backoff"""
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
             for attempt in range(max_retries):
                 try:
                     return func(*args, **kwargs)
-                except (gspread.exceptions.APIError, ConnectionError) as e:
+                except (gspread.exceptions.APIError, ConnectionError, Exception) as e:
                     if attempt == max_retries - 1:
                         logging.error(f"API call failed after {max_retries} attempts: {e}")
                         raise
-                    logging.warning(f"API call failed, retrying... ({attempt + 1}/{max_retries})")
+                    wait_time = backoff_factor * (2 ** attempt)
+                    logging.warning(f"API call failed, retrying in {wait_time}s... ({attempt + 1}/{max_retries}): {e}")
+                    time.sleep(wait_time)
             return None
         return wrapper
     return decorator
 
-@retry_on_api_error()
+@retry_on_api_error(max_retries=3, backoff_factor=2)
 def get_sheet():
     """Koneksi ke Google Sheets dan cache instance"""
     global _sheet_cache
     if _sheet_cache:
-        return _sheet_cache
+        try:
+            # Test connection
+            _sheet_cache.get_worksheet_by_id(0)
+            return _sheet_cache
+        except:
+            # Reset cache if connection is stale
+            _sheet_cache = None
+            clear_worksheet_cache()
 
     creds_json_str = os.getenv("GOOGLE_CREDS_JSON")
     sheet_id = os.getenv("GOOGLE_SHEET_ID")
@@ -54,13 +64,18 @@ def get_sheet():
     _sheet_cache = client.open_by_key(sheet_id)
     return _sheet_cache
 
+@retry_on_api_error(max_retries=2)
 def get_worksheet(name: str):
-    """Get worksheet with caching"""
+    """Get worksheet with caching and error handling"""
     if name not in _worksheets_cache:
         try:
             _worksheets_cache[name] = get_sheet().worksheet(name)
         except gspread.exceptions.WorksheetNotFound:
             logging.warning(f"Sheet '{name}' not found.")
+            _worksheets_cache[name] = None
+            return None
+        except Exception as e:
+            logging.error(f"Error accessing worksheet '{name}': {e}")
             return None
     return _worksheets_cache[name]
 
@@ -208,9 +223,11 @@ def add_owner_if_not_exists(owner_name: str):
         ws = get_worksheet("Ref_Owners")
         if not ws: return
         
-        owners = {o.strip().lower() for o in ws.col_values(1)[1:]}
+        values = ws.col_values(1)[1:]
+        owners = {o.strip().lower() for o in values if o.strip()}
         if owner_name.strip().lower() not in owners:
-            ws.append_row([owner_name, str(len(owners) + 1).zfill(2)])
+            next_code = str(len(values) + 1).zfill(2)
+            ws.append_row([owner_name, next_code])
             clear_cache("reference_lists")
     except Exception as e:
         logging.warning(f"Gagal menambahkan Owner '{owner_name}': {e}")
@@ -401,7 +418,7 @@ def to_int(value, default=1):
     except (ValueError, TypeError):
         return default
 
-@retry_on_api_error()
+@retry_on_api_error(max_retries=2)
 def sync_assets_data():
     try:
         ref_data = get_cached_data("sync_references", _load_sync_references)
@@ -410,15 +427,26 @@ def sync_assets_data():
         
         headers = assets_ws.row_values(1)
         data = assets_ws.get_all_values()[1:]
+        
+        if not data:
+            logging.info("No asset data to sync")
+            return
+            
         updated_data = []
         tracker = defaultdict(int)
         tahun_berjalan = datetime.now().year
+        
+        # Pre-calculate header indices for performance
+        header_indices = {header: i for i, header in enumerate(headers)}
 
-        # Process rows in batches for better performance
+        # Process rows with optimized field updates
         for i, row in enumerate(data):
             row_dict = dict(zip(headers, row))
-            updated = row[:]
-            updated[headers.index("ID")] = str(i + 1)
+            updated = list(row)  # Create copy
+            
+            # Update ID
+            if "ID" in header_indices:
+                updated[header_indices["ID"]] = str(i + 1)
 
             try:
                 tahun_pembelian = datetime.strptime(row_dict.get("Purchase Date", ""), "%Y-%m-%d").year
@@ -427,7 +455,11 @@ def sync_assets_data():
 
             # Calculate depreciation values
             cat_data = ref_data["categories"].get(row_dict.get("Category", ""), ["", "0", "1"])
-            code_category, residual_percent_raw, useful_life_raw = cat_data
+            if len(cat_data) >= 3:
+                code_category, residual_percent_raw, useful_life_raw = cat_data[0], cat_data[1], cat_data[2]
+            else:
+                code_category, residual_percent_raw, useful_life_raw = "", "0", "1"
+                
             residual_percent = to_decimal(residual_percent_raw)
             useful_life = to_int(useful_life_raw)
 
@@ -449,7 +481,7 @@ def sync_assets_data():
             tahun_2digit = str(tahun_pembelian)[-2:]
             asset_tag = f"{code_company}-{code_category}{code_type}.{code_owner}{tahun_2digit}.{no_urut}"
 
-            # Update row with calculated values
+            # Update row with calculated values using pre-calculated indices
             field_updates = {
                 "Tahun": str(tahun_pembelian), "Code Category": code_category,
                 "Residual Percent": str(residual_percent), "Useful Life": str(useful_life),
@@ -459,16 +491,19 @@ def sync_assets_data():
             }
 
             for field, value in field_updates.items():
-                if field in headers:
-                    updated[headers.index(field)] = value
+                if field in header_indices:
+                    updated[header_indices[field]] = value
 
             updated_data.append(updated)
 
         # Batch update all data at once
-        assets_ws.update([headers] + updated_data)
+        if updated_data:
+            assets_ws.update([headers] + updated_data)
+            logging.info(f"Successfully synced {len(updated_data)} assets")
 
     except Exception as e:
         logging.error(f"Gagal sinkronisasi data aset: {e}")
+        raise
 
 @retry_on_api_error()
 def _load_sync_references() -> dict:
