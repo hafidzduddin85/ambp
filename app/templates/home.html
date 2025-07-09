@@ -1,190 +1,181 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <title>Beranda Aset Management</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8">
+  <title>Beranda Aset Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#1976d2">
+  <link rel="icon" href="/static/favicon.ico">
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    :root {
+      --primary: #1976d2;
+      --accent: #125ea2;
+      --bg: #f3f6fb;
+      --text: #333;
+    }
 
-    <!-- PWA Support -->
-    <link rel="manifest" href="/static/manifest.json">
-    <meta name="theme-color" content="#1976d2">
-    <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
-    <link rel="apple-touch-icon" sizes="192x192" href="/static/icon-192.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="/static/icon-512.png">
-    <link rel="stylesheet" href="/static/style.css">
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
 
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f4f8;
-            margin: 0;
-            padding: 2rem;
-            text-align: center;
-        }
+    .container {
+      max-width: 500px;
+      width: 100%;
+    }
 
-        h1 {
-            color: #1976d2;
-        }
+    .profile-card {
+      background: linear-gradient(135deg, #2196f3, #1e88e5);
+      color: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      text-align: center;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      margin-bottom: 2rem;
+    }
 
-        .menu {
-            display: flex;
-            flex-direction: column;
-            gap: 1rem;
-            margin-top: 2rem;
-            max-width: 300px;
-            margin-inline: auto;
-        }
+    .profile-card img {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      border: 3px solid white;
+      margin-bottom: 1rem;
+    }
 
-        .menu a {
-            display: block;
-            padding: 1rem;
-            background-color: #1976d2;
-            color: white;
-            text-decoration: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
-            font-weight: bold;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
+    .menu {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+    }
 
-        .menu a:hover {
-            background-color: #125ea2;
-        }
+    .menu a {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      padding: 0.9rem 1rem;
+      background-color: white;
+      border-radius: 10px;
+      text-decoration: none;
+      color: var(--text);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease, background 0.2s;
+    }
 
-        #installBtn {
-            display: none;
-            margin-top: 2rem;
-            padding: 0.75rem 1.5rem;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-        }
+    .menu a:hover {
+      background: #e3f2fd;
+      transform: scale(1.02);
+    }
 
-        #installBtn:hover {
-            background-color: #218838;
-        }
+    .menu a i {
+      font-size: 1.4rem;
+      color: var(--primary);
+    }
 
-        footer {
-            margin-top: 4rem;
-            font-size: 0.9rem;
-            color: #666;
-        }
+    .clock {
+      margin: 1rem 0;
+      font-size: 1rem;
+      color: var(--accent);
+    }
 
-        .logout {
-            margin-top: 2rem;
-        }
+    .logout {
+      text-align: center;
+      margin-top: 2rem;
+    }
 
-        .logout form button {
-            background-color: #dc3545;
-            border: none;
-            padding: 0.7rem 1.2rem;
-            color: white;
-            font-weight: bold;
-            border-radius: 6px;
-            cursor: pointer;
-        }
+    .logout form button {
+      background: #e53935;
+      color: white;
+      border: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
 
-        .logout form button:hover {
-            background-color: #b02a37;
-        }
-    </style>
+    .logout form button:hover {
+      background: #c62828;
+    }
+
+    footer {
+      margin-top: 3rem;
+      font-size: 0.85rem;
+      color: #888;
+      text-align: center;
+    }
+
+    @media(min-width: 600px) {
+      .menu {
+        grid-template-columns: 1fr 1fr;
+      }
+    }
+  </style>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 </head>
 <body>
-    <h1 id="welcome-title">📦 Aset Management App</h1>
-
+  <div class="container">
     {% if user %}
-        <p id="welcome-msg"></p>
-        <div id="clock" style="font-size:1.1rem; color:#1976d2; margin-bottom:1rem;"></div>
-        <div class="menu">
-            <a href="/dashboard">📊 Dashboard Aset</a>
-            <a href="/input">➕ Input Aset Baru</a>
-            <a href="/export">📥 Export Data Excel</a>
-            {% if user.role == 'admin' %}
-                <a href="/settings/users">⚙️ Pengaturan User</a>
-            {% endif %}
-        </div>
-        <div class="logout">
-            <form method="post" action="/logout">
-                <button type="submit">🚪 Logout</button>
-            </form>
-        </div>
+    <div class="profile-card">
+      <img src="/static/user.png" alt="Avatar">
+      <h2 id="welcome-msg">Halo, {{ user.username }} 👋</h2>
+      <div class="clock" id="clock">🕒</div>
+    </div>
+
+    <div class="menu">
+      <a href="/dashboard"><i class="material-icons">dashboard</i>Dashboard Aset</a>
+      <a href="/input"><i class="material-icons">add_circle</i>Input Aset Baru</a>
+      <a href="/export"><i class="material-icons">file_download</i>Export ke Excel</a>
+      <a href="/change-password"><i class="material-icons">lock</i>Ganti Password</a>
+      {% if user.role == 'admin' %}
+      <a href="/settings/users"><i class="material-icons">manage_accounts</i>Pengaturan User</a>
+      {% endif %}
+    </div>
+
+    <div class="logout">
+      <form method="post" action="/logout">
+        <button type="submit">🚪 Logout</button>
+      </form>
+    </div>
     {% else %}
-        <p>Silakan login untuk menggunakan aplikasi.</p>
-        <a href="/login" class="menu-link">🔐 Login</a>
+    <p>Silakan login terlebih dahulu.</p>
+    <a href="/login">🔐 Login</a>
     {% endif %}
 
-    <button id="installBtn">📲 Install Aplikasi</button>
+    <footer>v1.0 — Asset Management Division</footer>
+  </div>
 
-    <footer>v1.0 — by Asset Management & Business Process Division</footer>
-
-    <script>
-        if ('serviceWorker' in navigator) {
-            try {
-                navigator.serviceWorker.register('/static/service-worker.js')
-                    .then(reg => console.log('✅ Service Worker registered:', reg.scope))
-                    .catch(err => console.error('❌ Service Worker error:', err));
-            } catch (e) {
-                console.error('Service Worker error:', e);
-            }
-        }
-
-        let deferredPrompt;
-        const installBtn = document.getElementById('installBtn');
-        window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
-            installBtn.style.display = 'inline-block';
-            installBtn.addEventListener('click', async () => {
-                installBtn.disabled = true;
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                deferredPrompt = null;
-                installBtn.style.display = 'none';
-            });
+  <script>
+    function updateClock() {
+      const now = new Date();
+      const clock = document.getElementById('clock');
+      if (clock) {
+        clock.textContent = now.toLocaleString('id-ID', {
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
         });
+      }
+    }
 
-        function updateClock() {
-            const now = new Date();
-            const clock = document.getElementById('clock');
-            if (clock) {
-                try {
-                    clock.textContent = '🕒 ' + now.toLocaleString('id-ID', {
-                        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-                        hour: '2-digit', minute: '2-digit', second: '2-digit'
-                    });
-                } catch (e) {
-                    console.error('Error updating clock:', e);
-                }
-            }
-        }
-        setInterval(updateClock, 1000);
-        updateClock();
+    setInterval(updateClock, 1000);
+    updateClock();
 
-        const welcomeMessages = [
-            "👋 Selamat datang, <strong>{{ user.username }}</strong>!",
-            "🎉 Halo <strong>{{ user.username }}</strong>, semoga harimu menyenangkan!",
-            "🚀 Hai <strong>{{ user.username }}</strong>! Siap kelola aset hari ini?",
-            "😊 Senang melihatmu lagi, <strong>{{ user.username }}</strong>!",
-            "💼 Selamat bekerja, <strong>{{ user.username }}</strong>!"
-        ];
-        const msg = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
-        const welcomeMsg = document.getElementById('welcome-msg');
-        if (welcomeMsg) {
-            try {
-                welcomeMsg.innerHTML = msg;
-                welcomeMsg.style.opacity = 0;
-                setTimeout(() => {
-                    welcomeMsg.style.transition = 'opacity 1s';
-                    welcomeMsg.style.opacity = 1;
-                }, 300);
-            } catch (e) {
-                console.error('Error showing welcome message:', e);
-            }
-        }
-    </script>
+    // Welcome animation
+    const welcomeMsg = document.getElementById('welcome-msg');
+    if (welcomeMsg) {
+      welcomeMsg.style.opacity = 0;
+      setTimeout(() => {
+        welcomeMsg.style.transition = 'opacity 1s ease-in-out';
+        welcomeMsg.style.opacity = 1;
+      }, 200);
+    }
+  </script>
 </body>
 </html>
