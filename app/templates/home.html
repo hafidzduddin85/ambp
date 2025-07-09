@@ -93,7 +93,7 @@
     <h1 id="welcome-title">📦 Aset Management App</h1>
 
     {% if user %}
-        <p id="welcome-msg">👋 Selamat datang, <strong>{{ user.username }}</strong>!</p>
+        <p id="welcome-msg"></p>
         <div id="clock" style="font-size:1.1rem; color:#1976d2; margin-bottom:1rem;"></div>
         <div class="menu">
             <a href="/dashboard">📊 Dashboard Aset</a>
@@ -156,9 +156,18 @@
         setInterval(updateClock, 1000);
         updateClock();
 
-        // Welcome Animation
+        // Pesan selamat datang random
+        const welcomeMessages = [
+            "👋 Selamat datang, <strong>{{ user.username }}</strong>!",
+            "🎉 Halo <strong>{{ user.username }}</strong>, semoga harimu menyenangkan!",
+            "🚀 Hai <strong>{{ user.username }}</strong>! Siap kelola aset hari ini?",
+            "😊 Senang melihatmu lagi, <strong>{{ user.username }}</strong>!",
+            "💼 Selamat bekerja, <strong>{{ user.username }}</strong>!"
+        ];
+        const msg = welcomeMessages[Math.floor(Math.random() * welcomeMessages.length)];
         const welcomeMsg = document.getElementById('welcome-msg');
         if (welcomeMsg) {
+            welcomeMsg.innerHTML = msg;
             welcomeMsg.style.opacity = 0;
             setTimeout(() => {
                 welcomeMsg.style.transition = 'opacity 1s';

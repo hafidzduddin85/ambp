@@ -179,12 +179,15 @@
   }
 
   // --- Interaktif tambahan ---
-  // Autofocus ke field pertama
   window.addEventListener("DOMContentLoaded", () => {
     document.querySelector("input[name='item_name']").focus();
     new TomSelect("#category", { create: false, placeholder: "-- Pilih Kategori --" });
     new TomSelect("#location", { create: false, placeholder: "-- Pilih Lokasi --" });
     new TomSelect("select[name='owner']", { create: false, placeholder: "-- Pilih Penanggung Jawab --" });
+
+    // Sinkronisasi awal tipe dan ruangan jika ada value default
+    updateTypeOptions();
+    updateRoomOptions();
 
     // Validasi real-time
     document.querySelectorAll("input[required], select[required]").forEach(el => {
@@ -198,24 +201,27 @@
   });
 
   // Loading spinner saat submit
-  document.querySelector("form").addEventListener("submit", function(e) {
-    let valid = true;
-    this.querySelectorAll("input[required], select[required]").forEach(el => {
-      if (!el.value) {
-        el.style.borderColor = "#dc3545";
-        valid = false;
+  const form = document.querySelector("form");
+  if (form) {
+    form.addEventListener("submit", function(e) {
+      let valid = true;
+      this.querySelectorAll("input[required], select[required]").forEach(el => {
+        if (!el.value) {
+          el.style.borderColor = "#dc3545";
+          valid = false;
+        }
+      });
+      if (!valid) {
+        e.preventDefault();
+        alert("Mohon lengkapi semua field wajib!");
+        return false;
       }
+      // Spinner
+      const btn = this.querySelector("button[type='submit']");
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="margin-right:8px;vertical-align:middle;width:18px;height:18px;border:2px solid #fff;border-top:2px solid #1976d2;border-radius:50%;display:inline-block;animation:spin 1s linear infinite;"></span>Memproses...';
     });
-    if (!valid) {
-      e.preventDefault();
-      alert("Mohon lengkapi semua field wajib!");
-      return false;
-    }
-    // Spinner
-    const btn = this.querySelector("button[type='submit']");
-    btn.disabled = true;
-    btn.innerHTML = '<span class="spinner" style="margin-right:8px;vertical-align:middle;width:18px;height:18px;border:2px solid #fff;border-top:2px solid #1976d2;border-radius:50%;display:inline-block;animation:spin 1s linear infinite;"></span>Memproses...';
-  });
+  }
 
   // Spinner CSS
   const style = document.createElement('style');

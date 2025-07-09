@@ -147,10 +147,10 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        const kategoriLabels = {{ kategori_labels | tojson | safe }};
-        const kategoriValues = {{ kategori_values | tojson | safe }};
-        const tahunLabels = {{ tahun_labels | tojson | safe }};
-        const tahunValues = {{ tahun_values | tojson | safe }};
+        const kategoriLabels = {{ kategori_labels|tojson }};
+        const kategoriValues = {{ kategori_values|tojson }};
+        const tahunLabels = {{ tahun_labels|tojson }};
+        const tahunValues = {{ tahun_values|tojson }};
 
         new Chart(document.getElementById('kategoriChart'), {
             type: 'bar',
@@ -208,3 +208,4 @@
 	</script>
 </body>
 </html>
+
