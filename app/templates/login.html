@@ -64,6 +64,15 @@
             text-align: center;
             margin-top: 1rem;
         }
+        .toggle-btn {
+            position: absolute;
+            top: 7px;
+            right: 8px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+        }
     </style>
 </head>
 <body>
@@ -76,8 +85,11 @@
             <label for="password">🔑 Password</label>
             <div style="position:relative;">
                 <input type="password" id="password" name="password" required autocomplete="current-password" style="padding-right:36px;">
-                <button type="button" id="togglePwd" style="position:absolute;top:7px;right:8px;background:none;border:none;cursor:pointer;" tabindex="-1">
-                    <span id="eye" aria-label="Show password">👁️</span>
+                <button type="button" id="togglePwd" class="toggle-btn" tabindex="-1" aria-label="Toggle Password">
+                    <svg id="eyeIcon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" fill="gray" viewBox="0 0 24 24">
+                        <path id="eyePath" d="M12 4.5c-4.7 0-8.8 3-10.5 7.5 1.7 4.5 5.8 7.5 10.5 7.5s8.8-3 10.5-7.5c-1.7-4.5-5.8-7.5-10.5-7.5zm0 13c-3.2 0-6.1-2-7.5-5 1.4-3 4.3-5 7.5-5s6.1 2 7.5 5c-1.4 3-4.3 5-7.5 5z"/>
+                        <circle id="eyeDot" cx="12" cy="12" r="2.5"/>
+                    </svg>
                 </button>
             </div>
 
@@ -91,31 +103,35 @@
             // Autofocus username
             document.getElementById('username').focus();
 
-            // Show/hide password
-            document.getElementById('togglePwd').onclick = function() {
+            // Show/hide password with SVG
+            document.getElementById('togglePwd').onclick = function () {
                 const pwd = document.getElementById('password');
-                const eye = document.getElementById('eye');
+                const eyePath = document.getElementById('eyePath');
+                const eyeDot = document.getElementById('eyeDot');
+
                 if (pwd.type === "password") {
                     pwd.type = "text";
-                    eye.textContent = "🙈";
+                    eyePath.setAttribute("d", "M1 1l22 22");
+                    eyeDot.style.display = "none";
                 } else {
                     pwd.type = "password";
-                    eye.textContent = "👁️";
+                    eyePath.setAttribute("d", "M12 4.5c-4.7 0-8.8 3-10.5 7.5 1.7 4.5 5.8 7.5 10.5 7.5s8.8-3 10.5-7.5c-1.7-4.5-5.8-7.5-10.5-7.5zm0 13c-3.2 0-6.1-2-7.5-5 1.4-3 4.3-5 7.5-5s6.1 2 7.5 5c-1.4 3-4.3 5-7.5 5z");
+                    eyeDot.style.display = "inline";
                 }
             };
 
             // Real-time validation
             document.querySelectorAll("#loginForm input[required]").forEach(el => {
-                el.addEventListener("invalid", function() {
+                el.addEventListener("invalid", function () {
                     this.style.borderColor = "#dc3545";
                 });
-                el.addEventListener("input", function() {
+                el.addEventListener("input", function () {
                     this.style.borderColor = "";
                 });
             });
 
             // Loading spinner on submit
-            document.getElementById('loginForm').addEventListener('submit', function(e) {
+            document.getElementById('loginForm').addEventListener('submit', function (e) {
                 const btn = document.getElementById('loginBtn');
                 btn.disabled = true;
                 btn.innerHTML = '<span class="spinner" style="margin-right:8px;vertical-align:middle;width:18px;height:18px;border:2px solid #fff;border-top:2px solid #1976d2;border-radius:50%;display:inline-block;animation:spin 1s linear infinite;"></span>Memproses...';
