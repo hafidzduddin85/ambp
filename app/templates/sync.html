@@ -2,63 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Sinkronisasi Aset</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <title>Sync Data Aset</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 1rem; max-width: 600px; margin: auto; }
+    h1 { text-align: center; color: #1976d2; }
+    .card { background-color: white; padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center; }
+    button { background-color: #1976d2; color: white; padding: 15px 30px; border: none; font-size: 18px; border-radius: 6px; cursor: pointer; margin: 10px; }
+    button:hover { background-color: #125ea2; }
+    .back-link { display: block; margin: 1rem 0; text-align: center; text-decoration: none; color: #1976d2; }
+    .info { background-color: #e3f2fd; padding: 1rem; border-radius: 6px; margin: 1rem 0; }
+  </style>
 </head>
-<body class="bg-gray-100 min-h-screen flex items-center justify-center py-12 px-4">
-  <div class="bg-white w-full max-w-3xl shadow-lg rounded-xl p-8">
-    <h1 class="text-2xl font-bold text-center text-blue-700 mb-6">🔄 Sinkronisasi Data Aset</h1>
+<body>
+<h1>🔄 Sync Data Aset</h1>
+<a href="/home" class="back-link">🔙 Kembali ke Beranda</a>
 
-    {% if message %}
-    <div class="mb-4 px-4 py-3 rounded-md {{ 'bg-green-100 text-green-800' if 'berhasil' in message.lower() else 'bg-red-100 text-red-800' }}">
-      {{ message }}
-    </div>
-    {% endif %}
-
-    <div class="mb-6">
-      <h2 class="text-lg font-semibold mb-2">Daftar Pengguna dengan Role: <span class="text-blue-600">{{ status }}</span></h2>
-      {% if users %}
-        <ul class="list-disc list-inside text-sm text-gray-800 space-y-1">
-          {% for u in users %}
-            <li>{{ u.name }} <span class="text-gray-500">({{ u.email }})</span></li>
-          {% endfor %}
-        </ul>
-      {% else %}
-        <p class="italic text-gray-500">Tidak ada pengguna dengan role ini.</p>
-      {% endif %}
-    </div>
-
-    <div class="flex justify-between items-center">
-      <a href="/" class="text-sm text-blue-600 hover:underline">&larr; Kembali ke Beranda</a>
-      <button id="resyncBtn" onclick="resync()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2">
-        🔁 Jalankan Ulang
-        <svg id="spinner" class="hidden animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
-        </svg>
-      </button>
-    </div>
+<div class="card">
+  <div class="info">
+    <h3>📋 Fungsi Sync Data:</h3>
+    <ul style="text-align: left;">
+      <li>✅ Mengisi ID berurutan</li>
+      <li>📅 Mengisi kolom Tahun dari Purchase Date</li>
+      <li>💰 Menghitung nilai depresiasi dan book value</li>
+      <li>🏷️ Generate kode kategori, perusahaan, tipe, owner</li>
+      <li>🔖 Generate Asset Tag otomatis</li>
+    </ul>
   </div>
-
-  <script>
-    async function resync() {
-      const btn = document.getElementById("resyncBtn");
-      const spinner = document.getElementById("spinner");
-      btn.disabled = true;
-      spinner.classList.remove("hidden");
-
-      try {
-        const res = await fetch("/sync-assets?status={{ status }}");
-        const html = await res.text();
-        document.open();
-        document.write(html);
-        document.close();
-      } catch (err) {
-        alert("Gagal melakukan sinkronisasi ulang: " + err.message);
-        btn.disabled = false;
-        spinner.classList.add("hidden");
-      }
-    }
-  </script>
+  
+  <form method="post" action="/sync/run" onsubmit="return confirm('Yakin ingin melakukan sync data? Proses ini akan mengupdate semua data aset.')">
+    <button type="submit">🚀 Jalankan Sync Data</button>
+  </form>
+</div>
 </body>
 </html>

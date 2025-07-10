@@ -49,12 +49,17 @@ def add_company_with_code_if_not_exists(company: str, code: str):
             return
     ws.append_row([company, code])
 
-def add_owner_if_not_exists(owner: str, code: str):
+def add_owner_if_not_exists(owner: str, code: str = ""):
     ws = _get_sheet("Ref_Owners")
     values = ws.get_all_records()
     for row in values:
         if row.get("Owner") == owner:
             return
+    
+    # Generate code if not provided
+    if not code:
+        code = str(len(values) + 1).zfill(2)
+    
     ws.append_row([owner, code])
 
 def add_category_if_not_exists(category: str, code: str):

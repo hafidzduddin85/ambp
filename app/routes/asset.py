@@ -26,7 +26,6 @@ def submit_asset(
     request: Request,
     item_name: str = Form(...),
     category: str = Form(...),
-    code_category: str = Form(...),
     type: str = Form(...),
     manufacture: str = Form(""),
     model: str = Form(""),
@@ -44,24 +43,29 @@ def submit_asset(
     supplier: str = Form(""),
     journal: str = Form(""),
     owner: str = Form(...),
-    code_owner: str = Form(...),
     user=Depends(get_current_user)
 ):
+    from app.utils.references import add_type_if_not_exists, add_location_if_not_exists, add_company_with_code_if_not_exists, add_owner_if_not_exists, add_category_if_not_exists
+    
     category = validate_category_or_default(category)
+    
+    # Extract company name if in "Company (CODE)" format
+    company_name = company.split(" (")[0] if " (" in company else company
 
-    sheets.add_type_if_not_exists(type, category)
-    sheets.add_location_if_not_exists(location, room_location)
-    sheets.add_company_with_code_if_not_exists(company, code_company)
-    sheets.add_owner_if_not_exists(owner, code_owner)
-    sheets.add_category_if_not_exists(category, code_category)
+    # Add references if they don't exist
+    add_type_if_not_exists(type, category)
+    add_location_if_not_exists(location, room_location)
+    add_company_with_code_if_not_exists(company_name, code_company)
+    add_owner_if_not_exists(owner, "")
+    add_category_if_not_exists(category, "")
 
     data = {
-        "item_name": item_name, "category": category, "code_category": code_category, "type": type,
+        "item_name": item_name, "category": category, "type": type,
         "manufacture": manufacture, "model": model, "serial_number": serial_number,
-        "company": company, "code_company": code_company, "bisnis_unit": bisnis_unit,
+        "company": company_name, "bisnis_unit": bisnis_unit,
         "location": location, "room_location": room_location, "notes": notes,
         "condition": condition, "purchase_date": purchase_date, "purchase_cost": purchase_cost,
-        "warranty": warranty, "supplier": supplier, "journal": journal, "owner": owner, "code_owner": code_owner
+        "warranty": warranty, "supplier": supplier, "journal": journal, "owner": owner
     }
 
     sheets.append_asset(data)
@@ -106,3 +110,13 @@ def export_excel(status: str = "All", user=Depends(get_current_user)):
 
     return StreamingResponse(output, media_type="text/csv",
         headers={"Content-Disposition": f"attachment; filename=assets_{status}.csv"})
+
+@router.post("/sync")
+def sync_data(user=Depends(get_current_user)):
+    """Sync asset data - fill empty columns with calculated values"""
+    try:
+        from app.sync_function import sync_assets_data
+        result = sync_assets_data()
+        return {"success": True, "message": f"Synced: {result.get('message', '')}", "data": result}
+    except Exception as e:
+        return {"success": False, "message": f"Sync failed: {str(e)}"}
