@@ -17,7 +17,6 @@ _sheet_cache = None
 _worksheets_cache = {}
 
 def retry_on_api_error(max_retries=3, backoff_factor=1):
-    """Decorator for retrying API calls with exponential backoff"""
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -37,7 +36,6 @@ def retry_on_api_error(max_retries=3, backoff_factor=1):
 
 @retry_on_api_error(max_retries=3, backoff_factor=2)
 def get_sheet():
-    """Koneksi ke Google Sheets dan cache instance"""
     global _sheet_cache
     if _sheet_cache:
         try:
@@ -64,7 +62,6 @@ def get_sheet():
 
 @retry_on_api_error(max_retries=2)
 def get_worksheet(name: str):
-    """Get worksheet with caching and error handling"""
     if name not in _worksheets_cache:
         try:
             _worksheets_cache[name] = get_sheet().worksheet(name)
@@ -78,7 +75,6 @@ def get_worksheet(name: str):
     return _worksheets_cache[name]
 
 def clear_worksheet_cache():
-    """Clear worksheet cache"""
     global _worksheets_cache
     _worksheets_cache.clear()
 
@@ -86,33 +82,30 @@ def clear_worksheet_cache():
 # Referensi Dropdown Input
 # ========================
 def get_reference_lists() -> dict:
-    """Ambil semua referensi untuk form input (cache 5 menit)"""
     return get_cached_data("reference_lists", _load_all_references)
 
 @retry_on_api_error()
 def _load_all_references() -> dict:
-    """Load all reference data in single batch"""
     ref_data = {"categories": [], "types": [], "companies": [], "owners": [], "locations": [], "rooms": []}
-    
     try:
         sheet_names = ["Ref_Categories", "Ref_Types", "Ref_Companies", "Ref_Owners", "Ref_Location"]
         worksheets = {name: get_worksheet(name) for name in sheet_names}
-        
+
         if worksheets["Ref_Categories"]:
             values = worksheets["Ref_Categories"].col_values(1)[1:]
             ref_data["categories"] = sorted({v.strip() for v in values if v.strip()})
-        
+
         if worksheets["Ref_Types"]:
             ref_data["types"] = worksheets["Ref_Types"].get_all_records()
-        
+
         if worksheets["Ref_Companies"]:
             records = worksheets["Ref_Companies"].get_all_records()
             ref_data["companies"] = [f"{r['Company']} ({r['Code Company']})" for r in records]
-        
+
         if worksheets["Ref_Owners"]:
             values = worksheets["Ref_Owners"].col_values(1)[1:]
             ref_data["owners"] = sorted({v.strip() for v in values if v.strip()})
-        
+
         if worksheets["Ref_Location"]:
             records = worksheets["Ref_Location"].get_all_records()
             locations, rooms = set(), set()
@@ -122,14 +115,13 @@ def _load_all_references() -> dict:
                 if room: rooms.add(room)
             ref_data["locations"] = sorted(locations)
             ref_data["rooms"] = sorted(rooms)
-        
+
         return ref_data
     except Exception as e:
         logging.warning(f"Gagal load reference data: {e}")
         return ref_data
 
 def get_location_room_map() -> dict:
-    """Mapping lokasi → list ruangan"""
     return get_cached_data("location_room_map", _build_location_room_map)
 
 def _build_location_room_map() -> dict:
@@ -137,7 +129,7 @@ def _build_location_room_map() -> dict:
         ws = get_worksheet("Ref_Location")
         if not ws:
             return {}
-        
+
         mapping = {}
         for row in ws.get_all_records():
             location = row.get("Location", "").strip()
@@ -157,7 +149,6 @@ def get_assets(status_filter: str = "All") -> list:
         ws = get_worksheet("Assets")
         if not ws:
             return []
-        
         data = ws.get_all_records()
         if status_filter != "All":
             return [row for row in data if row.get("Status", "").lower() == status_filter.lower()]
@@ -174,17 +165,20 @@ def append_asset(data: dict):
     try:
         ws = get_worksheet("Assets")
         if not ws: return
-        
+
+        # Auto-generate basic asset tag if code fields are available
+        asset_tag = data.get("asset_tag", "")
+
         row_data = [
             "", data.get("item_name", ""), data.get("category", ""), data.get("type", ""),
             data.get("manufacture", ""), data.get("model", ""), data.get("serial_number", ""),
-            "", data.get("company", ""), data.get("bisnis_unit", ""),
+            asset_tag, data.get("company", ""), data.get("bisnis_unit", ""),
             data.get("location", ""), data.get("room_location", ""), data.get("notes", "Input dari Web"),
             data.get("condition", ""), data.get("purchase_date", ""), data.get("purchase_cost", ""),
             data.get("warranty", "No"), data.get("supplier", ""), data.get("journal", ""),
             data.get("owner", ""), "", "", "", "", "", "Active", ""
         ]
-        
+
         ws.append_row(row_data)
     except Exception as e:
         logging.warning(f"Gagal menambahkan data aset: {e}")
@@ -211,105 +205,101 @@ def sync_assets_data():
         assets_ws = get_worksheet("Assets")
         if not assets_ws: 
             return {"success": False, "message": "Assets worksheet not found"}
-        
+
         headers = assets_ws.row_values(1)
         data = assets_ws.get_all_values()[1:]
-        
         if not data:
             return {"success": True, "message": "No data to sync", "updated": 0}
-            
+
         updated_data = []
         tracker = defaultdict(int)
         current_year = datetime.now().year
         header_map = {h: i for i, h in enumerate(headers)}
-        
+
         for i, row in enumerate(data):
             row_dict = dict(zip(headers, row))
             updated_row = list(row)
-            
+
             if "ID" in header_map:
                 updated_row[header_map["ID"]] = str(i + 1)
-            
+
             purchase_date = row_dict.get("Purchase Date", "")
             try:
                 year = datetime.strptime(purchase_date, "%Y-%m-%d").year if purchase_date else current_year
             except:
                 year = current_year
-            
+
             if "Tahun" in header_map:
                 updated_row[header_map["Tahun"]] = str(year)
-            
+
             category = row_dict.get("Category", "")
             cat_ref = ref_data["categories"].get(category, {})
-            
+
             residual_percent = to_decimal(cat_ref.get("Residual Percent", "0"))
             if "Residual Percent" in header_map:
                 updated_row[header_map["Residual Percent"]] = str(residual_percent)
-            
+
             useful_life = to_int(cat_ref.get("Useful Life", "1"))
             if "Useful Life" in header_map:
                 updated_row[header_map["Useful Life"]] = str(useful_life)
-            
+
             purchase_cost = to_decimal(row_dict.get("Purchase Cost", "0"))
             residual_value = (purchase_cost * residual_percent / 100).quantize(Decimal("0.01"))
             if "Residual Value" in header_map:
                 updated_row[header_map["Residual Value"]] = str(residual_value)
-            
+
             depreciation_value = ((purchase_cost - residual_value) / useful_life).quantize(Decimal("0.01")) if useful_life > 0 else Decimal(0)
             if "Depreciation Value" in header_map:
                 updated_row[header_map["Depreciation Value"]] = str(depreciation_value)
-            
+
             age = max(0, current_year - year)
             book_value = (purchase_cost - (depreciation_value * age)).quantize(Decimal("0.01"))
             if "Book Value" in header_map:
                 updated_row[header_map["Book Value"]] = str(book_value)
-            
+
             code_category = cat_ref.get("Code Category", "")
             if "Code Category" in header_map:
                 updated_row[header_map["Code Category"]] = code_category
-            
+
             company = row_dict.get("Company", "")
             code_company = ref_data["companies"].get(company, "")
             if "Code Company" in header_map:
                 updated_row[header_map["Code Company"]] = code_company
-            
+
             type_name = row_dict.get("Type", "")
             code_type = ref_data["types"].get((type_name, category), "")
             if "Code Type" in header_map:
                 updated_row[header_map["Code Type"]] = code_type
-            
+
             owner = row_dict.get("Owner", "")
             code_owner = ref_data["owners"].get(owner, "")
             if "Code Owner" in header_map:
                 updated_row[header_map["Code Owner"]] = code_owner
-            
+
             if code_company and code_category and code_type and code_owner:
                 key = (code_company, code_type, str(year))
                 tracker[key] += 1
                 seq_num = str(tracker[key]).zfill(3)
                 year_2digit = str(year)[-2:]
                 asset_tag = f"{code_company}-{code_category}{code_type}.{code_owner}{year_2digit}.{seq_num}"
-                
                 if "Asset Tag" in header_map:
                     updated_row[header_map["Asset Tag"]] = asset_tag
-            
+
             updated_data.append(updated_row)
-        
+
         if updated_data:
             assets_ws.update([headers] + updated_data)
             return {"success": True, "message": f"Successfully synced {len(updated_data)} assets", "updated": len(updated_data)}
-        
+
         return {"success": True, "message": "No data to update", "updated": 0}
-        
+
     except Exception as e:
         logging.error(f"Sync error: {e}")
         return {"success": False, "message": f"Sync failed: {str(e)}", "updated": 0}
 
 @retry_on_api_error()
 def _load_sync_references() -> dict:
-    """Load all reference data for sync operation"""
     ref_data = {"categories": {}, "types": {}, "companies": {}, "owners": {}}
-    
     try:
         ws = get_worksheet("Ref_Categories")
         if ws:
@@ -319,22 +309,22 @@ def _load_sync_references() -> dict:
                     "Residual Percent": row["Residual Percent"],
                     "Useful Life": row["Useful Life"]
                 }
-        
+
         ws = get_worksheet("Ref_Types")
         if ws:
             for row in ws.get_all_records():
                 ref_data["types"][(row["Type"], row["Category"])] = row["Code Type"]
-        
+
         ws = get_worksheet("Ref_Companies")
         if ws:
             for row in ws.get_all_records():
                 ref_data["companies"][row["Company"]] = row["Code Company"]
-        
+
         ws = get_worksheet("Ref_Owners")
         if ws:
             for row in ws.get_all_records():
                 ref_data["owners"][row["Owner"]] = row["Code Owner"]
-        
+
         return ref_data
     except Exception as e:
         logging.warning(f"Failed to load sync references: {e}")

@@ -1,12 +1,24 @@
-# === 3. init.py ===
-from fastapi import FastAPI
-from app.routes import auth, asset, user, home, profile, sync, relocation, init_add
+# app/init.py
 
-def create_app():
+from fastapi import FastAPI
+from app.routes import (
+    auth,
+    asset,
+    user,
+    home,
+    profile,
+    sync,
+    relocation,
+    init_add,
+)
+
+def create_app() -> FastAPI:
     """
-    Creates a FastAPI application instance.
+    Creates and configures a FastAPI application instance.
     """
     app = FastAPI()
+
+    # Register all routers
     app.include_router(auth.router)
     app.include_router(asset.router)
     app.include_router(user.router)
@@ -15,5 +27,5 @@ def create_app():
     app.include_router(sync.router)
     app.include_router(relocation.router)
     app.include_router(init_add.router)
-    return app
 
+    return app
