@@ -10,3 +10,4 @@ passlib[argon2]
 psycopg2-binary
 sqlalchemy
 itsdangerous
+PyJWT>=2.0.0
