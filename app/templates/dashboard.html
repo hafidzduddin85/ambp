@@ -93,8 +93,9 @@
             <option value="All" {% if selected_status == 'All' %}selected{% endif %}>All</option>
             <option value="In Use" {% if selected_status == 'In Use' %}selected{% endif %}>In Use</option>
             <option value="In Stock" {% if selected_status == 'In Stock' %}selected{% endif %}>In Stock</option>
-            <option value="Disposed" {% if selected_status == 'Disposed' %}selected{% endif %}>Disposed</option>
             <option value="Repair" {% if selected_status == 'Repair' %}selected{% endif %}>Repair</option>
+            <option value="To be Disposed" {% if selected_status == 'To be Disposed' %}selected{% endif %}>To be Disposed</option>			
+            <option value="Disposed" {% if selected_status == 'Disposed' %}selected{% endif %}>Disposed</option>
         </select>
     </form>
 

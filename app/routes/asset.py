@@ -7,18 +7,24 @@ import csv
 from app.utils import sheets
 from app.database.dependencies import get_current_user
 from app.utils.references import validate_category_or_default
+from app.utils.flash import flash
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/input", response_class=RedirectResponse)
 def show_form(request: Request, user=Depends(get_current_user)):
+    from app.utils.flash import get_flashed_messages
+    
     refs = sheets.get_reference_lists()
     location_room_map = sheets.get_location_room_map()
+    flash_messages = get_flashed_messages(request)
+    
     return templates.TemplateResponse("input_form.html", {
         "request": request,
         "refs": refs,
-        "location_room_map": location_room_map
+        "location_room_map": location_room_map,
+        "flash_messages": flash_messages
     })
 
 @router.post("/submit")
@@ -68,7 +74,12 @@ def submit_asset(
         "warranty": warranty, "supplier": supplier, "journal": journal, "owner": owner
     }
 
-    sheets.append_asset(data)
+    try:
+        sheets.append_asset(data)
+        flash(request, f"✅ Aset '{item_name}' berhasil ditambahkan!", "success")
+    except Exception as e:
+        flash(request, f"❌ Gagal menambahkan aset: {str(e)}", "error")
+    
     return RedirectResponse(url="/input", status_code=303)
 
 @router.get("/dashboard", response_class=RedirectResponse)
@@ -112,11 +123,13 @@ def export_excel(status: str = "All", user=Depends(get_current_user)):
         headers={"Content-Disposition": f"attachment; filename=assets_{status}.csv"})
 
 @router.post("/sync")
-def sync_data(user=Depends(get_current_user)):
+def sync_data(request: Request, user=Depends(get_current_user)):
     """Sync asset data - fill empty columns with calculated values"""
     try:
         from app.utils.sheets import sync_assets_data
         result = sync_assets_data()
+        flash(request, f"🔄 {result.get('message', 'Sync completed')}", "success")
         return {"success": True, "message": f"Synced: {result.get('message', '')}", "data": result}
     except Exception as e:
+        flash(request, f"❌ Sync failed: {str(e)}", "error")
         return {"success": False, "message": f"Sync failed: {str(e)}"}
