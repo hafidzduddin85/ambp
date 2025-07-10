@@ -1,6 +1,6 @@
 # === 3. init.py ===
 from fastapi import FastAPI
-from app.routes import auth, asset, user, home, profile, sync, relocation
+from app.routes import auth, asset, user, home, profile, sync, relocation, init_add
 
 def create_app():
     """
@@ -14,5 +14,6 @@ def create_app():
     app.include_router(profile.router)
     app.include_router(sync.router)
     app.include_router(relocation.router)
+    app.include_router(init_add.router)
     return app
 
