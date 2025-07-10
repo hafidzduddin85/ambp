@@ -67,5 +67,5 @@ def add_category_if_not_exists(category: str, code: str):
     return
 
 def _get_sheet(sheet_name: str) -> gspread.Worksheet:
-    from app.sheets import sheet  # avoid circular import
-    return sheet.worksheet(sheet_name)
+    from app.utils.sheets import get_worksheet  # avoid circular import
+    return get_worksheet(sheet_name)

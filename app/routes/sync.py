@@ -2,8 +2,8 @@
 from fastapi import APIRouter, Request, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
-from app.dependencies import get_current_user
-from app.sync_function import sync_assets_data
+from app.database.dependencies import get_current_user
+from app.utils.sheets import sync_assets_data
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")

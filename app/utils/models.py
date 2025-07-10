@@ -1,20 +1,39 @@
-from sqlalchemy import Column, Integer, String
-from app.database import Base, engine
-from passlib.hash import argon2
+# app/utils/models.py
+from pydantic import BaseModel
+from typing import Optional
+from datetime import datetime
 
-class User(Base):
-    __tablename__ = "users"
+class User(BaseModel):
+    id: Optional[int] = None
+    username: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
+    is_active: bool = True
+    created_at: Optional[datetime] = None
 
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, unique=True, index=True, nullable=False)
-    password_hash = Column(String, nullable=False)
-    role = Column(String, default="user")  # 'admin' or 'user'
-    
-    def verify_password(self, plain_password):
-        return argon2.verify(plain_password, self.password_hash)
+class Asset(BaseModel):
+    id: Optional[str] = None
+    item_name: str
+    category: str
+    type: str
+    manufacture: Optional[str] = None
+    model: Optional[str] = None
+    serial_number: Optional[str] = None
+    asset_tag: Optional[str] = None
+    company: str
+    bisnis_unit: Optional[str] = None
+    location: str
+    room_location: str
+    notes: Optional[str] = None
+    condition: Optional[str] = None
+    purchase_date: str
+    purchase_cost: str
+    warranty: str = "No"
+    supplier: Optional[str] = None
+    journal: Optional[str] = None
+    owner: str
+    status: str = "Active"
 
-    @staticmethod
-    def hash_password(password):
-        return argon2.hash(password)
-
-# Table creation should be handled in your application entry point, not in the model definition file.
+class LoginRequest(BaseModel):
+    username: str
+    password: str

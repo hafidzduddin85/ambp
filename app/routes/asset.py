@@ -4,8 +4,8 @@ from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.templating import Jinja2Templates
 from io import StringIO
 import csv
-from app import sheets
-from app.dependencies import get_current_user
+from app.utils import sheets
+from app.database.dependencies import get_current_user
 from app.utils.references import validate_category_or_default
 
 router = APIRouter()
@@ -115,7 +115,7 @@ def export_excel(status: str = "All", user=Depends(get_current_user)):
 def sync_data(user=Depends(get_current_user)):
     """Sync asset data - fill empty columns with calculated values"""
     try:
-        from app.sync_function import sync_assets_data
+        from app.utils.sheets import sync_assets_data
         result = sync_assets_data()
         return {"success": True, "message": f"Synced: {result.get('message', '')}", "data": result}
     except Exception as e:
