@@ -29,3 +29,12 @@ def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials
         detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
+
+def get_admin_user(user=Depends(get_current_user)):
+    """Allow only admin user"""
+    if user and user.get("role") == "admin":
+        return user
+    raise HTTPException(
+        status_code=status.HTTP_403_FORBIDDEN,
+        detail="You do not have permission to access this resource.",
+    )

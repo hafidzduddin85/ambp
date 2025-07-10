@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Asset Relocation</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 1200px; margin: 0 auto; }
+    .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .header h1 { color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px; }
+    .header .subtitle { color: #7f8c8d; font-size: 1.1rem; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: #3498db; color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; margin-top: 15px; transition: all 0.3s ease; }
+    .back-btn:hover { background: #2980b9; transform: translateY(-2px); }
+    .flash-messages { margin-bottom: 20px; }
+    .flash-message { padding: 15px 20px; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
+    .flash-success { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
+    .flash-error { background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24; border-left: 4px solid #dc3545; }
+    .search-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .search-form { display: grid; grid-template-columns: 1fr 1fr auto; gap: 20px; align-items: end; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-weight: 600; color: #2c3e50; margin-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+    .form-group select { padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 14px; background: white; transition: all 0.3s ease; }
+    .form-group select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+    .search-btn { background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 12px 25px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; gap: 8px; }
+    .search-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3); }
+    .assets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 20px; margin-top: 30px; }
+    .asset-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 15px; padding: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+    .asset-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+    .asset-header { display: flex; justify-content: between; align-items: center; margin-bottom: 15px; }
+    .asset-id { background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 5px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .asset-name { font-size: 1.2rem; font-weight: 600; color: #2c3e50; margin: 10px 0; }
+    .asset-details { color: #7f8c8d; font-size: 14px; line-height: 1.6; }
+    .asset-details .detail-row { display: flex; justify-content: space-between; margin: 5px 0; }
+    .asset-details .label { font-weight: 600; }
+    .relocate-btn { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; padding: 8px 16px; border: none; border-radius: 8px; font-size: 12px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 15px; width: 100%; }
+    .relocate-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(243, 156, 18, 0.3); }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+    .modal-content { background: white; margin: 5% auto; padding: 30px; width: 90%; max-width: 500px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .modal-header h3 { color: #2c3e50; }
+    .close { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close:hover { color: #000; }
+    .modal-form { display: flex; flex-direction: column; gap: 20px; }
+    .modal-btn { background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 12px 25px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; }
+    .modal-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3); }
+    .no-assets { text-align: center; padding: 40px; color: #7f8c8d; }
+    .no-assets i { font-size: 4rem; margin-bottom: 20px; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+    @media (max-width: 768px) {
+      .container { padding: 10px; }
+      .header h1 { font-size: 2rem; }
+      .search-form { grid-template-columns: 1fr; }
+      .assets-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-exchange-alt"></i> Asset Relocation</h1>
+      <p class="subtitle">Move assets to new locations efficiently</p>
+      <a href="/home" class="back-btn">
+        <i class="fas fa-home"></i> Back to Home
+      </a>
+    </div>
+
+    <!-- Flash Messages -->
+    <div class="flash-messages">
+      {% if flash_messages %}
+        {% for message in flash_messages %}
+          <div class="flash-message flash-{{ message.category }}">
+            <i class="fas fa-{% if message.category == 'success' %}check-circle{% elif message.category == 'error' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+            {{ message.message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Search Form -->
+    <div class="search-card">
+      <h3 style="color: #2c3e50; margin-bottom: 20px;">
+        <i class="fas fa-search"></i> Search Assets by Location
+      </h3>
+      
+      <form method="post" action="/relocate/search" class="search-form">
+        <div class="form-group">
+          <label><i class="fas fa-map-marker-alt"></i> Location</label>
+          <select name="location" id="location" onchange="updateRoomOptions()" required>
+            <option value="">-- Select Location --</option>
+            {% for loc in refs.locations %}
+              <option value="{{ loc }}" {% if current_location == loc %}selected{% endif %}>{{ loc }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-door-open"></i> Room</label>
+          <select name="room" id="room" required>
+            <option value="">-- Select Room --</option>
+          </select>
+        </div>
+
+        <button type="submit" class="search-btn">
+          <i class="fas fa-search"></i> Search Assets
+        </button>
+      </form>
+    </div>
+
+    <!-- Assets Results -->
+    {% if assets is defined %}
+      {% if assets %}
+        <div class="search-card">
+          <h3 style="color: #2c3e50; margin-bottom: 20px;">
+            <i class="fas fa-boxes"></i> Found {{ assets|length }} asset(s) in {{ current_location }} - {{ current_room }}
+          </h3>
+          
+          <div class="assets-grid">
+            {% for asset in assets %}
+              <div class="asset-card">
+                <div class="asset-header">
+                  <span class="asset-id">{{ asset.get('ID', 'N/A') }}</span>
+                </div>
+                
+                <div class="asset-name">{{ asset.get('Item Name', 'Unknown Item') }}</div>
+                
+                <div class="asset-details">
+                  <div class="detail-row">
+                    <span class="label">Category:</span>
+                    <span>{{ asset.get('Category', 'N/A') }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="label">Type:</span>
+                    <span>{{ asset.get('Type', 'N/A') }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="label">Asset Tag:</span>
+                    <span>{{ asset.get('Asset Tag', 'N/A') }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="label">Owner:</span>
+                    <span>{{ asset.get('Owner', 'N/A') }}</span>
+                  </div>
+                  <div class="detail-row">
+                    <span class="label">Status:</span>
+                    <span>{{ asset.get('Status', 'N/A') }}</span>
+                  </div>
+                </div>
+                
+                <button class="relocate-btn" onclick="openRelocateModal('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')">
+                  <i class="fas fa-arrows-alt"></i> Relocate Asset
+                </button>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% else %}
+        <div class="search-card">
+          <div class="no-assets">
+            <i class="fas fa-inbox"></i>
+            <h3>No assets found</h3>
+            <p>No assets found in {{ current_location }} - {{ current_room }}</p>
+          </div>
+        </div>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <!-- Relocation Modal -->
+  <div id="relocateModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-exchange-alt"></i> Relocate Asset</h3>
+        <span class="close" onclick="closeRelocateModal()">&times;</span>
+      </div>
+      
+      <form method="post" action="/relocate/move" class="modal-form">
+        <input type="hidden" id="modalAssetId" name="asset_id">
+        
+        <div>
+          <strong>Asset:</strong> <span id="modalAssetName"></span>
+        </div>
+        
+        <div class="form-group">
+          <label><i class="fas fa-map-marker-alt"></i> New Location</label>
+          <select name="new_location" id="newLocation" onchange="updateNewRoomOptions()" required>
+            <option value="">-- Select New Location --</option>
+            {% for loc in refs.locations %}
+              <option value="{{ loc }}">{{ loc }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-door-open"></i> New Room</label>
+          <select name="new_room" id="newRoom" required>
+            <option value="">-- Select New Room --</option>
+          </select>
+        </div>
+
+        <button type="submit" class="modal-btn">
+          <i class="fas fa-check"></i> Confirm Relocation
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const locationRoomMap = {{ location_room_map | tojson | safe }};
+    
+    function updateRoomOptions() {
+      const location = document.getElementById("location").value;
+      const roomSelect = document.getElementById("room");
+      
+      roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
+      if (locationRoomMap[location]) {
+        locationRoomMap[location].forEach(room => {
+          const option = document.createElement("option");
+          option.value = room;
+          option.textContent = room;
+          {% if current_room %}
+            if (room === "{{ current_room }}") option.selected = true;
+          {% endif %}
+          roomSelect.appendChild(option);
+        });
+      }
+    }
+    
+    function updateNewRoomOptions() {
+      const location = document.getElementById("newLocation").value;
+      const roomSelect = document.getElementById("newRoom");
+      
+      roomSelect.innerHTML = '<option value="">-- Select New Room --</option>';
+      if (locationRoomMap[location]) {
+        locationRoomMap[location].forEach(room => {
+          const option = document.createElement("option");
+          option.value = room;
+          option.textContent = room;
+          roomSelect.appendChild(option);
+        });
+      }
+    }
+    
+    function openRelocateModal(assetId, assetName) {
+      document.getElementById("modalAssetId").value = assetId;
+      document.getElementById("modalAssetName").textContent = assetName;
+      document.getElementById("relocateModal").style.display = "block";
+    }
+    
+    function closeRelocateModal() {
+      document.getElementById("relocateModal").style.display = "none";
+    }
+    
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById("relocateModal");
+      if (event.target == modal) {
+        closeRelocateModal();
+      }
+    }
+    
+    // Initialize room options on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      updateRoomOptions();
+    });
+  </script>
+</body>
+</html>

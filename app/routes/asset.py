@@ -12,9 +12,17 @@ from app.utils.flash import flash
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
-@router.get("/input", response_class=RedirectResponse)
+@router.get("/input")
 def show_form(request: Request, user=Depends(get_current_user)):
     from app.utils.flash import get_flashed_messages
+    from fastapi import HTTPException, status
+    
+    # Check if user is admin
+    if not user or user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied. Admin privileges required."
+        )
     
     refs = sheets.get_reference_lists()
     location_room_map = sheets.get_location_room_map()
@@ -51,6 +59,14 @@ def submit_asset(
     owner: str = Form(...),
     user=Depends(get_current_user)
 ):
+    from fastapi import HTTPException, status
+    
+    # Check if user is admin
+    if not user or user.get("role") != "admin":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Access denied. Admin privileges required."
+        )
     from app.utils.references import add_type_if_not_exists, add_location_if_not_exists, add_company_with_code_if_not_exists, add_owner_if_not_exists, add_category_if_not_exists
     
     category = validate_category_or_default(category)
