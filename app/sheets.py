@@ -263,78 +263,9 @@ def get_assets(status_filter: str = "All") -> list:
         logging.warning(f"Gagal mengambil data aset: {e}")
         return []
 
-# ========================
-# ID & Tag Generator
-# ========================
-def get_next_asset_id() -> str:
-    try:
-        ws = get_worksheet("Assets")
-        if not ws:
-            return "A001"
-        
-        ids = ws.col_values(1)
-        angka_terakhir = max(
-            (int(i[1:]) for i in ids[1:] if i.startswith("A") and i[1:].isdigit()),
-            default=0
-        )
-        return f"A{str(angka_terakhir + 1).zfill(3)}"
-    except Exception as e:
-        logging.warning(f"Gagal generate asset ID: {e}")
-        return "A001"
 
-@retry_on_api_error()
-def generate_asset_tag(code_company: str, category: str, type_: str, owner: str) -> str:
-    try:
-        ref_data = get_cached_data("tag_references", _load_tag_references)
-        
-        code_category = ref_data["categories"].get(category, "XX")
-        code_type = ref_data["types"].get((type_, category), "XX")
-        code_owner = ref_data["owners"].get(owner, "XX")
-        tahun = datetime.now().year
 
-        # Count existing assets for this type and year
-        assets = get_worksheet("Assets")
-        count = 1
-        if assets:
-            count = sum(
-                1 for a in assets.get_all_records()
-                if a.get("Company") and a.get("Type") == type_ and str(a.get("Tahun")) == str(tahun)
-            ) + 1
 
-        no_urut = str(count).zfill(4)
-        return f"{code_company}-{code_category}{code_type}.{code_owner}{tahun}.{no_urut}"
-    except Exception as e:
-        logging.warning(f"Gagal generate asset tag: {e}")
-        return "TAG-ERROR"
-
-@retry_on_api_error()
-def _load_tag_references() -> dict:
-    """Load reference data for tag generation"""
-    ref_data = {"categories": {}, "types": {}, "owners": {}}
-    
-    try:
-        worksheets = {
-            "categories": get_worksheet("Ref_Categories"),
-            "types": get_worksheet("Ref_Types"),
-            "owners": get_worksheet("Ref_Owners")
-        }
-        
-        if worksheets["categories"]:
-            for r in worksheets["categories"].get_all_records():
-                ref_data["categories"][r["Category"]] = r["Code Category"]
-        
-        if worksheets["types"]:
-            for r in worksheets["types"].get_all_records():
-                ref_data["types"][(r["Type"], r["Category"])] = r["Code Type"]
-        
-        if worksheets["owners"]:
-            for r in worksheets["owners"].get_all_records():
-                ref_data["owners"][r["Owner"]] = r["Code Owner"]
-        
-        return ref_data
-    except Exception as e:
-        logging.warning(f"Gagal load tag references: {e}")
-        return ref_data
 
 # ========================
 # Tambahkan Data Aset
@@ -345,23 +276,14 @@ def append_asset(data: dict):
         ws = get_worksheet("Assets")
         if not ws: return
         
-        asset_id = get_next_asset_id()
-        asset_tag = generate_asset_tag(
-            code_company=data["code_company"],
-            category=data["category"],
-            type_=data["type"],
-            owner=data["owner"]
-        )
-        tahun = datetime.now().year
-
         row_data = [
-            asset_id, data.get("item_name", ""), data.get("category", ""), data.get("type", ""),
+            "", data.get("item_name", ""), data.get("category", ""), data.get("type", ""),
             data.get("manufacture", ""), data.get("model", ""), data.get("serial_number", ""),
-            asset_tag, data.get("company", ""), data.get("bisnis_unit", ""),
+            "", data.get("company", ""), data.get("bisnis_unit", ""),
             data.get("location", ""), data.get("room_location", ""), data.get("notes", "Input dari Web"),
             data.get("condition", ""), data.get("purchase_date", ""), data.get("purchase_cost", ""),
             data.get("warranty", "No"), data.get("supplier", ""), data.get("journal", ""),
-            data.get("owner", ""), "", "", "", "", "", "Active", tahun
+            data.get("owner", ""), "", "", "", "", "", "Active", ""
         ]
         
         ws.append_row(row_data)
@@ -377,23 +299,14 @@ def append_assets_batch(assets_data: list):
         
         rows_to_add = []
         for data in assets_data:
-            asset_id = get_next_asset_id()
-            asset_tag = generate_asset_tag(
-                code_company=data["code_company"],
-                category=data["category"],
-                type_=data["type"],
-                owner=data["owner"]
-            )
-            tahun = datetime.now().year
-            
             row_data = [
-                asset_id, data.get("item_name", ""), data.get("category", ""), data.get("type", ""),
+                "", data.get("item_name", ""), data.get("category", ""), data.get("type", ""),
                 data.get("manufacture", ""), data.get("model", ""), data.get("serial_number", ""),
-                asset_tag, data.get("company", ""), data.get("bisnis_unit", ""),
+                "", data.get("company", ""), data.get("bisnis_unit", ""),
                 data.get("location", ""), data.get("room_location", ""), data.get("notes", "Input dari Web"),
                 data.get("condition", ""), data.get("purchase_date", ""), data.get("purchase_cost", ""),
                 data.get("warranty", "No"), data.get("supplier", ""), data.get("journal", ""),
-                data.get("owner", ""), "", "", "", "", "", "Active", tahun
+                data.get("owner", ""), "", "", "", "", "", "Active", ""
             ]
             rows_to_add.append(row_data)
         
@@ -421,89 +334,123 @@ def to_int(value, default=1):
 @retry_on_api_error(max_retries=2)
 def sync_assets_data():
     try:
+        # Load reference data
         ref_data = get_cached_data("sync_references", _load_sync_references)
         assets_ws = get_worksheet("Assets")
-        if not assets_ws: return
+        if not assets_ws: 
+            return {"success": False, "message": "Assets worksheet not found"}
         
+        # Get all data
         headers = assets_ws.row_values(1)
         data = assets_ws.get_all_values()[1:]
         
         if not data:
-            logging.info("No asset data to sync")
-            return
+            return {"success": True, "message": "No data to sync", "updated": 0}
             
         updated_data = []
         tracker = defaultdict(int)
-        tahun_berjalan = datetime.now().year
+        current_year = datetime.now().year
         
-        # Pre-calculate header indices for performance
-        header_indices = {header: i for i, header in enumerate(headers)}
-
-        # Process rows with optimized field updates
+        # Pre-calculate header indices
+        header_map = {h: i for i, h in enumerate(headers)}
+        
         for i, row in enumerate(data):
             row_dict = dict(zip(headers, row))
-            updated = list(row)  # Create copy
+            updated_row = list(row)
             
-            # Update ID
-            if "ID" in header_indices:
-                updated[header_indices["ID"]] = str(i + 1)
-
+            # 1. ID - Sequential number
+            if "ID" in header_map:
+                updated_row[header_map["ID"]] = str(i + 1)
+            
+            # 2. Tahun - Extract from Purchase Date
+            purchase_date = row_dict.get("Purchase Date", "")
             try:
-                tahun_pembelian = datetime.strptime(row_dict.get("Purchase Date", ""), "%Y-%m-%d").year
+                year = datetime.strptime(purchase_date, "%Y-%m-%d").year if purchase_date else current_year
             except:
-                tahun_pembelian = tahun_berjalan
-
-            # Calculate depreciation values
-            cat_data = ref_data["categories"].get(row_dict.get("Category", ""), ["", "0", "1"])
-            if len(cat_data) >= 3:
-                code_category, residual_percent_raw, useful_life_raw = cat_data[0], cat_data[1], cat_data[2]
-            else:
-                code_category, residual_percent_raw, useful_life_raw = "", "0", "1"
-                
-            residual_percent = to_decimal(residual_percent_raw)
-            useful_life = to_int(useful_life_raw)
-
-            purchase_cost = to_decimal(row_dict.get("Purchase Cost", "0"))
-            residual_value = (purchase_cost * residual_percent / 100).quantize(Decimal("0.01"))
-            depreciation_value = ((purchase_cost - residual_value) / useful_life).quantize(Decimal("0.01")) if useful_life > 0 else Decimal(0)
+                year = current_year
             
-            umur = max(0, tahun_berjalan - tahun_pembelian)
-            book_value = (purchase_cost - (depreciation_value * umur)).quantize(Decimal("0.01"))
-
-            # Generate asset tag
-            code_company = ref_data["companies"].get(row_dict.get("Company", ""), "")
-            code_owner = ref_data["owners"].get(row_dict.get("Owner", ""), "")
-            code_type = ref_data["types"].get((row_dict.get("Type", ""), row_dict.get("Category", "")), "")
-
-            key = (code_company, code_type, str(tahun_pembelian))
-            tracker[key] += 1
-            no_urut = str(tracker[key]).zfill(3)
-            tahun_2digit = str(tahun_pembelian)[-2:]
-            asset_tag = f"{code_company}-{code_category}{code_type}.{code_owner}{tahun_2digit}.{no_urut}"
-
-            # Update row with calculated values using pre-calculated indices
-            field_updates = {
-                "Tahun": str(tahun_pembelian), "Code Category": code_category,
-                "Residual Percent": str(residual_percent), "Useful Life": str(useful_life),
-                "Residual Value": str(residual_value), "Depreciation Value": str(depreciation_value),
-                "Book Value": str(book_value), "Code Company": code_company,
-                "Code Owner": code_owner, "Code Type": code_type, "Asset Tag": asset_tag
-            }
-
-            for field, value in field_updates.items():
-                if field in header_indices:
-                    updated[header_indices[field]] = value
-
-            updated_data.append(updated)
-
-        # Batch update all data at once
+            if "Tahun" in header_map:
+                updated_row[header_map["Tahun"]] = str(year)
+            
+            # 3. Get reference data based on category
+            category = row_dict.get("Category", "")
+            cat_ref = ref_data["categories"].get(category, {})
+            
+            # 4. Residual Percent from Ref_Categories
+            residual_percent = to_decimal(cat_ref.get("Residual Percent", "0"))
+            if "Residual Percent" in header_map:
+                updated_row[header_map["Residual Percent"]] = str(residual_percent)
+            
+            # 5. Useful Life from Ref_Categories
+            useful_life = to_int(cat_ref.get("Useful Life", "1"))
+            if "Useful Life" in header_map:
+                updated_row[header_map["Useful Life"]] = str(useful_life)
+            
+            # 6. Calculate financial values
+            purchase_cost = to_decimal(row_dict.get("Purchase Cost", "0"))
+            
+            # Residual Value = Residual Percent × Purchase Cost
+            residual_value = (purchase_cost * residual_percent / 100).quantize(Decimal("0.01"))
+            if "Residual Value" in header_map:
+                updated_row[header_map["Residual Value"]] = str(residual_value)
+            
+            # Depreciation Value = (Purchase Cost - Residual Value) / Useful Life
+            depreciation_value = ((purchase_cost - residual_value) / useful_life).quantize(Decimal("0.01")) if useful_life > 0 else Decimal(0)
+            if "Depreciation Value" in header_map:
+                updated_row[header_map["Depreciation Value"]] = str(depreciation_value)
+            
+            # Book Value = Purchase Cost - (Depreciation Value × (Current Year - Asset Year))
+            age = max(0, current_year - year)
+            book_value = (purchase_cost - (depreciation_value * age)).quantize(Decimal("0.01"))
+            if "Book Value" in header_map:
+                updated_row[header_map["Book Value"]] = str(book_value)
+            
+            # 7. Code Category from Ref_Categories
+            code_category = cat_ref.get("Code Category", "")
+            if "Code Category" in header_map:
+                updated_row[header_map["Code Category"]] = code_category
+            
+            # 8. Code Company from Ref_Companies
+            company = row_dict.get("Company", "")
+            code_company = ref_data["companies"].get(company, "")
+            if "Code Company" in header_map:
+                updated_row[header_map["Code Company"]] = code_company
+            
+            # 9. Code Type from Ref_Types
+            type_name = row_dict.get("Type", "")
+            code_type = ref_data["types"].get((type_name, category), "")
+            if "Code Type" in header_map:
+                updated_row[header_map["Code Type"]] = code_type
+            
+            # 10. Code Owner from Ref_Owners
+            owner = row_dict.get("Owner", "")
+            code_owner = ref_data["owners"].get(owner, "")
+            if "Code Owner" in header_map:
+                updated_row[header_map["Code Owner"]] = code_owner
+            
+            # 11. Asset Tag: [Code Company]-[Code Category][Code Type].[Code Owner][2 digit year].[Sequential number]
+            if code_company and code_category and code_type and code_owner:
+                key = (code_company, code_type, str(year))
+                tracker[key] += 1
+                seq_num = str(tracker[key]).zfill(3)
+                year_2digit = str(year)[-2:]
+                asset_tag = f"{code_company}-{code_category}{code_type}.{code_owner}{year_2digit}.{seq_num}"
+                
+                if "Asset Tag" in header_map:
+                    updated_row[header_map["Asset Tag"]] = asset_tag
+            
+            updated_data.append(updated_row)
+        
+        # Update the sheet
         if updated_data:
             assets_ws.update([headers] + updated_data)
-            logging.info(f"Successfully synced {len(updated_data)} assets")
-
+            return {"success": True, "message": f"Successfully synced {len(updated_data)} assets", "updated": len(updated_data)}
+        
+        return {"success": True, "message": "No data to update", "updated": 0}
+        
     except Exception as e:
-        logging.error(f"Gagal sinkronisasi data aset: {e}")
-        raise
+        logging.error(f"Sync error: {e}")
+        return {"success": False, "message": f"Sync failed: {str(e)}", "updated": 0}
 
 @retry_on_api_error()
 def _load_sync_references() -> dict:
@@ -511,38 +458,35 @@ def _load_sync_references() -> dict:
     ref_data = {"categories": {}, "types": {}, "companies": {}, "owners": {}}
     
     try:
-        worksheets = {
-            "categories": get_worksheet("Ref_Categories"),
-            "types": get_worksheet("Ref_Types"),
-            "companies": get_worksheet("Ref_Companies"),
-            "owners": get_worksheet("Ref_Owners")
-        }
+        # Load Ref_Categories
+        ws = get_worksheet("Ref_Categories")
+        if ws:
+            for row in ws.get_all_records():
+                ref_data["categories"][row["Category"]] = {
+                    "Code Category": row["Code Category"],
+                    "Residual Percent": row["Residual Percent"],
+                    "Useful Life": row["Useful Life"]
+                }
         
-        # Load categories with codes and depreciation info
-        if worksheets["categories"]:
-            for row in worksheets["categories"].get_all_values()[1:]:
-                if len(row) >= 3:
-                    ref_data["categories"][row[0]] = row[1:]
+        # Load Ref_Types
+        ws = get_worksheet("Ref_Types")
+        if ws:
+            for row in ws.get_all_records():
+                ref_data["types"][(row["Type"], row["Category"])] = row["Code Type"]
         
-        # Load types
-        if worksheets["types"]:
-            for row in worksheets["types"].get_all_values()[1:]:
-                if len(row) >= 3:
-                    ref_data["types"][(row[0], row[1])] = row[2]
+        # Load Ref_Companies
+        ws = get_worksheet("Ref_Companies")
+        if ws:
+            for row in ws.get_all_records():
+                ref_data["companies"][row["Company"]] = row["Code Company"]
         
-        # Load companies
-        if worksheets["companies"]:
-            for row in worksheets["companies"].get_all_values()[1:]:
-                if len(row) >= 2:
-                    ref_data["companies"][row[0]] = row[1]
-        
-        # Load owners
-        if worksheets["owners"]:
-            for row in worksheets["owners"].get_all_values()[1:]:
-                if len(row) >= 2:
-                    ref_data["owners"][row[0]] = row[1]
+        # Load Ref_Owners
+        ws = get_worksheet("Ref_Owners")
+        if ws:
+            for row in ws.get_all_records():
+                ref_data["owners"][row["Owner"]] = row["Code Owner"]
         
         return ref_data
     except Exception as e:
-        logging.warning(f"Gagal load sync references: {e}")
+        logging.warning(f"Failed to load sync references: {e}")
         return ref_data
