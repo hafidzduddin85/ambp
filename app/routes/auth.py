@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 
-from app.utils.models import User
+from app.models.user import User
 from app.database.dependencies import get_db
 
 router = APIRouter()
