@@ -2,20 +2,14 @@
 from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.utils.auth import verify_token
-from sqlalchemy.orm import Session
-from app.database.session import SessionLocal
 
 security = HTTPBearer()
 
-from sqlalchemy.orm import Session
-from app.database.session import SessionLocal
-
-def get_db() -> Session:
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+def get_db():
+    """Database dependency - placeholder for future database integration"""
+    # This is a placeholder for database connection
+    # Currently using Google Sheets as data source
+    return None
 
 def get_current_user(request: Request, credentials: HTTPAuthorizationCredentials = Depends(security)):
     """Get current user from session or token"""
