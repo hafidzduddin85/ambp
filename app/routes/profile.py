@@ -2,9 +2,9 @@ from fastapi import APIRouter, Request, Form, Depends
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from sqlalchemy.orm import Session
-from app.dependencies import get_current_user, get_db
-from app.models import User
-from app.utils import set_flash  # kalau pakai flash
+from app.database.dependencies import get_current_user, get_db
+from app.utils.models import User
+from app.utils.flash import flash as set_flash
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")

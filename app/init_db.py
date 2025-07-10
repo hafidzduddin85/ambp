@@ -1,5 +1,5 @@
-from app.database import Base, engine
-from app.models import User
+from app.database.database import Base, engine
+from app.utils.models import User
 
 from sqlalchemy import inspect
 
