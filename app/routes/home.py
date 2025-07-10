@@ -19,10 +19,7 @@ def root(request: Request):
 
 # Home page (login required)
 @router.get("/home", response_class=HTMLResponse)
-def home(request: Request, current_user: User = Depends(get_current_user)):
-    if current_user is None:
-        raise HTTPException(status_code=401, detail="Unauthorized")
-
+def home(request: Request, current_user=Depends(get_current_user)):
     return templates.TemplateResponse("home.html",
         {"request": request, "user": current_user}
     )

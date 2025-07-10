@@ -10,7 +10,7 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/change-password")
-def change_password_form(request: Request, user: User = Depends(get_current_user)):
+def change_password_form(request: Request, user=Depends(get_current_user)):
     return templates.TemplateResponse("change_password.html", {"request": request, "error": ""})
 
 @router.post("/change-password")
@@ -20,7 +20,7 @@ def change_password(
     new_password: str = Form(...),
     confirm_password: str = Form(...),
     db: Session = Depends(get_db),
-    user: User = Depends(get_current_user)
+    user=Depends(get_current_user)
 ):
     if not user.verify_password(old_password):
         return templates.TemplateResponse("change_password.html", {"request": request, "error": "Password lama salah"})
