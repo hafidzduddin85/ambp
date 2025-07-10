@@ -7,9 +7,23 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.init import create_app
 from app.config import load_config
+from app.database.database import init_db
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load konfigurasi
 config = load_config()
+
+# Initialize database
+try:
+    init_db()
+    logger.info("Database initialized successfully")
+except Exception as e:
+    logger.error(f"Database initialization failed: {e}")
+    # Continue anyway for Google Sheets functionality
 
 # Inisialisasi FastAPI
 app = create_app()
