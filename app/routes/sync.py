@@ -11,6 +11,13 @@ templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/sync")
 def show_sync_page(request: Request, user=Depends(get_current_user)):
+    from app.utils.flash import get_flashed_messages
+    
+    flash_messages = get_flashed_messages(request)
+    return templates.TemplateResponse("sync.html", {
+        "request": request,
+        "flash_messages": flash_messages
+    })
 
 @router.get("/sync-assets")
 def show_sync_page_alt(request: Request, user=Depends(get_current_user)):
