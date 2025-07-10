@@ -82,17 +82,31 @@ def submit_asset(
     
     return RedirectResponse(url="/input", status_code=303)
 
-@router.get("/dashboard", response_class=RedirectResponse)
+@router.get("/dashboard")
 def dashboard(request: Request, status: str = "All", user=Depends(get_current_user)):
     data = sheets.get_assets(status)
+    all_data = sheets.get_assets("All")  # For statistics
+    
     kategori_summary, tahun_summary = {}, {}
+    active_count = repair_count = disposed_count = 0
 
+    # Process filtered data for charts
     for row in data:
-        kategori = row.get("Category", "Lainnya")
+        kategori = row.get("Category", "Others")
         kategori_summary[kategori] = kategori_summary.get(kategori, 0) + 1
         tahun = str(row.get("Tahun", ""))
-        if tahun:
+        if tahun and tahun != "":
             tahun_summary[tahun] = tahun_summary.get(tahun, 0) + 1
+    
+    # Process all data for statistics
+    for row in all_data:
+        asset_status = row.get("Status", "").lower()
+        if asset_status in ["active", "in use", "in stock"]:
+            active_count += 1
+        elif asset_status in ["repair", "under repair"]:
+            repair_count += 1
+        elif asset_status in ["disposed", "to be disposed"]:
+            disposed_count += 1
 
     return templates.TemplateResponse("dashboard.html", {
         "request": request,
@@ -100,8 +114,11 @@ def dashboard(request: Request, status: str = "All", user=Depends(get_current_us
         "assets": data,
         "kategori_labels": list(kategori_summary.keys()),
         "kategori_values": list(kategori_summary.values()),
-        "tahun_labels": list(tahun_summary.keys()),
-        "tahun_values": list(tahun_summary.values()),
+        "tahun_labels": sorted(list(tahun_summary.keys())),
+        "tahun_values": [tahun_summary[year] for year in sorted(tahun_summary.keys())],
+        "active_count": active_count,
+        "repair_count": repair_count,
+        "disposed_count": disposed_count,
     })
 
 @router.get("/export")
