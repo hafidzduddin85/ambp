@@ -5,7 +5,7 @@ from fastapi.responses import HTMLResponse
 from sqlalchemy.orm import Session
 from passlib.hash import argon2
 
-from app.database.session import SessionLocal
+from app.database.database import SessionLocal
 from app.utils.models import User
 
 router = APIRouter()
