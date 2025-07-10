@@ -25,7 +25,7 @@
 <h1>➕ Input Aset Baru</h1>
 <a href="/home" class="back-link">🔙 Kembali ke Beranda</a>
 
-<form method="post" action="/submit">
+<form method="post" action="/submit" onsubmit="return validateForm()">
   <label>📦 Nama Aset</label>
   <input type="text" name="item_name" required>
 
@@ -50,16 +50,16 @@
   <input type="text" name="serial_number">
 
   <label>🏢 Perusahaan</label>
-  <input list="company_list" name="company" id="company" onchange="toggleCodeCompany()" required>
-  <datalist id="company_list">
+  <select name="company" id="company" onchange="toggleCodeCompany()" required>
+    <option value="">-- Pilih Perusahaan --</option>
     {% for c in refs.companies %}
-      <option value="{{ c }}">
+      <option value="{{ c }}">{{ c }}</option>
     {% endfor %}
-  </datalist>
+  </select>
 
   <div id="code_company_group" class="hidden">
     <label>🏷️ Kode Perusahaan</label>
-    <input type="text" name="code_company" maxlength="3">
+    <input type="text" name="code_company" id="code_company" maxlength="3">
   </div>
 
   <label>🏭 Unit Bisnis</label>
@@ -86,7 +86,7 @@
   <input type="date" name="purchase_date" required>
 
   <label>💰 Harga Pembelian</label>
-  <input type="number" name="purchase_cost" required>
+  <input type="number" name="purchase_cost" id="purchase_cost" required>
 
   <label>📜 Garansi</label>
   <select name="warranty">
@@ -172,16 +172,48 @@
   }
 
   function toggleCodeCompany() {
-    const input = document.getElementById("company");
-    const known = [...document.querySelectorAll("#company_list option")].map(e => e.value);
+    const select = document.getElementById("company");
+    const selected = select.value;
+    const known = [...select.options].map(o => o.value);
     const group = document.getElementById("code_company_group");
-    group.classList.toggle("hidden", known.includes(input.value));
+    const input = document.getElementById("code_company");
+
+    const isKnown = known.includes(selected);
+    group.classList.toggle("hidden", isKnown);
+    input.required = !isKnown;
+  }
+
+  function validateForm() {
+    const costInput = document.getElementById("purchase_cost");
+    const codeInput = document.getElementById("code_company");
+
+    const cost = parseFloat(costInput.value);
+    const code = codeInput.value.trim();
+
+    if (isNaN(cost) || cost <= 0) {
+      alert("💰 Harga Pembelian harus lebih dari 0.");
+      costInput.focus();
+      return false;
+    }
+
+    const isCodeVisible = !document.getElementById("code_company_group").classList.contains("hidden");
+    if (isCodeVisible) {
+      if (!/^[a-zA-Z]{3}$/.test(code)) {
+        alert("🏷️ Kode Perusahaan harus 3 huruf.");
+        codeInput.focus();
+        return false;
+      }
+      codeInput.value = code.toUpperCase();
+    }
+
+    return true;
   }
 
   window.addEventListener("DOMContentLoaded", () => {
     new TomSelect("#category", { create: false, placeholder: "-- Pilih Kategori --" });
     new TomSelect("#location", { create: false, placeholder: "-- Pilih Lokasi --" });
     new TomSelect("select[name='owner']", { create: false, placeholder: "-- Pilih Penanggung Jawab --" });
+    new TomSelect("#company", { create: true, placeholder: "-- Pilih Perusahaan --" });
   });
 </script>
 </body>

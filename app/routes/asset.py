@@ -6,6 +6,7 @@ from io import StringIO
 import csv
 from app import sheets
 from app.dependencies import get_current_user
+from app.utils.references import validate_category_or_default
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -46,6 +47,8 @@ def submit_asset(
     code_owner: str = Form(...),
     user=Depends(get_current_user)
 ):
+    category = validate_category_or_default(category)
+
     sheets.add_type_if_not_exists(type, category)
     sheets.add_location_if_not_exists(location, room_location)
     sheets.add_company_with_code_if_not_exists(company, code_company)
