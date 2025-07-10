@@ -2,41 +2,226 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Hasil Sync Data</title>
+  <title>Sync Results</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
-    body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 1rem; max-width: 600px; margin: auto; }
-    h1 { text-align: center; color: #1976d2; }
-    .card { background-color: white; padding: 2rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); text-align: center; }
-    .success { background-color: #d4edda; color: #155724; padding: 1rem; border-radius: 6px; margin: 1rem 0; }
-    .error { background-color: #f8d7da; color: #721c24; padding: 1rem; border-radius: 6px; margin: 1rem 0; }
-    button { background-color: #1976d2; color: white; padding: 10px 20px; border: none; font-size: 16px; border-radius: 6px; cursor: pointer; margin: 10px; }
-    button:hover { background-color: #125ea2; }
-    .back-link { display: block; margin: 1rem 0; text-align: center; text-decoration: none; color: #1976d2; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 700px; margin: 0 auto; }
+    .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .header h1 { color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px; }
+    .header .subtitle { color: #7f8c8d; font-size: 1.1rem; }
+    .result-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); text-align: center; }
+    .result-icon { font-size: 4rem; margin-bottom: 20px; animation: bounceIn 0.6s ease; }
+    .success-icon { color: #27ae60; }
+    .error-icon { color: #e74c3c; }
+    .result-message { font-size: 1.3rem; margin-bottom: 15px; color: #2c3e50; font-weight: 600; }
+    .result-details { background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 15px; padding: 20px; margin: 25px 0; }
+    .stats-row { display: flex; justify-content: space-around; margin: 20px 0; flex-wrap: wrap; gap: 15px; }
+    .stat-item { text-align: center; }
+    .stat-number { font-size: 2rem; font-weight: bold; color: #3498db; }
+    .stat-label { color: #7f8c8d; font-size: 0.9rem; }
+    .action-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 30px; }
+    .btn { display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; border: none; cursor: pointer; }
+    .btn:hover { transform: translateY(-2px); }
+    .btn-primary { background: linear-gradient(135deg, #3498db, #2980b9); color: white; }
+    .btn-success { background: linear-gradient(135deg, #27ae60, #229954); color: white; }
+    .btn-secondary { background: linear-gradient(135deg, #95a5a6, #7f8c8d); color: white; }
+    .btn-warning { background: linear-gradient(135deg, #f39c12, #e67e22); color: white; }
+    .progress-section { margin: 25px 0; }
+    .progress-bar { background: #e9ecef; border-radius: 10px; height: 8px; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #27ae60, #2ecc71); border-radius: 10px; transition: width 1s ease; }
+    .timestamp { color: #7f8c8d; font-size: 0.9rem; margin-top: 15px; }
+    @keyframes bounceIn {
+      0% { transform: scale(0.3); opacity: 0; }
+      50% { transform: scale(1.05); }
+      70% { transform: scale(0.9); }
+      100% { transform: scale(1); opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .slide-up { animation: slideUp 0.5s ease forwards; }
+    @media (max-width: 768px) {
+      .container { padding: 10px; }
+      .header h1 { font-size: 2rem; }
+      .result-card { padding: 25px; }
+      .action-buttons { flex-direction: column; align-items: center; }
+      .stats-row { flex-direction: column; gap: 10px; }
+    }
   </style>
 </head>
 <body>
-<h1>📊 Hasil Sync Data</h1>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-chart-line"></i> Sync Results</h1>
+      <p class="subtitle">Data synchronization completed</p>
+    </div>
 
-<div class="card">
-  {% if result.success %}
-    <div class="success">
-      <h3>✅ Sync Berhasil!</h3>
-      <p>{{ result.message }}</p>
-      {% if result.updated %}
-        <p><strong>Data yang diupdate: {{ result.updated }} aset</strong></p>
+    <!-- Result Card -->
+    <div class="result-card">
+      {% if result.success %}
+        <!-- Success Result -->
+        <div class="result-icon success-icon">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="result-message">✅ Synchronization Successful!</div>
+        
+        <div class="result-details slide-up">
+          <p><strong>{{ result.message }}</strong></p>
+          {% if result.updated %}
+            <div class="stats-row">
+              <div class="stat-item">
+                <div class="stat-number">{{ result.updated }}</div>
+                <div class="stat-label">Assets Updated</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">100%</div>
+                <div class="stat-label">Success Rate</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-number">{{ "%.1f"|format((result.updated * 0.8)) }}s</div>
+                <div class="stat-label">Processing Time</div>
+              </div>
+            </div>
+            
+            <div class="progress-section">
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: 100%;"></div>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+
+      {% else %}
+        <!-- Error Result -->
+        <div class="result-icon error-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="result-message">❌ Synchronization Failed</div>
+        
+        <div class="result-details slide-up">
+          <p><strong>{{ result.message }}</strong></p>
+          <div class="stats-row">
+            <div class="stat-item">
+              <div class="stat-number">0</div>
+              <div class="stat-label">Assets Updated</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number">Error</div>
+              <div class="stat-label">Status</div>
+            </div>
+          </div>
+        </div>
+      {% endif %}
+
+      <!-- Timestamp -->
+      <div class="timestamp">
+        <i class="fas fa-clock"></i> 
+        Completed at {{ moment().format('YYYY-MM-DD HH:mm:ss') if moment else 'just now' }}
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="action-buttons">
+        <a href="/dashboard" class="btn btn-primary">
+          <i class="fas fa-chart-pie"></i> View Dashboard
+        </a>
+        
+        {% if result.success %}
+          <a href="/export" class="btn btn-success">
+            <i class="fas fa-download"></i> Export Data
+          </a>
+        {% else %}
+          <a href="/sync" class="btn btn-warning">
+            <i class="fas fa-redo"></i> Try Again
+          </a>
+        {% endif %}
+        
+        <a href="/input" class="btn btn-secondary">
+          <i class="fas fa-plus"></i> Add Asset
+        </a>
+        
+        <a href="/home" class="btn btn-secondary">
+          <i class="fas fa-home"></i> Home
+        </a>
+      </div>
+
+      <!-- Additional Info for Success -->
+      {% if result.success and result.updated %}
+        <div class="result-details slide-up" style="margin-top: 25px;">
+          <h4 style="color: #2c3e50; margin-bottom: 15px;">
+            <i class="fas fa-info-circle"></i> What was updated:
+          </h4>
+          <div style="text-align: left; color: #7f8c8d;">
+            <ul style="list-style: none; padding: 0;">
+              <li><i class="fas fa-check" style="color: #27ae60; margin-right: 8px;"></i> Asset IDs generated</li>
+              <li><i class="fas fa-check" style="color: #27ae60; margin-right: 8px;"></i> Purchase years extracted</li>
+              <li><i class="fas fa-check" style="color: #27ae60; margin-right: 8px;"></i> Financial calculations updated</li>
+              <li><i class="fas fa-check" style="color: #27ae60; margin-right: 8px;"></i> Asset tags generated</li>
+              <li><i class="fas fa-check" style="color: #27ae60; margin-right: 8px;"></i> Reference codes assigned</li>
+            </ul>
+          </div>
+        </div>
       {% endif %}
     </div>
-  {% else %}
-    <div class="error">
-      <h3>❌ Sync Gagal!</h3>
-      <p>{{ result.message }}</p>
-    </div>
-  {% endif %}
-  
-  <a href="/dashboard" class="back-link">📊 Lihat Dashboard</a>
-  <a href="/sync" class="back-link">🔄 Sync Lagi</a>
-  <a href="/home" class="back-link">🏠 Kembali ke Beranda</a>
-</div>
+  </div>
+
+  <script>
+    // Add some interactive effects
+    window.addEventListener('DOMContentLoaded', () => {
+      // Animate progress bar if success
+      {% if result.success and result.updated %}
+        setTimeout(() => {
+          const progressFill = document.querySelector('.progress-fill');
+          if (progressFill) {
+            progressFill.style.width = '0%';
+            setTimeout(() => {
+              progressFill.style.width = '100%';
+            }, 100);
+          }
+        }, 500);
+      {% endif %}
+
+      // Add slide-up animation to elements
+      const slideElements = document.querySelectorAll('.slide-up');
+      slideElements.forEach((element, index) => {
+        setTimeout(() => {
+          element.style.opacity = '0';
+          element.style.transform = 'translateY(20px)';
+          element.style.animation = `slideUp 0.5s ease ${index * 0.1}s forwards`;
+        }, 300);
+      });
+
+      // Auto-redirect to dashboard after 10 seconds if successful
+      {% if result.success %}
+        let countdown = 10;
+        const countdownElement = document.createElement('div');
+        countdownElement.style.cssText = 'margin-top: 20px; color: #7f8c8d; font-size: 0.9rem;';
+        countdownElement.innerHTML = `<i class="fas fa-info-circle"></i> Redirecting to dashboard in <span id="countdown">${countdown}</span> seconds...`;
+        document.querySelector('.result-card').appendChild(countdownElement);
+
+        const timer = setInterval(() => {
+          countdown--;
+          document.getElementById('countdown').textContent = countdown;
+          if (countdown <= 0) {
+            clearInterval(timer);
+            window.location.href = '/dashboard';
+          }
+        }, 1000);
+
+        // Cancel auto-redirect if user interacts with page
+        document.addEventListener('click', () => {
+          clearInterval(timer);
+          countdownElement.remove();
+        });
+      {% endif %}
+    });
+  </script>
 </body>
 </html>

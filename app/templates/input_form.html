@@ -2,232 +2,342 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Input Aset Baru</title>
+  <title>Add New Asset</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="manifest" href="/static/manifest.json">
-  <meta name="theme-color" content="#1976d2">
+  <meta name="theme-color" content="#667eea">
   <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
-  <link rel="stylesheet" href="/static/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/css/tom-select.css">
   <style>
-    body { font-family: Arial, sans-serif; background-color: #f4f4f4; padding: 1rem; max-width: 720px; margin: auto; }
-    h1 { text-align: center; color: #1976d2; }
-    form { background-color: white; padding: 1rem; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }
-    label { margin-top: 1rem; font-weight: bold; display: block; }
-    input, select, textarea { width: 100%; padding: 8px; margin-top: 4px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; }
-    button { margin-top: 1.5rem; background-color: #1976d2; color: white; padding: 10px; border: none; width: 100%; font-size: 16px; border-radius: 6px; cursor: pointer; }
-    button:hover { background-color: #125ea2; }
-    .back-link { display: block; margin: 1rem 0; text-align: center; text-decoration: none; color: #1976d2; }
-    .hidden { display: none; }
-    .flash-message { padding: 10px; margin: 10px 0; border-radius: 6px; }
-    .flash-success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
-    .flash-error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
-    .flash-info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 800px; margin: 0 auto; }
+    .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .header h1 { color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px; }
+    .header .subtitle { color: #7f8c8d; font-size: 1.1rem; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: #3498db; color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; margin-top: 15px; transition: all 0.3s ease; }
+    .back-btn:hover { background: #2980b9; transform: translateY(-2px); }
+    .flash-messages { margin-bottom: 20px; }
+    .flash-message { padding: 15px 20px; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
+    .flash-success { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
+    .flash-error { background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24; border-left: 4px solid #dc3545; }
+    .flash-info { background: linear-gradient(135deg, #d1ecf1, #bee5eb); color: #0c5460; border-left: 4px solid #17a2b8; }
+    .form-container { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; }
+    .form-group { margin-bottom: 25px; }
+    .form-group label { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 14px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 14px; transition: all 0.3s ease; background: white; }
+    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+    .form-group.required label::after { content: '*'; color: #e74c3c; margin-left: 4px; }
+    .hidden { display: none !important; }
+    .submit-btn { width: 100%; background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 20px; }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(52, 152, 219, 0.3); }
+    .submit-btn:active { transform: translateY(0); }
+    .progress-bar { height: 4px; background: #e9ecef; border-radius: 2px; margin: 20px 0; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #3498db, #2980b9); width: 0%; transition: width 0.3s ease; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 768px) {
+      .container { padding: 10px; }
+      .header h1 { font-size: 2rem; }
+      .form-container { padding: 25px; }
+      .form-grid { grid-template-columns: 1fr; gap: 20px; }
+    }
   </style>
 </head>
 <body>
-<h1>➕ Input Aset Baru</h1>
-<a href="/home" class="back-link">🔙 Kembali ke Beranda</a>
-
-<!-- Flash Messages -->
-{% if flash_messages %}
-  {% for message in flash_messages %}
-    <div class="flash-message flash-{{ message.category }}">
-      {{ message.message }}
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-plus-circle"></i> Add New Asset</h1>
+      <p class="subtitle">Complete the form below to register a new asset</p>
+      <a href="/home" class="back-btn">
+        <i class="fas fa-home"></i> Back to Home
+      </a>
     </div>
-  {% endfor %}
-{% endif %}
 
-<form method="post" action="/submit" onsubmit="return validateForm()">
-  <label>📦 Nama Aset</label>
-  <input type="text" name="item_name" required>
+    <!-- Flash Messages -->
+    <div class="flash-messages">
+      {% if flash_messages %}
+        {% for message in flash_messages %}
+          <div class="flash-message flash-{{ message.category }}">
+            <i class="fas fa-{% if message.category == 'success' %}check-circle{% elif message.category == 'error' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+            {{ message.message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
 
-  <label>📁 Kategori</label>
-  <select name="category" id="category" required onchange="updateTypeOptions()">
-    <option value="">-- Pilih Kategori --</option>
-    {% for cat in refs.categories %}
-      <option value="{{ cat }}">{{ cat }}</option>
-    {% endfor %}
-  </select>
+    <!-- Form -->
+    <div class="form-container">
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill"></div>
+      </div>
+      
+      <form method="post" action="/submit" onsubmit="return validateForm()" id="assetForm">
+        <div class="form-grid">
+          <!-- Basic Information -->
+          <div class="form-group required">
+            <label><i class="fas fa-box"></i> Asset Name</label>
+            <input type="text" name="item_name" required placeholder="Enter asset name">
+          </div>
 
-  <label>🧩 Tipe</label>
-  <select id="type" name="type" required></select>
+          <div class="form-group required">
+            <label><i class="fas fa-folder"></i> Category</label>
+            <select name="category" id="category" required onchange="updateTypeOptions()">
+              <option value="">-- Select Category --</option>
+              {% for cat in refs.categories %}
+                <option value="{{ cat }}">{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
 
-  <label>🏭 Merk / Manufacture</label>
-  <input type="text" name="manufacture">
+          <div class="form-group required">
+            <label><i class="fas fa-tag"></i> Type</label>
+            <select id="type" name="type" required>
+              <option value="">-- Select Type --</option>
+            </select>
+          </div>
 
-  <label>📎 Model</label>
-  <input type="text" name="model">
+          <!-- Product Details -->
+          <div class="form-group">
+            <label><i class="fas fa-industry"></i> Manufacturer</label>
+            <input type="text" name="manufacture" placeholder="Enter manufacturer">
+          </div>
 
-  <label>🔢 Nomor Seri</label>
-  <input type="text" name="serial_number">
+          <div class="form-group">
+            <label><i class="fas fa-cog"></i> Model</label>
+            <input type="text" name="model" placeholder="Enter model">
+          </div>
 
-  <label>🏢 Perusahaan</label>
-  <select name="company" id="company" onchange="toggleCodeCompany()" required>
-    <option value="">-- Pilih Perusahaan --</option>
-    {% for c in refs.companies %}
-      <option value="{{ c }}">{{ c }}</option>
-    {% endfor %}
-  </select>
+          <div class="form-group">
+            <label><i class="fas fa-barcode"></i> Serial Number</label>
+            <input type="text" name="serial_number" placeholder="Enter serial number">
+          </div>
 
-  <div id="code_company_group" class="hidden">
-    <label>🏷️ Kode Perusahaan</label>
-    <input type="text" name="code_company" id="code_company" maxlength="3">
+          <!-- Company Information -->
+          <div class="form-group required">
+            <label><i class="fas fa-building"></i> Company</label>
+            <select name="company" id="company" onchange="toggleCodeCompany()" required>
+              <option value="">-- Select Company --</option>
+              {% for c in refs.companies %}
+                <option value="{{ c }}">{{ c }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div id="code_company_group" class="form-group hidden">
+            <label><i class="fas fa-code"></i> Company Code</label>
+            <input type="text" name="code_company" id="code_company" maxlength="3" placeholder="3 letters">
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-briefcase"></i> Business Unit</label>
+            <input type="text" name="bisnis_unit" placeholder="Enter business unit">
+          </div>
+
+          <!-- Location -->
+          <div class="form-group required">
+            <label><i class="fas fa-map-marker-alt"></i> Location</label>
+            <select name="location" id="location" onchange="updateRoomOptions()" required>
+              <option value="">-- Select Location --</option>
+              {% for loc in refs.locations %}
+                <option value="{{ loc }}">{{ loc }}</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="form-group required">
+            <label><i class="fas fa-door-open"></i> Room</label>
+            <select id="room_location" name="room_location" required>
+              <option value="">-- Select Room --</option>
+            </select>
+          </div>
+
+          <!-- Additional Details -->
+          <div class="form-group">
+            <label><i class="fas fa-wrench"></i> Condition</label>
+            <input type="text" name="condition" placeholder="Enter condition">
+          </div>
+
+          <!-- Financial Information -->
+          <div class="form-group required">
+            <label><i class="fas fa-calendar"></i> Purchase Date</label>
+            <input type="date" name="purchase_date" required>
+          </div>
+
+          <div class="form-group required">
+            <label><i class="fas fa-dollar-sign"></i> Purchase Cost</label>
+            <input type="number" name="purchase_cost" id="purchase_cost" required placeholder="Enter amount">
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-shield-alt"></i> Warranty</label>
+            <select name="warranty">
+              <option value="No">No</option>
+              <option value="Yes">Yes</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-truck"></i> Supplier</label>
+            <input type="text" name="supplier" placeholder="Enter supplier">
+          </div>
+
+          <div class="form-group">
+            <label><i class="fas fa-book"></i> Journal</label>
+            <input type="text" name="journal" placeholder="Enter journal reference">
+          </div>
+
+          <div class="form-group required">
+            <label><i class="fas fa-user"></i> Owner</label>
+            <select name="owner" required>
+              <option value="">-- Select Owner --</option>
+              {% for o in refs.owners %}
+                <option value="{{ o }}">{{ o }}</option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+
+        <!-- Notes -->
+        <div class="form-group">
+          <label><i class="fas fa-sticky-note"></i> Notes</label>
+          <textarea name="notes" rows="3" placeholder="Additional notes..."></textarea>
+        </div>
+
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-save"></i> Save Asset
+        </button>
+      </form>
+    </div>
   </div>
 
-  <label>🏭 Unit Bisnis</label>
-  <input type="text" name="bisnis_unit">
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
+  <script>
+    const allTypes = {{ refs.types | tojson | safe }};
+    const locationRoomMap = {{ location_room_map | tojson | safe }};
+    let typeSelectInstance = null;
+    let roomSelectInstance = null;
 
-  <label>📍 Lokasi</label>
-  <select name="location" id="location" onchange="updateRoomOptions()" required>
-    <option value="">-- Pilih Lokasi --</option>
-    {% for loc in refs.locations %}
-      <option value="{{ loc }}">{{ loc }}</option>
-    {% endfor %}
-  </select>
-
-  <label>🏢 Ruangan</label>
-  <select id="room_location" name="room_location" required></select>
-
-  <label>📝 Catatan</label>
-  <textarea name="notes" rows="2"></textarea>
-
-  <label>⚙️ Kondisi</label>
-  <input type="text" name="condition">
-
-  <label>🗓️ Tanggal Pembelian</label>
-  <input type="date" name="purchase_date" required>
-
-  <label>💰 Harga Pembelian</label>
-  <input type="number" name="purchase_cost" id="purchase_cost" required>
-
-  <label>📜 Garansi</label>
-  <select name="warranty">
-    <option value="No">No</option>
-    <option value="Yes">Yes</option>
-  </select>
-
-  <label>🚚 Supplier</label>
-  <input type="text" name="supplier">
-
-  <label>📖 Jurnal</label>
-  <input type="text" name="journal">
-
-  <label>👤 Penanggung Jawab</label>
-  <select name="owner" required>
-    <option value="">-- Pilih Penanggung Jawab --</option>
-    {% for o in refs.owners %}
-      <option value="{{ o }}">{{ o }}</option>
-    {% endfor %}
-  </select>
-
-  <button type="submit">✅ Simpan Aset</button>
-</form>
-
-<!-- Script Section -->
-<script src="https://cdn.jsdelivr.net/npm/tom-select@2.3.1/dist/js/tom-select.complete.min.js"></script>
-<script>
-  const allTypes = {{ refs.types | tojson | safe }};
-  const locationRoomMap = {{ location_room_map | tojson | safe }};
-
-  let typeSelectInstance = null;
-  let roomSelectInstance = null;
-
-  function updateTypeOptions() {
-    const category = document.getElementById("category").value;
-    const typeSelect = document.getElementById("type");
-
-    if (typeSelectInstance) {
-      typeSelectInstance.destroy();
-      typeSelectInstance = null;
+    // Progress tracking
+    function updateProgress() {
+      const form = document.getElementById('assetForm');
+      const inputs = form.querySelectorAll('input[required], select[required]');
+      const filled = Array.from(inputs).filter(input => input.value.trim() !== '').length;
+      const progress = (filled / inputs.length) * 100;
+      document.getElementById('progressFill').style.width = progress + '%';
     }
 
-    typeSelect.innerHTML = '<option value="">-- Pilih Tipe --</option>';
-    const filtered = allTypes.filter(t => t.Category === category);
-    filtered.forEach(t => {
-      const opt = document.createElement("option");
-      opt.value = t.Type;
-      opt.textContent = t.Type;
-      typeSelect.appendChild(opt);
-    });
+    function updateTypeOptions() {
+      const category = document.getElementById("category").value;
+      const typeSelect = document.getElementById("type");
 
-    typeSelectInstance = new TomSelect("#type", {
-      create: true,
-      placeholder: "-- Pilih Tipe --"
-    });
-    typeSelectInstance.clear(); // reset value
-  }
+      if (typeSelectInstance) {
+        typeSelectInstance.destroy();
+        typeSelectInstance = null;
+      }
 
-  function updateRoomOptions() {
-    const location = document.getElementById("location").value;
-    const roomSelect = document.getElementById("room_location");
-
-    if (roomSelectInstance) {
-      roomSelectInstance.destroy();
-      roomSelectInstance = null;
-    }
-
-    roomSelect.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
-    if (locationRoomMap[location]) {
-      locationRoomMap[location].forEach(room => {
+      typeSelect.innerHTML = '<option value="">-- Select Type --</option>';
+      const filtered = allTypes.filter(t => t.Category === category);
+      filtered.forEach(t => {
         const opt = document.createElement("option");
-        opt.value = room;
-        opt.textContent = room;
-        roomSelect.appendChild(opt);
+        opt.value = t.Type;
+        opt.textContent = t.Type;
+        typeSelect.appendChild(opt);
       });
+
+      typeSelectInstance = new TomSelect("#type", {
+        create: true,
+        placeholder: "-- Select Type --"
+      });
+      typeSelectInstance.clear();
+      updateProgress();
     }
 
-    roomSelectInstance = new TomSelect("#room_location", {
-      create: true,
-      placeholder: "-- Pilih Ruangan --"
-    });
-    roomSelectInstance.clear();
-  }
+    function updateRoomOptions() {
+      const location = document.getElementById("location").value;
+      const roomSelect = document.getElementById("room_location");
 
-  function toggleCodeCompany() {
-    const select = document.getElementById("company");
-    const selected = select.value;
-    const known = [...select.options].map(o => o.value);
-    const group = document.getElementById("code_company_group");
-    const input = document.getElementById("code_company");
+      if (roomSelectInstance) {
+        roomSelectInstance.destroy();
+        roomSelectInstance = null;
+      }
 
-    const isKnown = known.includes(selected);
-    group.classList.toggle("hidden", isKnown);
-    input.required = !isKnown;
-  }
+      roomSelect.innerHTML = '<option value="">-- Select Room --</option>';
+      if (locationRoomMap[location]) {
+        locationRoomMap[location].forEach(room => {
+          const opt = document.createElement("option");
+          opt.value = room;
+          opt.textContent = room;
+          roomSelect.appendChild(opt);
+        });
+      }
 
-  function validateForm() {
-    const costInput = document.getElementById("purchase_cost");
-    const codeInput = document.getElementById("code_company");
-
-    const cost = parseFloat(costInput.value);
-    const code = codeInput.value.trim();
-
-    if (isNaN(cost) || cost <= 0) {
-      alert("💰 Harga Pembelian harus lebih dari 0.");
-      costInput.focus();
-      return false;
+      roomSelectInstance = new TomSelect("#room_location", {
+        create: true,
+        placeholder: "-- Select Room --"
+      });
+      roomSelectInstance.clear();
+      updateProgress();
     }
 
-    const isCodeVisible = !document.getElementById("code_company_group").classList.contains("hidden");
-    if (isCodeVisible) {
-      if (!/^[a-zA-Z]{3}$/.test(code)) {
-        alert("🏷️ Kode Perusahaan harus 3 huruf.");
-        codeInput.focus();
+    function toggleCodeCompany() {
+      const select = document.getElementById("company");
+      const selected = select.value;
+      const known = [...select.options].map(o => o.value);
+      const group = document.getElementById("code_company_group");
+      const input = document.getElementById("code_company");
+
+      const isKnown = known.includes(selected);
+      group.classList.toggle("hidden", isKnown);
+      input.required = !isKnown;
+      updateProgress();
+    }
+
+    function validateForm() {
+      const costInput = document.getElementById("purchase_cost");
+      const codeInput = document.getElementById("code_company");
+
+      const cost = parseFloat(costInput.value);
+      const code = codeInput.value.trim();
+
+      if (isNaN(cost) || cost <= 0) {
+        alert("💰 Purchase cost must be greater than 0.");
+        costInput.focus();
         return false;
       }
-      codeInput.value = code.toUpperCase();
+
+      const isCodeVisible = !document.getElementById("code_company_group").classList.contains("hidden");
+      if (isCodeVisible && code) {
+        if (!/^[a-zA-Z]{3}$/.test(code)) {
+          alert("🏷️ Company code must be 3 letters.");
+          codeInput.focus();
+          return false;
+        }
+        codeInput.value = code.toUpperCase();
+      }
+
+      return true;
     }
 
-    return true;
-  }
+    // Initialize
+    window.addEventListener("DOMContentLoaded", () => {
+      new TomSelect("#category", { create: false, placeholder: "-- Select Category --" });
+      new TomSelect("#location", { create: false, placeholder: "-- Select Location --" });
+      new TomSelect("select[name='owner']", { create: false, placeholder: "-- Select Owner --" });
+      new TomSelect("#company", { create: true, placeholder: "-- Select Company --" });
 
-  window.addEventListener("DOMContentLoaded", () => {
-    new TomSelect("#category", { create: false, placeholder: "-- Pilih Kategori --" });
-    new TomSelect("#location", { create: false, placeholder: "-- Pilih Lokasi --" });
-    new TomSelect("select[name='owner']", { create: false, placeholder: "-- Pilih Penanggung Jawab --" });
-    new TomSelect("#company", { create: true, placeholder: "-- Pilih Perusahaan --" });
-  });
-</script>
+      // Add progress tracking to all inputs
+      const inputs = document.querySelectorAll('input, select, textarea');
+      inputs.forEach(input => {
+        input.addEventListener('input', updateProgress);
+        input.addEventListener('change', updateProgress);
+      });
+
+      updateProgress();
+    });
+  </script>
 </body>
 </html>
