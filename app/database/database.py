@@ -3,23 +3,40 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 import os
+import logging
 
-# Ambil DATABASE_URL dari environment (atau pakai default SQLite)
-DATABASE_URL = os.getenv("DATABASE_URL", "sqlite:///./app.db")
+# Get DATABASE_URL from environment
+DATABASE_URL = os.getenv("DATABASE_URL")
 
-# Buat engine SQLAlchemy
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL environment variable is not set")
+
+# Fix PostgreSQL URL format if needed (Render.com compatibility)
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+logging.info(f"Connecting to database: {DATABASE_URL.split('@')[0]}@***")
+
+# Create SQLAlchemy engine
 engine = create_engine(
     DATABASE_URL,
-    connect_args={"check_same_thread": False} if "sqlite" in DATABASE_URL else {}
+    pool_pre_ping=True,
+    pool_recycle=300,
+    echo=False  # Set to True for SQL debugging
 )
 
-# Buat session
+# Create session
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
-# Base class untuk deklarasi ORM model
+# Base class for ORM models
 Base = declarative_base()
 
-# Fungsi init_db
+# Database initialization function
 def init_db():
-    from app.models import user  # pastikan semua model di-import di sini
-    Base.metadata.create_all(bind=engine)
+    try:
+        from app.utils.models import User  # Import all models here
+        Base.metadata.create_all(bind=engine)
+        logging.info("Database tables created successfully")
+    except Exception as e:
+        logging.error(f"Error creating database tables: {e}")
+        raise

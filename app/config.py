@@ -21,6 +21,16 @@ class Config:
         if not secret:
             raise RuntimeError("SESSION_SECRET is not set in environment")
         return secret
+    
+    @property
+    def DATABASE_URL(self) -> str:
+        db_url = os.getenv("DATABASE_URL")
+        if not db_url:
+            raise RuntimeError("DATABASE_URL is not set in environment")
+        # Fix PostgreSQL URL format if needed (Render.com compatibility)
+        if db_url.startswith("postgres://"):
+            db_url = db_url.replace("postgres://", "postgresql://", 1)
+        return db_url
 
     def _load_google_creds(self) -> Dict:
         creds_json_str = os.getenv("GOOGLE_CREDS_JSON")
