@@ -50,7 +50,7 @@ def get_sheet():
             clear_worksheet_cache()
 
     creds_json_str = os.getenv("GOOGLE_CREDS_JSON")
-    sheet_id = os.getenv("GOOGLE_SHEET_ID")
+    worksheet_id = os.getenv("GOOGLE_SHEET_ID")
     if not creds_json_str or not sheet_id:
         logging.error("GOOGLE_CREDS_JSON dan/atau GOOGLE_SHEET_ID belum di-set di environment.")
         raise RuntimeError("Google Sheets credentials or sheet ID not set.")

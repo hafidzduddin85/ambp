@@ -25,6 +25,7 @@ def submit_asset(
     request: Request,
     item_name: str = Form(...),
     category: str = Form(...),
+    code_category: str = Form(...),
     type: str = Form(...),
     manufacture: str = Form(""),
     model: str = Form(""),
@@ -42,21 +43,22 @@ def submit_asset(
     supplier: str = Form(""),
     journal: str = Form(""),
     owner: str = Form(...),
+    code_owner: str = Form(...),
     user=Depends(get_current_user)
 ):
     sheets.add_type_if_not_exists(type, category)
     sheets.add_location_if_not_exists(location, room_location)
     sheets.add_company_with_code_if_not_exists(company, code_company)
-    sheets.add_owner_if_not_exists(owner)
-    sheets.add_category_if_not_exists(category)
+    sheets.add_owner_if_not_exists(owner, code_owner)
+    sheets.add_category_if_not_exists(category, code_category)
 
     data = {
-        "item_name": item_name, "category": category, "type": type,
+        "item_name": item_name, "category": category, "code_category": code_category, "type": type,
         "manufacture": manufacture, "model": model, "serial_number": serial_number,
         "company": company, "code_company": code_company, "bisnis_unit": bisnis_unit,
         "location": location, "room_location": room_location, "notes": notes,
         "condition": condition, "purchase_date": purchase_date, "purchase_cost": purchase_cost,
-        "warranty": warranty, "supplier": supplier, "journal": journal, "owner": owner
+        "warranty": warranty, "supplier": supplier, "journal": journal, "owner": owner, "code_owner": code_owner
     }
 
     sheets.append_asset(data)
