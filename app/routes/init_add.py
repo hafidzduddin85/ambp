@@ -1,35 +1,21 @@
-from fastapi import APIRouter, Request, Depends
-from sqlalchemy import text, inspect
-from app.database.database import engine
-from app.database.dependencies import get_admin_user
-from fastapi.responses import HTMLResponse
+# app/routes/devtools.py
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
+from app.database.dependencies import get_db
 
 router = APIRouter()
 
-@router.get("/init-add", response_class=HTMLResponse)
-def add_missing_columns(request: Request, user=Depends(get_admin_user)):
+@router.get("/init_add", include_in_schema=True)  # hapus Depends(get_current_user)
+def add_columns(db: Session = Depends(get_db)):
+    sql = """
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS hashed_password TEXT,
+    ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'user',
+    ADD COLUMN IF NOT EXISTS is_active TEXT DEFAULT 'true';
+    """
     try:
-        inspector = inspect(engine)
-        columns = inspector.get_columns("users")
-        column_names = [col["name"] for col in columns]
-
-        statements = []
-        with engine.connect() as conn:
-            if "hashed_password" not in column_names:
-                conn.execute(text("ALTER TABLE users ADD COLUMN hashed_password VARCHAR;"))
-                statements.append("✅ Added column: hashed_password")
-
-            if "role" not in column_names:
-                conn.execute(text("ALTER TABLE users ADD COLUMN role VARCHAR DEFAULT 'user';"))
-                statements.append("✅ Added column: role")
-
-            if "is_active" not in column_names:
-                conn.execute(text("ALTER TABLE users ADD COLUMN is_active VARCHAR DEFAULT 'true';"))
-                statements.append("✅ Added column: is_active")
-
-        if not statements:
-            return "<h3>✅ All columns already exist in `users` table.</h3>"
-        return "<br>".join(statements)
-
+        db.execute(sql)
+        db.commit()
+        return {"message": "Columns added successfully"}
     except Exception as e:
-        return f"<h3>❌ Error: {str(e)}</h3>"
+        return {"error": str(e)}
