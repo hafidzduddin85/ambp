@@ -166,13 +166,11 @@ def append_asset(data: dict):
         ws = get_worksheet("Assets")
         if not ws: return
 
-        # Auto-generate basic asset tag if code fields are available
-        asset_tag = data.get("asset_tag", "")
-
+        # Add asset with empty calculated fields
         row_data = [
             "", data.get("item_name", ""), data.get("category", ""), data.get("type", ""),
             data.get("manufacture", ""), data.get("model", ""), data.get("serial_number", ""),
-            asset_tag, data.get("company", ""), data.get("bisnis_unit", ""),
+            "", data.get("company", ""), data.get("bisnis_unit", ""),
             data.get("location", ""), data.get("room_location", ""), data.get("notes", "Input dari Web"),
             data.get("condition", ""), data.get("purchase_date", ""), data.get("purchase_cost", ""),
             data.get("warranty", "No"), data.get("supplier", ""), data.get("journal", ""),
@@ -180,6 +178,18 @@ def append_asset(data: dict):
         ]
 
         ws.append_row(row_data)
+        
+        # Auto-sync to fill calculated fields
+        try:
+            # Clear cache to ensure fresh reference data
+            clear_cache()
+            clear_worksheet_cache()
+            
+            sync_result = sync_assets_data()
+            logging.info(f"Auto-sync after asset creation: {sync_result.get('message', 'completed')}")
+        except Exception as sync_error:
+            logging.warning(f"Auto-sync failed after asset creation: {sync_error}")
+            
     except Exception as e:
         logging.warning(f"Gagal menambahkan data aset: {e}")
 
