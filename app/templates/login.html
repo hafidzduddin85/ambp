@@ -2,31 +2,91 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Login</title>
+  <title>Login - Asset Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
     body {
-      font-family: sans-serif;
-      background-color: #f0f2f5;
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
+      min-height: 100vh;
+      padding: 1rem;
+      overflow-x: hidden;
     }
 
     .login-container {
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      padding: 3rem 2.5rem;
+      border-radius: 25px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
       width: 100%;
-      max-width: 400px;
+      max-width: 420px;
+      border: 1px solid rgba(255,255,255,0.2);
+      position: relative;
+      overflow: hidden;
     }
 
-    h2 {
-      margin-bottom: 1.5rem;
+    .login-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .logo-container {
       text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .logo-container img {
+      height: 80px;
+      width: auto;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+      transition: transform 0.3s ease;
+    }
+
+    .logo-container img:hover {
+      transform: scale(1.05);
+    }
+
+    .login-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-header h1 {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 0.5rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .login-header p {
+      color: #6c757d;
+      font-size: 1rem;
+      font-weight: 500;
     }
 
     .input-group {
@@ -36,96 +96,191 @@
 
     .input-group input {
       width: 100%;
-      padding: 0.75rem 2.5rem 0.75rem 0.75rem;
+      padding: 1rem 1rem 1rem 3rem;
       font-size: 1rem;
-      border: 1px solid #ccc;
-      border-radius: 8px;
+      border: 2px solid #e9ecef;
+      border-radius: 15px;
       box-sizing: border-box;
-      transition: border 0.2s;
+      transition: all 0.3s ease;
+      background: rgba(255,255,255,0.8);
+      font-weight: 500;
     }
 
     .input-group input:focus {
-      border-color: #007bff;
+      border-color: #667eea;
       outline: none;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      background: rgba(255,255,255,1);
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #6c757d;
+      font-size: 1.1rem;
+      transition: color 0.3s ease;
+    }
+
+    .input-group input:focus + .input-icon {
+      color: #667eea;
     }
 
     .toggle-icon {
       position: absolute;
-      right: 0.8rem;
+      right: 1rem;
       top: 50%;
       transform: translateY(-50%);
       cursor: pointer;
-      color: #555;
-      transition: color 0.2s, transform 0.2s;
+      color: #6c757d;
+      transition: all 0.3s ease;
+      font-size: 1.1rem;
     }
 
     .toggle-icon:hover {
-      color: #007bff;
+      color: #667eea;
       transform: translateY(-50%) scale(1.1);
     }
 
     .remember-me {
       display: flex;
       align-items: center;
-      margin-bottom: 1rem;
+      margin-bottom: 1.5rem;
       font-size: 0.95rem;
+      color: #6c757d;
+      font-weight: 500;
     }
 
     .remember-me input {
-      margin-right: 0.5rem;
+      margin-right: 0.8rem;
+      transform: scale(1.2);
+      accent-color: #667eea;
     }
 
     .error-message {
-      color: #d32f2f;
-      background-color: #ffebee;
-      border: 1px solid #f44336;
-      padding: 0.75rem;
-      border-radius: 6px;
-      margin-bottom: 1rem;
+      color: #dc3545;
+      background: linear-gradient(135deg, #ffebee, #ffcdd2);
+      border: 1px solid #f5c6cb;
+      padding: 1rem;
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
       font-size: 0.95rem;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
     }
 
-    button {
+    .login-btn {
       width: 100%;
-      padding: 0.75rem;
-      background-color: #007bff;
+      padding: 1rem;
+      background: linear-gradient(135deg, #667eea, #764ba2);
       color: white;
       border: none;
-      border-radius: 8px;
-      font-size: 1rem;
+      border-radius: 15px;
+      font-size: 1.1rem;
+      font-weight: 600;
       cursor: pointer;
-      transition: background-color 0.2s;
+      transition: all 0.3s ease;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
     }
 
-    button:hover {
-      background-color: #0056b3;
+    .login-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .login-btn:hover::before {
+      left: 100%;
+    }
+
+    .login-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
+    }
+
+    .login-btn:active {
+      transform: translateY(0);
+    }
+
+    @media (max-width: 480px) {
+      body {
+        padding: 0.5rem;
+      }
+
+      .login-container {
+        padding: 2rem 1.5rem;
+        border-radius: 20px;
+      }
+
+      .logo-container img {
+        height: 70px;
+      }
+
+      .login-header h1 {
+        font-size: 1.6rem;
+      }
+
+      .input-group input {
+        padding: 0.9rem 0.9rem 0.9rem 2.8rem;
+        font-size: 0.95rem;
+      }
+
+      .input-icon {
+        left: 0.9rem;
+        font-size: 1rem;
+      }
+
+      .toggle-icon {
+        right: 0.9rem;
+        font-size: 1rem;
+      }
+
+      .login-btn {
+        padding: 0.9rem;
+        font-size: 1rem;
+      }
     }
   </style>
 </head>
 <body>
-
   <div class="login-container">
-    <div style="text-align: center; margin-bottom: 1.5rem;">
-      <img src="/static/logo.png" alt="Company Logo" style="height: 80px; width: auto; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+    <div class="logo-container">
+      <img src="/static/logo.png" alt="Company Logo">
     </div>
-    <h2>Login</h2>
+    
+    <div class="login-header">
+      <h1><i class="fas fa-shield-alt"></i> Asset Management</h1>
+      <p>Silakan login untuk mengakses sistem</p>
+    </div>
 
     {% if error %}
       <div class="error-message">
+        <i class="fas fa-exclamation-triangle"></i>
         {{ error }}
       </div>
     {% endif %}
 
     <form method="post" action="/login">
-      
       <div class="input-group">
         <input type="text" name="username" placeholder="Username" required>
+        <i class="fas fa-user input-icon"></i>
       </div>
 
       <div class="input-group">
         <input type="password" name="password" id="password" placeholder="Password" required>
+        <i class="fas fa-lock input-icon"></i>
         <span class="toggle-icon" onclick="togglePassword()">
-          <i id="toggleIcon" class="fa-solid fa-lock"></i>
+          <i id="toggleIcon" class="fas fa-eye-slash"></i>
         </span>
       </div>
 
@@ -134,7 +289,9 @@
         <label for="remember">Remember Me</label>
       </div>
 
-      <button type="submit">Login</button>
+      <button type="submit" class="login-btn">
+        <i class="fas fa-sign-in-alt"></i> Login
+      </button>
     </form>
   </div>
 
@@ -146,10 +303,16 @@
       const isHidden = input.type === "password";
       input.type = isHidden ? "text" : "password";
 
-      icon.classList.toggle("fa-lock", !isHidden);
-      icon.classList.toggle("fa-lock-open", isHidden);
+      icon.classList.toggle("fa-eye-slash", !isHidden);
+      icon.classList.toggle("fa-eye", isHidden);
     }
-  </script>
 
+    // Add loading state on form submit
+    document.querySelector('form').addEventListener('submit', function() {
+      const btn = document.querySelector('.login-btn');
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+      btn.disabled = true;
+    });
+  </script>
 </body>
 </html>
