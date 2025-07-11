@@ -200,6 +200,39 @@
           </div>
         </div>
 
+        <!-- Asset Photo -->
+        <div class="detail-section">
+          <h3 class="section-title">
+            <i class="fas fa-camera"></i> Asset Photo
+          </h3>
+          {% if asset.get('Photo URL') %}
+            <div style="text-align: center; margin-bottom: 15px;">
+              <img 
+                src="{{ asset.get('Photo URL') }}" 
+                alt="Asset Photo" 
+                style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"
+                loading="lazy"
+              >
+            </div>
+          {% else %}
+            <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; color: #6c757d;">
+              <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 10px;"></i>
+              <p>No photo uploaded</p>
+            </div>
+          {% endif %}
+          
+          {% if user and user.role == 'admin' %}
+          <form method="post" action="/assets/{{ asset.get('ID', '') }}/photo" enctype="multipart/form-data" style="margin-top: 15px;">
+            <div style="display: flex; gap: 10px; align-items: center;">
+              <input type="file" name="photo" accept="image/*" required style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
+              <button type="submit" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
+                <i class="fas fa-upload"></i> Upload
+              </button>
+            </div>
+          </form>
+          {% endif %}
+        </div>
+
         <!-- Additional Information -->
         <div class="detail-section">
           <h3 class="section-title">

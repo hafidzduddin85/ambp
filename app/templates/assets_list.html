@@ -152,6 +152,18 @@
             
             <div class="asset-name">{{ asset.get('Item Name', 'Unknown Item') }}</div>
             
+            {% if asset.get('Photo URL') %}
+            <div class="asset-photo" style="margin: 10px 0;">
+              <img 
+                data-src="{{ asset.get('Photo URL') }}" 
+                alt="Asset Photo" 
+                class="lazy-image" 
+                style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 8px; background: #f8f9fa;"
+                loading="lazy"
+              >
+            </div>
+            {% endif %}
+            
             <div class="asset-details">
               <div class="detail-row">
                 <span class="label">Asset Tag:</span>
@@ -279,6 +291,23 @@
       }
     }
 
+    // Lazy loading for images
+    function lazyLoadImages() {
+      const images = document.querySelectorAll('.lazy-image');
+      const imageObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            const img = entry.target;
+            img.src = img.dataset.src;
+            img.classList.remove('lazy-image');
+            observer.unobserve(img);
+          }
+        });
+      });
+      
+      images.forEach(img => imageObserver.observe(img));
+    }
+
     // Auto-hide flash messages
     document.addEventListener('DOMContentLoaded', function() {
       const flashMessages = document.querySelectorAll('.flash-message');
@@ -288,6 +317,9 @@
           setTimeout(() => message.remove(), 300);
         }, 5000);
       });
+      
+      // Initialize lazy loading
+      lazyLoadImages();
     });
   </script>
 </body>

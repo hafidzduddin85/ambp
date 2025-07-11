@@ -1,10 +1,12 @@
 # app/routes/assets.py
-from fastapi import APIRouter, Request, Form, Depends
+from fastapi import APIRouter, Request, Form, Depends, File, UploadFile
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from app.utils import sheets
 from app.database.dependencies import get_current_user
 from app.utils.flash import flash, get_flashed_messages
+from app.utils.photo import resize_and_convert_image, upload_to_drive, delete_from_drive
+from typing import Optional
 
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
@@ -84,6 +86,58 @@ def asset_detail(request: Request, asset_id: str, user=Depends(get_current_user)
     except Exception as e:
         flash(request, f"❌ Error loading asset detail: {str(e)}", "error")
         return RedirectResponse(url="/assets", status_code=303)
+
+@router.post("/assets/{asset_id}/photo")
+def upload_photo(
+    request: Request,
+    asset_id: str,
+    photo: UploadFile = File(...),
+    user=Depends(get_current_user)
+):
+    try:
+        # Validate file type
+        if not photo.content_type.startswith('image/'):
+            flash(request, "❌ Please upload an image file", "error")
+            return RedirectResponse(url=f"/assets/{asset_id}/detail", status_code=303)
+        
+        # Resize and convert to WebP
+        resized_image = resize_and_convert_image(photo.file)
+        if not resized_image:
+            flash(request, "❌ Error processing image", "error")
+            return RedirectResponse(url=f"/assets/{asset_id}/detail", status_code=303)
+        
+        # Upload to Google Drive
+        image_url = upload_to_drive(resized_image, photo.filename, asset_id)
+        if not image_url:
+            flash(request, "❌ Error uploading image", "error")
+            return RedirectResponse(url=f"/assets/{asset_id}/detail", status_code=303)
+        
+        # Update asset with photo URL
+        assets_ws = sheets.get_worksheet("Assets")
+        if assets_ws:
+            headers = assets_ws.row_values(1)
+            data = assets_ws.get_all_values()
+            
+            # Add Photo URL column if not exists
+            if "Photo URL" not in headers:
+                headers.append("Photo URL")
+                assets_ws.update('1:1', [headers])
+            
+            photo_col = headers.index("Photo URL") + 1
+            id_col = headers.index("ID") if "ID" in headers else 0
+            
+            # Find asset row and update photo URL
+            for i, row in enumerate(data[1:], start=2):
+                if len(row) > id_col and row[id_col] == asset_id:
+                    assets_ws.update_cell(i, photo_col, image_url)
+                    break
+        
+        flash(request, "✅ Photo uploaded successfully", "success")
+        
+    except Exception as e:
+        flash(request, f"❌ Error uploading photo: {str(e)}", "error")
+    
+    return RedirectResponse(url=f"/assets/{asset_id}/detail", status_code=303)
 
 @router.post("/assets/{asset_id}/status")
 def change_status(
