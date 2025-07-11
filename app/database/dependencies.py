@@ -34,26 +34,32 @@ def get_current_user(
     - Jika session tersedia: prioritas utama
     - Jika tidak: gunakan token Bearer
     """
+    # Get session data
     session_user = request.session.get("user")
+    session_role = request.session.get("role", "user")
+    session_user_id = request.session.get("user_id")
 
-    # Jika user dari session adalah dict (username & role)
-    if isinstance(session_user, dict) and "username" in session_user:
-        return session_user
+    # If user exists in session
+    if session_user:
+        return {
+            "username": session_user,
+            "role": session_role,
+            "user_id": session_user_id
+        }
 
-    # Jika user dari session hanya berupa username (string)
-    if isinstance(session_user, str):
-        return {"username": session_user, "role": "admin"}  # Default role
-
-    # Jika tidak ada session, coba dari Bearer token
+    # Try Bearer token if no session
     if credentials:
-        payload = verify_token(credentials.credentials)
-        if payload:
-            return payload
+        try:
+            payload = verify_token(credentials.credentials)
+            if payload:
+                return payload
+        except:
+            pass
 
-    # Tidak terautentikasi
+    # Not authenticated
     raise HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Tidak terautentikasi.",
+        detail="Not authenticated",
         headers={"WWW-Authenticate": "Bearer"},
     )
 

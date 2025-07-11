@@ -12,13 +12,6 @@ def reset_database():
     try:
         # Hapus semua tabel
         Base.metadata.drop_all(bind=engine)
-        # Hapus data pengguna admin jika ada
-        with engine.connect() as connection:
-            connection.execute(User.__table__.delete().where(User.username == "adminasset"))
-        # Hapus data pengguna lain jika ada
-        with engine.connect() as connection:
-            connection.execute(User.__table__.delete().where(User.username != "adminasset"))
-
 
         # Buat ulang semua tabel
         Base.metadata.create_all(bind=engine)

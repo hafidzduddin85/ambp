@@ -6,8 +6,6 @@ from fastapi.templating import Jinja2Templates
 
 from app.utils.models import User
 from app.database.dependencies import get_db
-from app.utils.auth import verify_password  # ✅ Import fungsi verifikasi password yang benar
-
 router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
@@ -22,20 +20,33 @@ def login(
     password: str = Form(...),
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter_by(username=username).first()
+    try:
+        user = db.query(User).filter(User.username == username).first()
+        
+        if not user or not user.verify_password(password):
+            return templates.TemplateResponse("login.html", {
+                "request": request,
+                "error": "Username atau password salah"
+            })
+        
+        if not user.is_active:
+            return templates.TemplateResponse("login.html", {
+                "request": request,
+                "error": "Akun tidak aktif"
+            })
 
-    # ✅ Ganti dengan fungsi yang benar untuk verifikasi hashed password
-    if not user or not verify_password(password, user.hashed_password):
+        # Save user data in session
+        request.session["user"] = user.username
+        request.session["user_id"] = user.id
+        request.session["role"] = user.role
+        
+        return RedirectResponse(url="/home", status_code=302)
+        
+    except Exception as e:
         return templates.TemplateResponse("login.html", {
             "request": request,
-            "error": "Username atau password salah"
+            "error": "Terjadi kesalahan sistem"
         })
-
-    # ✅ Simpan data user di session (gunakan role juga kalau ada)
-    request.session["user"] = user.username
-    request.session["role"] = user.role
-
-    return RedirectResponse(url="/home", status_code=302)
 
 @router.api_route("/logout", methods=["GET", "POST"])
 def logout(request: Request):
