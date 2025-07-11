@@ -85,6 +85,7 @@ def change_status(
     request: Request, 
     asset_id: str, 
     new_status: str = Form(...),
+    notes: str = Form(""),
     user=Depends(get_current_user)
 ):
     try:
@@ -98,15 +99,31 @@ def change_status(
         
         status_col = headers.index("Status") if "Status" in headers else None
         id_col = headers.index("ID") if "ID" in headers else 0
+        item_name_col = headers.index("Item Name") if "Item Name" in headers else None
         
         if status_col is None:
             flash(request, "❌ Cannot find status column", "error")
             return RedirectResponse(url="/assets", status_code=303)
         
-        # Find asset row
+        # Find asset row and get current data
         for i, row in enumerate(data[1:], start=2):
             if len(row) > id_col and row[id_col] == asset_id:
+                old_status = row[status_col] if len(row) > status_col else ""
+                asset_name = row[item_name_col] if item_name_col and len(row) > item_name_col else ""
+                
+                # Update status
                 assets_ws.update_cell(i, status_col + 1, new_status)
+                
+                # Log status change
+                log_status_change(
+                    asset_id=asset_id,
+                    asset_name=asset_name,
+                    old_status=old_status,
+                    new_status=new_status,
+                    changed_by=user.get("username", "Unknown"),
+                    notes=notes
+                )
+                
                 flash(request, f"✅ Asset {asset_id} status changed to {new_status}", "success")
                 return RedirectResponse(url="/assets", status_code=303)
         
@@ -116,6 +133,65 @@ def change_status(
         flash(request, f"❌ Error changing status: {str(e)}", "error")
     
     return RedirectResponse(url="/assets", status_code=303)
+
+def log_status_change(asset_id: str, asset_name: str, old_status: str, new_status: str, 
+                     changed_by: str, notes: str = ""):
+    """Log status change to Google Sheets"""
+    try:
+        from datetime import datetime
+        
+        log_ws = sheets.get_worksheet("Log_Status")
+        if not log_ws:
+            # Create sheet if doesn't exist
+            sheet = sheets.get_sheet()
+            log_ws = sheet.add_worksheet(title="Log_Status", rows=1000, cols=8)
+            # Add headers
+            headers = [
+                "Timestamp", "Asset ID", "Asset Name", "Old Status", 
+                "New Status", "Changed By", "Notes", "Reason"
+            ]
+            log_ws.append_row(headers)
+        
+        # Add log entry
+        log_entry = [
+            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            asset_id,
+            asset_name,
+            old_status,
+            new_status,
+            changed_by,
+            notes,
+            f"Status changed from {old_status} to {new_status}"
+        ]
+        
+        log_ws.append_row(log_entry)
+        
+    except Exception as e:
+        print(f"Error logging status change: {e}")
+
+@router.get("/assets/logs/status")
+def view_status_logs(request: Request, user=Depends(get_current_user)):
+    """View status change logs"""
+    try:
+        log_ws = sheets.get_worksheet("Log_Status")
+        if not log_ws:
+            logs = []
+        else:
+            logs = log_ws.get_all_records()
+            # Sort by timestamp descending (newest first)
+            logs = sorted(logs, key=lambda x: x.get("Timestamp", ""), reverse=True)
+        
+        flash_messages = get_flashed_messages(request)
+        
+        return templates.TemplateResponse("status_logs.html", {
+            "request": request,
+            "logs": logs,
+            "flash_messages": flash_messages
+        })
+        
+    except Exception as e:
+        flash(request, f"❌ Error loading status logs: {str(e)}", "error")
+        return RedirectResponse(url="/assets", status_code=303)
 
 @router.get("/assets/{asset_id}/delete")
 def delete_asset(request: Request, asset_id: str, user=Depends(get_current_user)):
