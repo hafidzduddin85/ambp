@@ -135,6 +135,7 @@ def dashboard(request: Request, status: str = "All", user=Depends(get_current_us
         "active_count": active_count,
         "repair_count": repair_count,
         "disposed_count": disposed_count,
+        "user": user,
     })
 
 @router.get("/export")
