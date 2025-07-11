@@ -32,14 +32,28 @@ def search_assets(
 ):
     try:
         assets = sheets.get_assets("All")
+        # Debug: Show first asset columns to identify correct field names
+        if assets:
+            flash(request, f"📋 Available columns: {', '.join(assets[0].keys())}", "info")
+            first_asset = assets[0]
+            flash(request, f"🔍 Sample data - Location: '{first_asset.get('Location', 'N/A')}', Room: '{first_asset.get('Room Location', 'N/A')}'", "info")
+        
         filtered_assets = []
         for asset in assets:
             asset_location = str(asset.get("Location", "")).strip()
             asset_room = str(asset.get("Room Location", "")).strip()
             
+            # Try alternative column names
+            if not asset_location:
+                asset_location = str(asset.get("Lokasi", "")).strip()
+            if not asset_room:
+                asset_room = str(asset.get("Ruangan", "")).strip()
+                
             if (asset_location.lower() == location.lower() and 
                 asset_room.lower() == room.lower()):
                 filtered_assets.append(asset)
+        
+        flash(request, f"🔍 Searched for: '{location}' - '{room}', Found: {len(filtered_assets)} assets", "info")
         
         refs = sheets.get_reference_lists()
         location_room_map = sheets.get_location_room_map()
@@ -56,6 +70,7 @@ def search_assets(
         })
     except Exception as e:
         flash(request, f"❌ Error searching assets: {str(e)}", "error")
+        flash(request, f"📊 Total assets loaded: {len(assets) if 'assets' in locals() else 0}", "info")
         return RedirectResponse(url="/relocate", status_code=303)
 
 @router.post("/relocate/move")
