@@ -8,54 +8,394 @@
   <meta name="theme-color" content="#667eea">
   <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-    .container { max-width: 1000px; margin: 0 auto; }
-    .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-    .header h1 { color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px; }
-    .header .subtitle { color: #7f8c8d; font-size: 1.1rem; }
-    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: #3498db; color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; margin: 5px; transition: all 0.3s ease; }
-    .back-btn:hover { background: #2980b9; transform: translateY(-2px); }
-    .detail-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-    .asset-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #ecf0f1; }
-    .asset-title { display: flex; align-items: center; gap: 15px; }
-    .asset-id { background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 8px 16px; border-radius: 25px; font-size: 14px; font-weight: bold; }
-    .asset-name { font-size: 2rem; font-weight: 600; color: #2c3e50; }
-    .asset-status { padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    
+    body { 
+      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); 
+      min-height: 100vh; 
+      padding: 1rem; 
+      overflow-x: hidden;
+    }
+    
+    .container { max-width: 1200px; margin: 0 auto; }
+    
+    .header { 
+      background: rgba(255,255,255,0.95); 
+      backdrop-filter: blur(20px); 
+      border-radius: 25px; 
+      padding: 2rem; 
+      margin-bottom: 2rem; 
+      text-align: center; 
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1); 
+      border: 1px solid rgba(255,255,255,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .header::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    
+    .header h1 { 
+      color: #2c3e50; 
+      font-size: 2.2rem; 
+      margin-bottom: 0.5rem; 
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-weight: 700;
+    }
+    
+    .header .subtitle { color: #6c757d; font-size: 1.1rem; font-weight: 500; }
+    
+    .nav-buttons { 
+      display: flex; 
+      gap: 1rem; 
+      justify-content: center; 
+      margin-top: 1.5rem; 
+      flex-wrap: wrap;
+    }
+    
+    .nav-btn { 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 8px; 
+      background: linear-gradient(135deg, #667eea, #764ba2); 
+      color: white; 
+      padding: 12px 20px; 
+      border-radius: 15px; 
+      text-decoration: none; 
+      transition: all 0.3s ease; 
+      font-weight: 600;
+      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .nav-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .nav-btn:hover::before { left: 100%; }
+    .nav-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4); }
+    
+    .flash-messages { margin-bottom: 2rem; }
+    .flash-message { 
+      padding: 1rem 1.5rem; 
+      margin: 1rem 0; 
+      border-radius: 15px; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+      animation: slideIn 0.3s ease; 
+      font-weight: 500;
+    }
+    .flash-success { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
+    .flash-error { background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24; border-left: 4px solid #dc3545; }
+    
+    .detail-card { 
+      background: rgba(255,255,255,0.95); 
+      backdrop-filter: blur(20px); 
+      border-radius: 25px; 
+      padding: 2.5rem; 
+      box-shadow: 0 20px 60px rgba(0,0,0,0.1); 
+      border: 1px solid rgba(255,255,255,0.2);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .detail-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+    
+    .asset-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 2rem; 
+      padding-bottom: 1.5rem; 
+      border-bottom: 2px solid #f8f9fa; 
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    
+    .asset-title { display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+    
+    .asset-id { 
+      background: linear-gradient(135deg, #667eea, #764ba2); 
+      color: white; 
+      padding: 10px 16px; 
+      border-radius: 20px; 
+      font-size: 14px; 
+      font-weight: 700; 
+      box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    }
+    
+    .asset-name { 
+      font-size: 2.2rem; 
+      font-weight: 700; 
+      color: #2c3e50; 
+      line-height: 1.2;
+    }
+    
+    .asset-tag { 
+      color: #6c757d; 
+      font-size: 1.1rem; 
+      font-weight: 500; 
+      margin-top: 0.5rem;
+    }
+    
+    .asset-status { 
+      padding: 10px 16px; 
+      border-radius: 20px; 
+      font-size: 12px; 
+      font-weight: 700; 
+      text-transform: uppercase; 
+      letter-spacing: 0.5px;
+    }
     .status-active { background: #d4edda; color: #155724; }
     .status-in-storage { background: #cce5ff; color: #004085; }
     .status-under-repair { background: #fff3cd; color: #856404; }
     .status-to-be-disposed { background: #f8d7da; color: #721c24; }
     .status-disposed { background: #6c757d; color: #fff; }
-    .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 30px; }
-    .detail-section { background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 15px; padding: 25px; }
-    .section-title { color: #2c3e50; font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
-    .detail-row { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; padding: 8px 0; border-bottom: 1px solid #dee2e6; }
+    
+    .details-grid { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); 
+      gap: 2rem; 
+      margin-bottom: 2rem; 
+    }
+    
+    .detail-section { 
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef); 
+      border-radius: 20px; 
+      padding: 2rem; 
+      transition: transform 0.3s ease;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    
+    .detail-section:hover { transform: translateY(-5px); }
+    
+    .section-title { 
+      color: #2c3e50; 
+      font-size: 1.3rem; 
+      font-weight: 700; 
+      margin-bottom: 1.5rem; 
+      display: flex; 
+      align-items: center; 
+      gap: 10px; 
+    }
+    
+    .section-title i {
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .detail-row { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin: 1rem 0; 
+      padding: 0.8rem 0; 
+      border-bottom: 1px solid #dee2e6; 
+    }
     .detail-row:last-child { border-bottom: none; }
-    .detail-label { font-weight: 600; color: #495057; }
-    .detail-value { color: #2c3e50; text-align: right; }
-    .highlight-value { background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 4px 8px; border-radius: 8px; font-weight: 600; }
-    .actions-section { background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 15px; padding: 25px; text-align: center; }
-    .action-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
-    .action-btn { padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
-    .btn-edit { background: #ffc107; color: #212529; }
-    .btn-relocate { background: #6f42c1; color: white; }
-    .btn-status { background: #fd7e14; color: white; }
-    .btn-delete { background: #dc3545; color: white; }
-    .action-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-    .flash-messages { margin-bottom: 20px; }
-    .flash-message { padding: 15px 20px; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
-    .flash-success { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
-    .flash-error { background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24; border-left: 4px solid #dc3545; }
+    
+    .detail-label { font-weight: 600; color: #495057; font-size: 0.95rem; }
+    .detail-value { 
+      color: #2c3e50; 
+      text-align: right; 
+      font-weight: 500; 
+      max-width: 60%;
+      word-wrap: break-word;
+    }
+    
+    .highlight-value { 
+      background: linear-gradient(135deg, #e3f2fd, #bbdefb); 
+      padding: 6px 12px; 
+      border-radius: 12px; 
+      font-weight: 600; 
+    }
+    
+    .photo-section {
+      background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+      border-radius: 20px;
+      padding: 2rem;
+      text-align: center;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    
+    .photo-section img {
+      max-width: 100%;
+      max-height: 350px;
+      border-radius: 15px;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+      transition: transform 0.3s ease;
+    }
+    
+    .photo-section img:hover { transform: scale(1.05); }
+    
+    .no-photo {
+      padding: 3rem;
+      background: #f8f9fa;
+      border-radius: 15px;
+      color: #6c757d;
+      border: 2px dashed #dee2e6;
+    }
+    
+    .no-photo i { font-size: 4rem; margin-bottom: 1rem; }
+    
+    .upload-form {
+      margin-top: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    
+    .upload-form input[type="file"] {
+      flex: 1;
+      padding: 0.8rem;
+      border: 2px solid #e9ecef;
+      border-radius: 12px;
+      font-weight: 500;
+      min-width: 200px;
+    }
+    
+    .upload-btn {
+      background: linear-gradient(135deg, #28a745, #20c997);
+      color: white;
+      border: none;
+      padding: 0.8rem 1.5rem;
+      border-radius: 12px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .upload-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
+    }
+    
+    .actions-section { 
+      background: linear-gradient(135deg, #e8f5e8, #d4edda); 
+      border-radius: 20px; 
+      padding: 2.5rem; 
+      text-align: center; 
+      margin-top: 2rem;
+      border: 1px solid rgba(255,255,255,0.5);
+    }
+    
+    .actions-section h3 {
+      color: #2c3e50;
+      margin-bottom: 1rem;
+      font-size: 1.4rem;
+      font-weight: 700;
+    }
+    
+    .actions-section p {
+      color: #6c757d;
+      margin-bottom: 2rem;
+      font-weight: 500;
+    }
+    
+    .action-buttons { 
+      display: flex; 
+      gap: 1rem; 
+      justify-content: center; 
+      flex-wrap: wrap; 
+    }
+    
+    .action-btn { 
+      padding: 12px 20px; 
+      border-radius: 15px; 
+      text-decoration: none; 
+      font-weight: 600; 
+      transition: all 0.3s ease; 
+      display: inline-flex; 
+      align-items: center; 
+      gap: 8px; 
+      border: none; 
+      cursor: pointer; 
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .action-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    .action-btn:hover::before { left: 100%; }
+    .action-btn:hover { transform: translateY(-3px); }
+    
+    .btn-edit { background: linear-gradient(135deg, #ffc107, #ffb300); color: #212529; box-shadow: 0 4px 15px rgba(255, 193, 7, 0.3); }
+    .btn-relocate { background: linear-gradient(135deg, #6f42c1, #5a32a3); color: white; box-shadow: 0 4px 15px rgba(111, 66, 193, 0.3); }
+    .btn-status { background: linear-gradient(135deg, #fd7e14, #e8590c); color: white; box-shadow: 0 4px 15px rgba(253, 126, 20, 0.3); }
+    .btn-delete { background: linear-gradient(135deg, #dc3545, #c82333); color: white; box-shadow: 0 4px 15px rgba(220, 53, 69, 0.3); }
+    
     @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    
     @media (max-width: 768px) {
-      .container { padding: 10px; }
-      .header h1 { font-size: 2rem; }
-      .asset-header { flex-direction: column; gap: 15px; text-align: center; }
-      .asset-name { font-size: 1.5rem; }
-      .details-grid { grid-template-columns: 1fr; }
+      body { padding: 0.5rem; }
+      .container { padding: 0; }
+      .header { padding: 1.5rem; margin-bottom: 1.5rem; border-radius: 20px; }
+      .header h1 { font-size: 1.8rem; }
+      .nav-buttons { flex-direction: column; align-items: center; }
+      .detail-card { padding: 1.5rem; border-radius: 20px; }
+      .asset-header { flex-direction: column; align-items: flex-start; text-align: left; }
+      .asset-name { font-size: 1.8rem; }
+      .details-grid { grid-template-columns: 1fr; gap: 1.5rem; }
+      .detail-section { padding: 1.5rem; }
+      .section-title { font-size: 1.2rem; }
+      .detail-row { flex-direction: column; align-items: flex-start; gap: 0.5rem; }
+      .detail-value { text-align: left; max-width: 100%; }
       .action-buttons { flex-direction: column; align-items: center; }
+      .upload-form { flex-direction: column; align-items: stretch; }
+      .upload-form input[type="file"] { min-width: auto; }
+    }
+    
+    @media (max-width: 480px) {
+      .header { padding: 1rem; }
+      .header h1 { font-size: 1.6rem; }
+      .detail-card { padding: 1rem; }
+      .asset-name { font-size: 1.5rem; }
+      .detail-section { padding: 1rem; }
+      .actions-section { padding: 1.5rem; }
+      .action-btn { padding: 10px 16px; font-size: 0.9rem; }
     }
   </style>
 </head>
@@ -65,11 +405,11 @@
     <div class="header">
       <h1><i class="fas fa-info-circle"></i> Asset Detail</h1>
       <p class="subtitle">Complete asset information and management</p>
-      <div style="margin-top: 15px;">
-        <a href="/assets" class="back-btn">
+      <div class="nav-buttons">
+        <a href="/assets" class="nav-btn">
           <i class="fas fa-arrow-left"></i> Back to Assets
         </a>
-        <a href="/dashboard" class="back-btn" style="background: #27ae60;">
+        <a href="/dashboard" class="nav-btn">
           <i class="fas fa-chart-pie"></i> Dashboard
         </a>
       </div>
@@ -95,7 +435,7 @@
           <span class="asset-id">{{ asset.get('ID', 'N/A') }}</span>
           <div>
             <div class="asset-name">{{ asset.get('Item Name', 'Unknown Asset') }}</div>
-            <div style="color: #7f8c8d; font-size: 1rem;">{{ asset.get('Asset Tag', 'No Tag') }}</div>
+            <div class="asset-tag">{{ asset.get('Asset Tag', 'No Tag') }}</div>
           </div>
         </div>
         <span class="asset-status status-{{ asset.get('Status', 'active').lower().replace(' ', '-') }}">
@@ -105,6 +445,32 @@
 
       <!-- Details Grid -->
       <div class="details-grid">
+        <!-- Asset Photo -->
+        <div class="photo-section">
+          <h3 class="section-title">
+            <i class="fas fa-camera"></i> Asset Photo
+          </h3>
+          {% if asset.get('Photo URL') %}
+            <div style="margin-bottom: 1rem;">
+              <img src="{{ asset.get('Photo URL') }}" alt="Asset Photo" loading="lazy">
+            </div>
+          {% else %}
+            <div class="no-photo">
+              <i class="fas fa-image"></i>
+              <p>No photo uploaded</p>
+            </div>
+          {% endif %}
+          
+          {% if user and user.role == 'admin' %}
+          <form method="post" action="/assets/{{ asset.get('ID', '') }}/photo" enctype="multipart/form-data" class="upload-form">
+            <input type="file" name="photo" accept="image/*" required>
+            <button type="submit" class="upload-btn">
+              <i class="fas fa-upload"></i> Upload
+            </button>
+          </form>
+          {% endif %}
+        </div>
+
         <!-- Basic Information -->
         <div class="detail-section">
           <h3 class="section-title">
@@ -200,39 +566,6 @@
           </div>
         </div>
 
-        <!-- Asset Photo -->
-        <div class="detail-section">
-          <h3 class="section-title">
-            <i class="fas fa-camera"></i> Asset Photo
-          </h3>
-          {% if asset.get('Photo URL') %}
-            <div style="text-align: center; margin-bottom: 15px;">
-              <img 
-                src="{{ asset.get('Photo URL') }}" 
-                alt="Asset Photo" 
-                style="max-width: 100%; max-height: 300px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);"
-                loading="lazy"
-              >
-            </div>
-          {% else %}
-            <div style="text-align: center; padding: 40px; background: #f8f9fa; border-radius: 10px; color: #6c757d;">
-              <i class="fas fa-image" style="font-size: 3rem; margin-bottom: 10px;"></i>
-              <p>No photo uploaded</p>
-            </div>
-          {% endif %}
-          
-          {% if user and user.role == 'admin' %}
-          <form method="post" action="/assets/{{ asset.get('ID', '') }}/photo" enctype="multipart/form-data" style="margin-top: 15px;">
-            <div style="display: flex; gap: 10px; align-items: center;">
-              <input type="file" name="photo" accept="image/*" required style="flex: 1; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-              <button type="submit" style="background: #28a745; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer;">
-                <i class="fas fa-upload"></i> Upload
-              </button>
-            </div>
-          </form>
-          {% endif %}
-        </div>
-
         <!-- Additional Information -->
         <div class="detail-section">
           <h3 class="section-title">
@@ -259,15 +592,10 @@
 
       <!-- Actions Section -->
       <div class="actions-section">
-        <h3 style="color: #2c3e50; margin-bottom: 15px;">
-          <i class="fas fa-tools"></i> Asset Actions
-        </h3>
-        <p style="color: #7f8c8d; margin-bottom: 20px;">Manage this asset with the available actions below</p>
+        <h3><i class="fas fa-tools"></i> Asset Actions</h3>
+        <p>Manage this asset with the available actions below</p>
         
         <div class="action-buttons">
-          <button class="action-btn btn-edit" onclick="editAsset('{{ asset.get('ID', '') }}')">
-            <i class="fas fa-edit"></i> Edit Asset
-          </button>
           <button class="action-btn btn-relocate" onclick="relocateAsset('{{ asset.get('ID', '') }}')">
             <i class="fas fa-exchange-alt"></i> Relocate
           </button>
@@ -275,6 +603,9 @@
             <i class="fas fa-toggle-on"></i> Change Status
           </button>
           {% if user and user.role == 'admin' %}
+          <button class="action-btn btn-edit" onclick="editAsset('{{ asset.get('ID', '') }}')">
+            <i class="fas fa-edit"></i> Edit Asset
+          </button>
           <button class="action-btn btn-delete" onclick="deleteAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')">
             <i class="fas fa-trash"></i> Delete Asset
           </button>
