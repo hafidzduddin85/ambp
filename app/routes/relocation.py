@@ -32,11 +32,28 @@ def search_assets(
 ):
     try:
         assets = sheets.get_assets("All")
-        filtered_assets = [
-            asset for asset in assets 
-            if asset.get("Location", "").lower() == location.lower() 
-            and asset.get("Room Location", "").lower() == room.lower()
-        ]
+        # Debug: Check available columns
+        print(f"Available columns: {list(assets[0].keys()) if assets else 'No assets'}")
+        print(f"Searching for: {location} - {room}")
+        
+        filtered_assets = []
+        for asset in assets:
+            asset_location = asset.get("Location", "").strip()
+            asset_room = asset.get("Room Location", "").strip()
+            
+            # Try alternative column names if standard ones don't work
+            if not asset_location:
+                asset_location = asset.get("Lokasi", "").strip()
+            if not asset_room:
+                asset_room = asset.get("Ruangan", "").strip()
+                
+            print(f"Asset: {asset.get('Item Name', 'Unknown')} - Location: '{asset_location}' - Room: '{asset_room}'")
+            
+            if (asset_location.lower() == location.lower() and 
+                asset_room.lower() == room.lower()):
+                filtered_assets.append(asset)
+        
+        print(f"Found {len(filtered_assets)} assets")
         
         refs = sheets.get_reference_lists()
         location_room_map = sheets.get_location_room_map()
@@ -52,6 +69,7 @@ def search_assets(
             "current_room": room
         })
     except Exception as e:
+        print(f"Search error: {str(e)}")
         flash(request, f"❌ Error searching assets: {str(e)}", "error")
         return RedirectResponse(url="/relocate", status_code=303)
 
