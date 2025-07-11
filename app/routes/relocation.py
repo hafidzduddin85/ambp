@@ -32,10 +32,7 @@ def search_assets(
 ):
     try:
         assets = sheets.get_assets("All")
-        # Show sample locations for debugging
-        if assets:
-            unique_locations = list(set([str(a.get('Location', '')).strip() for a in assets[:5] if a.get('Location')]))
-            flash(request, f"📋 Sample locations: {', '.join(unique_locations[:3])}", "info")
+        # Assets loaded successfully
         
         filtered_assets = []
         for asset in assets:
@@ -59,7 +56,7 @@ def search_assets(
             if location_match and room_match:
                 filtered_assets.append(asset)
         
-        flash(request, f"🔍 Searched: '{location}' - '{room}' | Found: {len(filtered_assets)} assets", "info")
+        # Search completed
         
         refs = sheets.get_reference_lists()
         location_room_map = sheets.get_location_room_map()

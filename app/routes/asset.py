@@ -110,9 +110,16 @@ def dashboard(request: Request, status: str = "All", user=Depends(get_current_us
     for row in data:
         kategori = row.get("Category", "Others")
         kategori_summary[kategori] = kategori_summary.get(kategori, 0) + 1
-        tahun = str(row.get("Tahun", ""))
-        if tahun and tahun != "":
-            tahun_summary[tahun] = tahun_summary.get(tahun, 0) + 1
+        
+        # Extract year from purchase date
+        purchase_date = row.get("Purchase Date", "")
+        if purchase_date:
+            try:
+                from datetime import datetime
+                year = datetime.strptime(purchase_date, "%Y-%m-%d").year
+                tahun_summary[str(year)] = tahun_summary.get(str(year), 0) + 1
+            except:
+                pass
     
     # Process all data for statistics
     for row in all_data:
