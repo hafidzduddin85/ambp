@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Asset Detail</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 1000px; margin: 0 auto; }
+    .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .header h1 { color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px; }
+    .header .subtitle { color: #7f8c8d; font-size: 1.1rem; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: #3498db; color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; margin: 5px; transition: all 0.3s ease; }
+    .back-btn:hover { background: #2980b9; transform: translateY(-2px); }
+    .detail-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .asset-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; padding-bottom: 20px; border-bottom: 2px solid #ecf0f1; }
+    .asset-title { display: flex; align-items: center; gap: 15px; }
+    .asset-id { background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 8px 16px; border-radius: 25px; font-size: 14px; font-weight: bold; }
+    .asset-name { font-size: 2rem; font-weight: 600; color: #2c3e50; }
+    .asset-status { padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .status-active { background: #d4edda; color: #155724; }
+    .status-in-storage { background: #cce5ff; color: #004085; }
+    .status-under-repair { background: #fff3cd; color: #856404; }
+    .status-to-be-disposed { background: #f8d7da; color: #721c24; }
+    .status-disposed { background: #6c757d; color: #fff; }
+    .details-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; margin-bottom: 30px; }
+    .detail-section { background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 15px; padding: 25px; }
+    .section-title { color: #2c3e50; font-size: 1.2rem; font-weight: 600; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; }
+    .detail-row { display: flex; justify-content: space-between; align-items: center; margin: 12px 0; padding: 8px 0; border-bottom: 1px solid #dee2e6; }
+    .detail-row:last-child { border-bottom: none; }
+    .detail-label { font-weight: 600; color: #495057; }
+    .detail-value { color: #2c3e50; text-align: right; }
+    .highlight-value { background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 4px 8px; border-radius: 8px; font-weight: 600; }
+    .actions-section { background: linear-gradient(135deg, #fff3e0, #ffe0b2); border-radius: 15px; padding: 25px; text-align: center; }
+    .action-buttons { display: flex; gap: 15px; justify-content: center; flex-wrap: wrap; margin-top: 20px; }
+    .action-btn { padding: 12px 20px; border-radius: 10px; text-decoration: none; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 8px; border: none; cursor: pointer; }
+    .btn-edit { background: #ffc107; color: #212529; }
+    .btn-relocate { background: #6f42c1; color: white; }
+    .btn-status { background: #fd7e14; color: white; }
+    .btn-delete { background: #dc3545; color: white; }
+    .action-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+    .flash-messages { margin-bottom: 20px; }
+    .flash-message { padding: 15px 20px; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
+    .flash-success { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
+    .flash-error { background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24; border-left: 4px solid #dc3545; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 768px) {
+      .container { padding: 10px; }
+      .header h1 { font-size: 2rem; }
+      .asset-header { flex-direction: column; gap: 15px; text-align: center; }
+      .asset-name { font-size: 1.5rem; }
+      .details-grid { grid-template-columns: 1fr; }
+      .action-buttons { flex-direction: column; align-items: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-info-circle"></i> Asset Detail</h1>
+      <p class="subtitle">Complete asset information and management</p>
+      <div style="margin-top: 15px;">
+        <a href="/assets" class="back-btn">
+          <i class="fas fa-arrow-left"></i> Back to Assets
+        </a>
+        <a href="/dashboard" class="back-btn" style="background: #27ae60;">
+          <i class="fas fa-chart-pie"></i> Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div class="flash-messages">
+      {% if flash_messages %}
+        {% for message in flash_messages %}
+          <div class="flash-message flash-{{ message.category }}">
+            <i class="fas fa-{% if message.category == 'success' %}check-circle{% elif message.category == 'error' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+            {{ message.message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Asset Detail -->
+    <div class="detail-card">
+      <!-- Asset Header -->
+      <div class="asset-header">
+        <div class="asset-title">
+          <span class="asset-id">{{ asset.get('ID', 'N/A') }}</span>
+          <div>
+            <div class="asset-name">{{ asset.get('Item Name', 'Unknown Asset') }}</div>
+            <div style="color: #7f8c8d; font-size: 1rem;">{{ asset.get('Asset Tag', 'No Tag') }}</div>
+          </div>
+        </div>
+        <span class="asset-status status-{{ asset.get('Status', 'active').lower().replace(' ', '-') }}">
+          {{ asset.get('Status', 'Active') }}
+        </span>
+      </div>
+
+      <!-- Details Grid -->
+      <div class="details-grid">
+        <!-- Basic Information -->
+        <div class="detail-section">
+          <h3 class="section-title">
+            <i class="fas fa-info-circle"></i> Basic Information
+          </h3>
+          <div class="detail-row">
+            <span class="detail-label">Category:</span>
+            <span class="detail-value highlight-value">{{ asset.get('Category', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Type:</span>
+            <span class="detail-value">{{ asset.get('Type', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Manufacturer:</span>
+            <span class="detail-value">{{ asset.get('Manufacture', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Model:</span>
+            <span class="detail-value">{{ asset.get('Model', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Serial Number:</span>
+            <span class="detail-value">{{ asset.get('Serial Number', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Condition:</span>
+            <span class="detail-value">{{ asset.get('Condition', 'N/A') }}</span>
+          </div>
+        </div>
+
+        <!-- Location & Ownership -->
+        <div class="detail-section">
+          <h3 class="section-title">
+            <i class="fas fa-map-marker-alt"></i> Location & Ownership
+          </h3>
+          <div class="detail-row">
+            <span class="detail-label">Company:</span>
+            <span class="detail-value highlight-value">{{ asset.get('Company', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Business Unit:</span>
+            <span class="detail-value">{{ asset.get('Bisnis Unit', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Location:</span>
+            <span class="detail-value">{{ asset.get('Location', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Room:</span>
+            <span class="detail-value">{{ asset.get('Room Location', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Owner:</span>
+            <span class="detail-value highlight-value">{{ asset.get('Owner', 'N/A') }}</span>
+          </div>
+        </div>
+
+        <!-- Financial Information -->
+        <div class="detail-section">
+          <h3 class="section-title">
+            <i class="fas fa-dollar-sign"></i> Financial Information
+          </h3>
+          <div class="detail-row">
+            <span class="detail-label">Purchase Date:</span>
+            <span class="detail-value">{{ asset.get('Purchase Date', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Purchase Cost:</span>
+            <span class="detail-value highlight-value">
+              Rp {{ "{:,.0f}".format(asset.get('Purchase Cost', 0)|float) if asset.get('Purchase Cost') else 'N/A' }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Book Value:</span>
+            <span class="detail-value">
+              Rp {{ "{:,.0f}".format(asset.get('Book Value', 0)|float) if asset.get('Book Value') else 'N/A' }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Depreciation:</span>
+            <span class="detail-value">
+              Rp {{ "{:,.0f}".format(asset.get('Depreciation Value', 0)|float) if asset.get('Depreciation Value') else 'N/A' }}
+            </span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Warranty:</span>
+            <span class="detail-value">{{ asset.get('Warranty', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Supplier:</span>
+            <span class="detail-value">{{ asset.get('Supplier', 'N/A') }}</span>
+          </div>
+        </div>
+
+        <!-- Additional Information -->
+        <div class="detail-section">
+          <h3 class="section-title">
+            <i class="fas fa-clipboard"></i> Additional Information
+          </h3>
+          <div class="detail-row">
+            <span class="detail-label">Year:</span>
+            <span class="detail-value">{{ asset.get('Tahun', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Useful Life:</span>
+            <span class="detail-value">{{ asset.get('Useful Life', 'N/A') }} years</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Journal:</span>
+            <span class="detail-value">{{ asset.get('Journal', 'N/A') }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Notes:</span>
+            <span class="detail-value">{{ asset.get('Notes', 'N/A') }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions Section -->
+      <div class="actions-section">
+        <h3 style="color: #2c3e50; margin-bottom: 15px;">
+          <i class="fas fa-tools"></i> Asset Actions
+        </h3>
+        <p style="color: #7f8c8d; margin-bottom: 20px;">Manage this asset with the available actions below</p>
+        
+        <div class="action-buttons">
+          <button class="action-btn btn-edit" onclick="editAsset('{{ asset.get('ID', '') }}')">
+            <i class="fas fa-edit"></i> Edit Asset
+          </button>
+          <button class="action-btn btn-relocate" onclick="relocateAsset('{{ asset.get('ID', '') }}')">
+            <i class="fas fa-exchange-alt"></i> Relocate
+          </button>
+          <button class="action-btn btn-status" onclick="changeStatus('{{ asset.get('ID', '') }}')">
+            <i class="fas fa-toggle-on"></i> Change Status
+          </button>
+          <button class="action-btn btn-delete" onclick="deleteAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')">
+            <i class="fas fa-trash"></i> Delete Asset
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function editAsset(assetId) {
+      alert('Edit functionality will be implemented soon!');
+    }
+
+    function relocateAsset(assetId) {
+      window.location.href = `/relocate?asset_id=${assetId}`;
+    }
+
+    function changeStatus(assetId) {
+      window.location.href = `/assets?status=All#asset-${assetId}`;
+    }
+
+    function deleteAsset(assetId, assetName) {
+      if (confirm(`Are you sure you want to delete asset "${assetName}"?\n\nThis action cannot be undone!`)) {
+        window.location.href = `/assets/${assetId}/delete`;
+      }
+    }
+
+    // Auto-hide flash messages
+    document.addEventListener('DOMContentLoaded', function() {
+      const flashMessages = document.querySelectorAll('.flash-message');
+      flashMessages.forEach(message => {
+        setTimeout(() => {
+          message.style.opacity = '0';
+          setTimeout(() => message.remove(), 300);
+        }, 5000);
+      });
+    });
+  </script>
+</body>
+</html>

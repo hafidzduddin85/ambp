@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Assets Management</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 1400px; margin: 0 auto; }
+    .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .header h1 { color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px; }
+    .header .subtitle { color: #7f8c8d; font-size: 1.1rem; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: #3498db; color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; margin: 5px; transition: all 0.3s ease; }
+    .back-btn:hover { background: #2980b9; transform: translateY(-2px); }
+    .flash-messages { margin-bottom: 20px; }
+    .flash-message { padding: 15px 20px; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
+    .flash-success { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
+    .flash-error { background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24; border-left: 4px solid #dc3545; }
+    .controls { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .filter-group { display: flex; align-items: center; gap: 10px; }
+    .filter-group select, .search-box { padding: 10px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px; }
+    .search-box { width: 300px; }
+    .search-box:focus { outline: none; border-color: #3498db; }
+    .btn { background: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+    .btn:hover { background: #2980b9; transform: translateY(-2px); }
+    .btn-success { background: #27ae60; }
+    .btn-success:hover { background: #229954; }
+    .assets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+    .asset-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 15px; padding: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; }
+    .asset-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+    .asset-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .asset-id { background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .asset-status { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    .status-active { background: #d4edda; color: #155724; }
+    .status-in-storage { background: #cce5ff; color: #004085; }
+    .status-under-repair { background: #fff3cd; color: #856404; }
+    .status-to-be-disposed { background: #f8d7da; color: #721c24; }
+    .status-disposed { background: #6c757d; color: #fff; }
+    .asset-name { font-size: 1.3rem; font-weight: 600; color: #2c3e50; margin: 10px 0; }
+    .asset-details { color: #7f8c8d; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
+    .asset-details .detail-row { display: flex; justify-content: space-between; margin: 5px 0; }
+    .asset-details .label { font-weight: 600; }
+    .asset-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .action-btn { padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 4px; border: none; cursor: pointer; }
+    .btn-view { background: #17a2b8; color: white; }
+    .btn-edit { background: #ffc107; color: #212529; }
+    .btn-relocate { background: #6f42c1; color: white; }
+    .btn-status { background: #fd7e14; color: white; }
+    .btn-delete { background: #dc3545; color: white; }
+    .action-btn:hover { transform: translateY(-1px); }
+    .no-assets { text-align: center; padding: 60px 20px; color: #7f8c8d; }
+    .no-assets i { font-size: 4rem; margin-bottom: 20px; }
+    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
+    .modal-content { background: white; margin: 5% auto; padding: 30px; width: 90%; max-width: 400px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .close { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
+    .close:hover { color: #000; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+    @media (max-width: 768px) {
+      .container { padding: 10px; }
+      .header h1 { font-size: 2rem; }
+      .controls { flex-direction: column; align-items: stretch; }
+      .search-box { width: 100%; }
+      .assets-grid { grid-template-columns: 1fr; }
+      .asset-actions { justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-list"></i> Assets Management</h1>
+      <p class="subtitle">Manage and monitor all your assets</p>
+      <div style="margin-top: 15px;">
+        <a href="/home" class="back-btn">
+          <i class="fas fa-home"></i> Home
+        </a>
+        <a href="/dashboard" class="back-btn" style="background: #27ae60;">
+          <i class="fas fa-chart-pie"></i> Dashboard
+        </a>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    <div class="flash-messages">
+      {% if flash_messages %}
+        {% for message in flash_messages %}
+          <div class="flash-message flash-{{ message.category }}">
+            <i class="fas fa-{% if message.category == 'success' %}check-circle{% elif message.category == 'error' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+            {{ message.message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    </div>
+
+    <!-- Controls -->
+    <div class="controls">
+      <div class="filter-group">
+        <label><strong><i class="fas fa-filter"></i> Filter:</strong></label>
+        <form method="get" action="/assets" style="display: flex; gap: 10px; align-items: center;">
+          <select name="status" onchange="this.form.submit()">
+            <option value="All" {% if selected_status == 'All' %}selected{% endif %}>All Status</option>
+            <option value="Active" {% if selected_status == 'Active' %}selected{% endif %}>Active</option>
+            <option value="In Storage" {% if selected_status == 'In Storage' %}selected{% endif %}>In Storage</option>
+            <option value="Under Repair" {% if selected_status == 'Under Repair' %}selected{% endif %}>Under Repair</option>
+            <option value="To be Disposed" {% if selected_status == 'To be Disposed' %}selected{% endif %}>To be Disposed</option>
+            <option value="Disposed" {% if selected_status == 'Disposed' %}selected{% endif %}>Disposed</option>
+          </select>
+          <input type="text" name="search" class="search-box" placeholder="🔍 Search assets..." value="{{ search_query }}" onchange="this.form.submit()">
+        </form>
+      </div>
+      
+      <div class="filter-group">
+        {% if user.role == 'admin' %}
+          <a href="/input" class="btn btn-success">
+            <i class="fas fa-plus"></i> Add Asset
+          </a>
+        {% endif %}
+        <a href="/export?status={{ selected_status }}" class="btn">
+          <i class="fas fa-download"></i> Export
+        </a>
+      </div>
+    </div>
+
+    <!-- Assets Grid -->
+    {% if assets %}
+      <div class="assets-grid">
+        {% for asset in assets %}
+          <div class="asset-card">
+            <div class="asset-header">
+              <span class="asset-id">{{ asset.get('ID', 'N/A') }}</span>
+              <span class="asset-status status-{{ asset.get('Status', 'active').lower().replace(' ', '-') }}">
+                {{ asset.get('Status', 'Active') }}
+              </span>
+            </div>
+            
+            <div class="asset-name">{{ asset.get('Item Name', 'Unknown Item') }}</div>
+            
+            <div class="asset-details">
+              <div class="detail-row">
+                <span class="label">Asset Tag:</span>
+                <span>{{ asset.get('Asset Tag', 'N/A') }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Category:</span>
+                <span>{{ asset.get('Category', 'N/A') }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Location:</span>
+                <span>{{ asset.get('Location', 'N/A') }} - {{ asset.get('Room Location', 'N/A') }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Owner:</span>
+                <span>{{ asset.get('Owner', 'N/A') }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Purchase Cost:</span>
+                <span>Rp {{ "{:,.0f}".format(asset.get('Purchase Cost', 0)|float) if asset.get('Purchase Cost') else 'N/A' }}</span>
+              </div>
+            </div>
+            
+            <div class="asset-actions">
+              <a href="/assets/{{ asset.get('ID', '') }}/detail" class="action-btn btn-view">
+                <i class="fas fa-eye"></i> View
+              </a>
+              {% if user.role == 'admin' %}
+                <button class="action-btn btn-edit" onclick="editAsset('{{ asset.get('ID', '') }}')">
+                  <i class="fas fa-edit"></i> Edit
+                </button>
+              {% endif %}
+              <button class="action-btn btn-relocate" onclick="relocateAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')">
+                <i class="fas fa-exchange-alt"></i> Relocate
+              </button>
+              <button class="action-btn btn-status" onclick="changeStatus('{{ asset.get('ID', '') }}', '{{ asset.get('Status', 'Active') }}')">
+                <i class="fas fa-toggle-on"></i> Status
+              </button>
+              {% if user.role == 'admin' %}
+                <button class="action-btn btn-delete" onclick="deleteAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')">
+                  <i class="fas fa-trash"></i> Delete
+                </button>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="no-assets">
+        <i class="fas fa-inbox"></i>
+        <h3>No Assets Found</h3>
+        <p>No assets match your current filter criteria.</p>
+        <a href="/assets" class="btn" style="margin-top: 20px;">
+          <i class="fas fa-refresh"></i> Show All Assets
+        </a>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Status Change Modal -->
+  <div id="statusModal" class="modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3><i class="fas fa-toggle-on"></i> Change Status</h3>
+        <span class="close" onclick="closeStatusModal()">&times;</span>
+      </div>
+      
+      <form method="post" id="statusForm">
+        <p>Change status for Asset ID: <strong id="statusAssetId"></strong></p>
+        <div style="margin: 20px 0;">
+          <label><strong>New Status:</strong></label>
+          <select name="new_status" required style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ddd;">
+            <option value="Active">Active</option>
+            <option value="In Storage">In Storage</option>
+            <option value="Under Repair">Under Repair</option>
+            <option value="To be Disposed">To be Disposed</option>
+            <option value="Disposed">Disposed</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-success" style="width: 100%;">
+          <i class="fas fa-check"></i> Update Status
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function editAsset(assetId) {
+      // Redirect to edit page (to be implemented)
+      alert('Edit functionality will be implemented soon!');
+    }
+
+    function relocateAsset(assetId, assetName) {
+      if (confirm(`Relocate asset "${assetName}"?`)) {
+        window.location.href = `/relocate?asset_id=${assetId}`;
+      }
+    }
+
+    function changeStatus(assetId, currentStatus) {
+      document.getElementById('statusAssetId').textContent = assetId;
+      document.getElementById('statusForm').action = `/assets/${assetId}/status`;
+      document.querySelector('select[name="new_status"]').value = currentStatus;
+      document.getElementById('statusModal').style.display = 'block';
+    }
+
+    function closeStatusModal() {
+      document.getElementById('statusModal').style.display = 'none';
+    }
+
+    function deleteAsset(assetId, assetName) {
+      if (confirm(`Are you sure you want to delete asset "${assetName}"?\n\nThis action cannot be undone!`)) {
+        window.location.href = `/assets/${assetId}/delete`;
+      }
+    }
+
+    // Close modal when clicking outside
+    window.onclick = function(event) {
+      const modal = document.getElementById('statusModal');
+      if (event.target == modal) {
+        closeStatusModal();
+      }
+    }
+
+    // Auto-hide flash messages
+    document.addEventListener('DOMContentLoaded', function() {
+      const flashMessages = document.querySelectorAll('.flash-message');
+      flashMessages.forEach(message => {
+        setTimeout(() => {
+          message.style.opacity = '0';
+          setTimeout(() => message.remove(), 300);
+        }, 5000);
+      });
+    });
+  </script>
+</body>
+</html>
