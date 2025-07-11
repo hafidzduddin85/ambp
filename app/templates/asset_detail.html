@@ -241,9 +241,11 @@
           <button class="action-btn btn-status" onclick="changeStatus('{{ asset.get('ID', '') }}')">
             <i class="fas fa-toggle-on"></i> Change Status
           </button>
+          {% if user and user.role == 'admin' %}
           <button class="action-btn btn-delete" onclick="deleteAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')">
             <i class="fas fa-trash"></i> Delete Asset
           </button>
+          {% endif %}
         </div>
       </div>
     </div>

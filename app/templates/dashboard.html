@@ -65,13 +65,16 @@
             .stat-card .number { font-size: 1.5rem; }
             .stat-card .label { font-size: 0.8rem; }
             .charts-grid { grid-template-columns: 1fr; gap: 15px; }
-            .chart-card { padding: 15px; }
+            .chart-card { padding: 15px; margin-bottom: 15px; }
+            .chart-card h3 { font-size: 1.1rem; margin-bottom: 15px; }
+            .chart-card canvas { max-height: 250px !important; }
             .controls-row { flex-direction: column; align-items: stretch; }
             .filter-group { width: 100%; }
             .filter-group select, .search-box { width: 100%; margin-bottom: 10px; }
             .mobile-tabs { display: block; }
             .charts-grid, .table-card { display: none; }
             .tab-content.active .charts-grid, .tab-content.active .table-card { display: block; }
+            .tab-content.active .charts-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
             .table-wrapper { font-size: 12px; }
             th, td { padding: 8px 4px; }
         }

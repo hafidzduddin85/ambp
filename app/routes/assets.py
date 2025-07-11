@@ -73,7 +73,8 @@ def asset_detail(request: Request, asset_id: str, user=Depends(get_current_user)
         return templates.TemplateResponse("asset_detail.html", {
             "request": request,
             "asset": asset,
-            "flash_messages": flash_messages
+            "flash_messages": flash_messages,
+            "user": user
         })
         
     except Exception as e:
