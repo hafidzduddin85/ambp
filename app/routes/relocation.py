@@ -43,8 +43,8 @@ def search_assets(
             asset_room = str(asset.get("Room Location", "")).strip()
             
             # Normalize location names for comparison
-            search_location = location.lower().replace(" ", ").replace("-", "")
-            asset_location_norm = asset_location.lower().replace(" ", ").replace("-", "")
+            search_location = location.lower().replace(" ", "").replace("-", "")
+            asset_location_norm = asset_location.lower().replace(" ", "").replace("-", "")
             
             # Check if locations match (fuzzy matching)
             location_match = (
