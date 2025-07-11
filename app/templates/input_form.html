@@ -286,13 +286,23 @@
     function toggleCodeCompany() {
       const select = document.getElementById("company");
       const selected = select.value;
-      const known = [...select.options].map(o => o.value);
       const group = document.getElementById("code_company_group");
       const input = document.getElementById("code_company");
-
-      const isKnown = known.includes(selected);
-      group.classList.toggle("hidden", isKnown);
-      input.required = !isKnown;
+      
+      // Check if selected company is in the original list (has code in parentheses)
+      const isKnownCompany = selected.includes(" (") || selected === "";
+      
+      // Show code field if it's a new company (doesn't have code in parentheses)
+      group.classList.toggle("hidden", isKnownCompany);
+      input.required = !isKnownCompany;
+      
+      if (!isKnownCompany && selected) {
+        // New company added, show code field
+        group.classList.remove("hidden");
+        input.required = true;
+        input.focus();
+      }
+      
       updateProgress();
     }
 
@@ -327,7 +337,20 @@
       new TomSelect("#category", { create: false, placeholder: "-- Select Category --" });
       new TomSelect("#location", { create: false, placeholder: "-- Select Location --" });
       new TomSelect("select[name='owner']", { create: false, placeholder: "-- Select Owner --" });
-      new TomSelect("#company", { create: true, placeholder: "-- Select Company --" });
+      const companySelect = new TomSelect("#company", { 
+        create: true, 
+        placeholder: "-- Select Company --",
+        onCreate: function(input) {
+          // When new company is created, show code field
+          setTimeout(() => {
+            toggleCodeCompany();
+          }, 100);
+          return { value: input, text: input };
+        },
+        onChange: function(value) {
+          toggleCodeCompany();
+        }
+      });
 
       // Add progress tracking to all inputs
       const inputs = document.querySelectorAll('input, select, textarea');
