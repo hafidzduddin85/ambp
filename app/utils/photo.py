@@ -59,8 +59,8 @@ def upload_to_drive(image_data, filename, asset_id):
         if not service:
             return None
         
-        # Use specific folder ID: 1kvkfAqfrDWipNG037vRodmYnsrpUNf4s
-        folder_id = "1kvkfAqfrDWipNG037vRodmYnsrpUNf4s"
+        # Use shared drive folder ID: 0ANzABR32MM4AUk9PVA
+        folder_id = "0ANzABR32MM4AUk9PVA"
         
         # Upload file
         file_metadata = {
