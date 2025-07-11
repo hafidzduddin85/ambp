@@ -105,7 +105,7 @@
             </div>
             
             <div class="filter-group">
-                <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search assets..." onkeyup="searchTable()">
+                <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search assets (name, tag, category, type, location...)" onkeyup="searchTable()">
                 <form method="get" action="/export" style="display: inline;">
                     <input type="hidden" name="status" value="{{ selected_status }}">
                     <button type="submit" class="btn btn-success">
@@ -296,20 +296,46 @@
             }
         });
 
-        // Search functionality
+        // Enhanced search functionality
         function searchTable() {
             const input = document.getElementById('searchBox');
-            const filter = input.value.toUpperCase();
+            const filter = input.value.toUpperCase().trim();
             const table = document.getElementById('assetTable');
+            
+            if (!table) return;
+            
             const tr = table.getElementsByTagName('tr');
+            let visibleCount = 0;
 
             for (let i = 1; i < tr.length; i++) {
-                let txtValue = tr[i].textContent || tr[i].innerText;
-                if (txtValue.toUpperCase().indexOf(filter) > -1) {
-                    tr[i].style.display = '';
+                const row = tr[i];
+                let txtValue = row.textContent || row.innerText;
+                
+                if (filter === '' || txtValue.toUpperCase().indexOf(filter) > -1) {
+                    row.style.display = '';
+                    visibleCount++;
                 } else {
-                    tr[i].style.display = 'none';
+                    row.style.display = 'none';
                 }
+            }
+            
+            // Update search results count
+            updateSearchCount(visibleCount, filter);
+        }
+        
+        function updateSearchCount(count, searchTerm) {
+            let countElement = document.getElementById('searchCount');
+            if (!countElement) {
+                countElement = document.createElement('div');
+                countElement.id = 'searchCount';
+                countElement.style.cssText = 'margin-top: 10px; color: #7f8c8d; font-size: 14px; text-align: center;';
+                document.querySelector('.table-card h3').appendChild(countElement);
+            }
+            
+            if (searchTerm) {
+                countElement.textContent = ` - Found ${count} asset(s) matching "${searchTerm}"`;
+            } else {
+                countElement.textContent = '';
             }
         }
 

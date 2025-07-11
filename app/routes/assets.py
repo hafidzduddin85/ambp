@@ -14,15 +14,34 @@ def list_assets(request: Request, status: str = "All", search: str = "", user=De
     try:
         assets = sheets.get_assets(status)
         
-        # Search filter
+        # Enhanced search filter
         if search:
-            assets = [
-                asset for asset in assets 
-                if search.lower() in str(asset.get('Item Name', '')).lower() or
-                   search.lower() in str(asset.get('Asset Tag', '')).lower() or
-                   search.lower() in str(asset.get('ID', '')).lower() or
-                   search.lower() in str(asset.get('Category', '')).lower()
-            ]
+            search_term = search.lower().strip()
+            filtered_assets = []
+            
+            for asset in assets:
+                # Search across multiple fields
+                searchable_fields = [
+                    str(asset.get('Item Name', '')),
+                    str(asset.get('Asset Tag', '')),
+                    str(asset.get('ID', '')),
+                    str(asset.get('Category', '')),
+                    str(asset.get('Type', '')),
+                    str(asset.get('Manufacture', '')),
+                    str(asset.get('Model', '')),
+                    str(asset.get('Serial Number', '')),
+                    str(asset.get('Company', '')),
+                    str(asset.get('Location', '')),
+                    str(asset.get('Room Location', '')),
+                    str(asset.get('Owner', '')),
+                    str(asset.get('Status', ''))
+                ]
+                
+                # Check if search term exists in any field
+                if any(search_term in field.lower() for field in searchable_fields):
+                    filtered_assets.append(asset)
+            
+            assets = filtered_assets
         
         flash_messages = get_flashed_messages(request)
         

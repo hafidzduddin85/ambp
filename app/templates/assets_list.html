@@ -113,7 +113,7 @@
             <option value="To be Disposed" {% if selected_status == 'To be Disposed' %}selected{% endif %}>To be Disposed</option>
             <option value="Disposed" {% if selected_status == 'Disposed' %}selected{% endif %}>Disposed</option>
           </select>
-          <input type="text" name="search" class="search-box" placeholder="🔍 Search assets..." value="{{ search_query }}" onchange="this.form.submit()">
+          <input type="text" name="search" class="search-box" placeholder="🔍 Search assets (name, tag, category, type, brand, location...)" value="{{ search_query }}" onchange="this.form.submit()">
         </form>
       </div>
       
@@ -131,6 +131,13 @@
 
     <!-- Assets Grid -->
     {% if assets %}
+      <div style="text-align: center; margin-bottom: 20px; color: #7f8c8d;">
+        {% if search_query %}
+          <p><i class="fas fa-search"></i> Found {{ assets|length }} asset(s) matching "{{ search_query }}"</p>
+        {% else %}
+          <p><i class="fas fa-boxes"></i> Showing {{ assets|length }} asset(s) with status: {{ selected_status }}</p>
+        {% endif %}
+      </div>
       <div class="assets-grid">
         {% for asset in assets %}
           <div class="asset-card">
