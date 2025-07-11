@@ -30,23 +30,25 @@
     .btn:hover { background: #2980b9; transform: translateY(-2px); }
     .btn-success { background: #27ae60; }
     .btn-success:hover { background: #229954; }
-    .assets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
-    .asset-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 15px; padding: 25px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; }
-    .asset-card:hover { transform: translateY(-5px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
-    .asset-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-    .asset-id { background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
-    .asset-status { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
+    .assets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; }
+    .asset-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; position: relative; overflow: hidden; }
+    .asset-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+    .asset-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #3498db, #2980b9); }
+    .asset-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
+    .asset-id { background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 6px 12px; border-radius: 15px; font-size: 11px; font-weight: bold; }
+    .asset-status { padding: 5px 10px; border-radius: 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
     .status-active { background: #d4edda; color: #155724; }
     .status-in-storage { background: #cce5ff; color: #004085; }
     .status-under-repair { background: #fff3cd; color: #856404; }
     .status-to-be-disposed { background: #f8d7da; color: #721c24; }
     .status-disposed { background: #6c757d; color: #fff; }
-    .asset-name { font-size: 1.3rem; font-weight: 600; color: #2c3e50; margin: 10px 0; }
-    .asset-details { color: #7f8c8d; font-size: 14px; line-height: 1.6; margin-bottom: 20px; }
-    .asset-details .detail-row { display: flex; justify-content: space-between; margin: 5px 0; }
-    .asset-details .label { font-weight: 600; }
-    .asset-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .action-btn { padding: 6px 12px; border-radius: 6px; text-decoration: none; font-size: 11px; font-weight: 600; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 4px; border: none; cursor: pointer; }
+    .asset-name { font-size: 1.2rem; font-weight: 700; color: #2c3e50; margin: 8px 0; line-height: 1.3; }
+    .asset-details { color: #6c757d; font-size: 13px; line-height: 1.5; margin-bottom: 15px; }
+    .asset-details .detail-row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; padding: 4px 0; }
+    .asset-details .label { font-weight: 600; color: #495057; font-size: 12px; }
+    .asset-details .value { text-align: right; font-size: 12px; }
+    .asset-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 15px; }
+    .action-btn { padding: 8px 12px; border-radius: 12px; text-decoration: none; font-size: 10px; font-weight: 700; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 4px; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
     .btn-view { background: #17a2b8; color: white; }
     .btn-edit { background: #ffc107; color: #212529; }
     .btn-relocate { background: #6f42c1; color: white; }
@@ -62,13 +64,37 @@
     .close:hover { color: #000; }
     @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+    .mobile-card { display: none; }
+    
     @media (max-width: 768px) {
-      .container { padding: 10px; }
-      .header h1 { font-size: 2rem; }
-      .controls { flex-direction: column; align-items: stretch; }
-      .search-box { width: 100%; }
-      .assets-grid { grid-template-columns: 1fr; }
-      .asset-actions { justify-content: center; }
+      .container { padding: 8px; }
+      .header { padding: 20px; margin-bottom: 20px; }
+      .header h1 { font-size: 1.8rem; }
+      .header .subtitle { font-size: 1rem; }
+      .controls { padding: 15px; margin-bottom: 20px; }
+      .controls-row { flex-direction: column; gap: 10px; }
+      .search-box { width: 100%; padding: 12px; font-size: 16px; }
+      .assets-grid { grid-template-columns: 1fr; gap: 12px; }
+      .asset-card { padding: 15px; border-radius: 15px; }
+      .asset-header { margin-bottom: 10px; }
+      .asset-name { font-size: 1.1rem; margin: 6px 0; }
+      .asset-details { font-size: 12px; margin-bottom: 12px; }
+      .asset-details .detail-row { margin: 4px 0; }
+      .asset-actions { gap: 4px; justify-content: center; }
+      .action-btn { padding: 6px 10px; font-size: 9px; }
+      .mobile-card { display: block; }
+      .desktop-card { display: none; }
+    }
+    
+    @media (max-width: 480px) {
+      .container { padding: 5px; }
+      .header { padding: 15px; }
+      .header h1 { font-size: 1.6rem; }
+      .controls { padding: 12px; }
+      .asset-card { padding: 12px; }
+      .asset-name { font-size: 1rem; }
+      .asset-details { font-size: 11px; }
+      .action-btn { padding: 5px 8px; font-size: 8px; gap: 2px; }
     }
   </style>
 </head>
@@ -153,12 +179,12 @@
             <div class="asset-name">{{ asset.get('Item Name', 'Unknown Item') }}</div>
             
             {% if asset.get('Photo URL') %}
-            <div class="asset-photo" style="margin: 10px 0;">
+            <div class="asset-photo" style="margin: 8px 0;">
               <img 
                 data-src="{{ asset.get('Photo URL') }}" 
                 alt="Asset Photo" 
                 class="lazy-image" 
-                style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 8px; background: #f8f9fa;"
+                style="width: 100%; height: 120px; object-fit: cover; border-radius: 12px; background: #f8f9fa;"
                 loading="lazy"
               >
             </div>
@@ -166,45 +192,47 @@
             
             <div class="asset-details">
               <div class="detail-row">
-                <span class="label">Asset Tag:</span>
-                <span>{{ asset.get('Asset Tag', 'N/A') }}</span>
+                <span class="label">Tag:</span>
+                <span class="value">{{ asset.get('Asset Tag', 'N/A') }}</span>
               </div>
               <div class="detail-row">
                 <span class="label">Category:</span>
-                <span>{{ asset.get('Category', 'N/A') }}</span>
+                <span class="value">{{ asset.get('Category', 'N/A') }}</span>
               </div>
               <div class="detail-row">
                 <span class="label">Location:</span>
-                <span>{{ asset.get('Location', 'N/A') }} - {{ asset.get('Room Location', 'N/A') }}</span>
+                <span class="value">{{ asset.get('Location', 'N/A') }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Room:</span>
+                <span class="value">{{ asset.get('Room Location', 'N/A') }}</span>
               </div>
               <div class="detail-row">
                 <span class="label">Owner:</span>
-                <span>{{ asset.get('Owner', 'N/A') }}</span>
+                <span class="value">{{ asset.get('Owner', 'N/A') }}</span>
               </div>
               <div class="detail-row">
-                <span class="label">Purchase Cost:</span>
-                <span>Rp {{ "{:,.0f}".format(asset.get('Purchase Cost', 0)|float) if asset.get('Purchase Cost') else 'N/A' }}</span>
+                <span class="label">Cost:</span>
+                <span class="value">Rp {{ "{:,.0f}".format(asset.get('Purchase Cost', 0)|float) if asset.get('Purchase Cost') else 'N/A' }}</span>
               </div>
             </div>
             
             <div class="asset-actions">
               <a href="/assets/{{ asset.get('ID', '') }}/detail" class="action-btn btn-view">
-                <i class="fas fa-eye"></i> View
+                <i class="fas fa-eye"></i> <span class="desktop-card">View</span>
               </a>
-              {% if user.role == 'admin' %}
-                <button class="action-btn btn-edit" onclick="editAsset('{{ asset.get('ID', '') }}')">
-                  <i class="fas fa-edit"></i> Edit
-                </button>
-              {% endif %}
               <button class="action-btn btn-relocate" onclick="relocateAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')">
-                <i class="fas fa-exchange-alt"></i> Relocate
+                <i class="fas fa-exchange-alt"></i> <span class="desktop-card">Move</span>
               </button>
               <button class="action-btn btn-status" onclick="changeStatus('{{ asset.get('ID', '') }}', '{{ asset.get('Status', 'Active') }}')">
-                <i class="fas fa-toggle-on"></i> Status
+                <i class="fas fa-toggle-on"></i> <span class="desktop-card">Status</span>
               </button>
               {% if user and user.role == 'admin' %}
+                <button class="action-btn btn-edit" onclick="editAsset('{{ asset.get('ID', '') }}')">
+                  <i class="fas fa-edit"></i> <span class="desktop-card">Edit</span>
+                </button>
                 <button class="action-btn btn-delete" onclick="deleteAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')">
-                  <i class="fas fa-trash"></i> Delete
+                  <i class="fas fa-trash"></i> <span class="desktop-card">Delete</span>
                 </button>
               {% endif %}
             </div>
