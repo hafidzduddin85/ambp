@@ -1,124 +1,132 @@
 # app/utils/photo.py
 import io
 import os
-from PIL import Image
-from googleapiclient.discovery import build
-from googleapiclient.http import MediaIoBaseUpload
-from google.oauth2.service_account import Credentials
 import json
 import logging
+import requests
+from PIL import Image
+from google.oauth2.service_account import Credentials
+from google.auth.transport.requests import Request
 
-def get_drive_service():
-    """Get Google Drive service"""
+# Constants
+DRIVE_FOLDER_ID = "0ANzABR32MM4AUk9PVA"
+DRIVE_SCOPE = ['https://www.googleapis.com/auth/drive.file']
+MAX_IMAGE_SIZE = (800, 600)
+WEBP_QUALITY = 85
+
+def get_access_token():
+    """Get Google Drive access token"""
     try:
-        creds_json_str = os.getenv("GOOGLE_CREDS_JSON")
-        if not creds_json_str:
-            raise RuntimeError("GOOGLE_CREDS_JSON not set")
-        
-        creds_json = json.loads(creds_json_str)
+        creds_json = json.loads(os.getenv("GOOGLE_CREDS_JSON", "{}"))
         if "private_key" in creds_json:
             creds_json["private_key"] = creds_json["private_key"].replace("\\n", "\n")
         
-        credentials = Credentials.from_service_account_info(
-            creds_json, 
-            scopes=['https://www.googleapis.com/auth/drive.file']
-        )
-        
-        return build('drive', 'v3', credentials=credentials)
+        credentials = Credentials.from_service_account_info(creds_json, scopes=DRIVE_SCOPE)
+        credentials.refresh(Request())
+        return credentials.token
     except Exception as e:
-        logging.error(f"Error creating Drive service: {e}")
+        logging.error(f"Token error: {e}")
         return None
 
-def resize_and_convert_image(image_file, max_size=(800, 600), quality=85):
-    """Resize image and convert to WebP format"""
+def resize_and_convert_image(image_file, max_size=MAX_IMAGE_SIZE, quality=WEBP_QUALITY):
+    """Resize image and convert to WebP"""
     try:
-        # Open image
         image = Image.open(image_file)
-        
-        # Convert to RGB if necessary
         if image.mode in ('RGBA', 'LA', 'P'):
             image = image.convert('RGB')
         
-        # Calculate new size maintaining aspect ratio
         image.thumbnail(max_size, Image.Resampling.LANCZOS)
         
-        # Save as WebP
         output = io.BytesIO()
         image.save(output, format='WEBP', quality=quality, optimize=True)
         output.seek(0)
-        
         return output
     except Exception as e:
-        logging.error(f"Error resizing image: {e}")
+        logging.error(f"Image processing error: {e}")
         return None
 
 def upload_to_drive(image_data, filename, asset_id):
-    """Upload image to Google Drive"""
+    """Upload image to Google Drive using resumable upload"""
     try:
-        service = get_drive_service()
-        if not service:
+        access_token = get_access_token()
+        if not access_token:
             return None
         
-        # Use shared drive folder ID: 0ANzABR32MM4AUk9PVA
-        folder_id = "0ANzABR32MM4AUk9PVA"
+        # Step 1: Initiate upload session
+        upload_url = _initiate_upload(access_token, filename, asset_id, image_data)
+        if not upload_url:
+            return None
         
-        # Upload file
-        file_metadata = {
-            'name': f"{asset_id}_{filename}.webp",
-            'parents': [folder_id]
-        }
+        # Step 2: Upload file data
+        file_id = _upload_file_data(upload_url, image_data)
+        if not file_id:
+            return None
         
-        media = MediaIoBaseUpload(
-            image_data, 
-            mimetype='image/webp',
-            resumable=True
-        )
+        # Step 3: Set public permissions
+        _set_public_permission(access_token, file_id)
         
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id,webViewLink,webContentLink'
-        ).execute()
-        
-        # Make file publicly viewable
-        service.permissions().create(
-            fileId=file['id'],
-            body={'role': 'reader', 'type': 'anyone'}
-        ).execute()
-        
-        # Return direct image URL
-        return f"https://drive.google.com/uc?id={file['id']}"
+        return f"https://drive.google.com/uc?id={file_id}"
         
     except Exception as e:
-        logging.error(f"Error uploading to Drive: {e}")
+        logging.error(f"Upload error: {e}")
         return None
 
-def get_or_create_folder(service, folder_name):
-    """Get or create folder in Google Drive"""
+def _initiate_upload(access_token, filename, asset_id, image_data):
+    """Initiate resumable upload session"""
+    file_metadata = {
+        'name': f"{asset_id}_{filename}.webp",
+        'parents': [DRIVE_FOLDER_ID]
+    }
+    
+    headers = {
+        'Authorization': f'Bearer {access_token}',
+        'Content-Type': 'application/json',
+        'X-Upload-Content-Type': 'image/webp',
+        'X-Upload-Content-Length': str(len(image_data.getvalue()))
+    }
+    
+    response = requests.post(
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable',
+        headers=headers,
+        json=file_metadata,
+        timeout=30
+    )
+    
+    return response.headers.get('Location') if response.status_code == 200 else None
+
+def _upload_file_data(upload_url, image_data):
+    """Upload file data to resumable URL"""
+    image_data.seek(0)
+    headers = {
+        'Content-Type': 'image/webp',
+        'Content-Length': str(len(image_data.getvalue()))
+    }
+    
+    response = requests.put(
+        upload_url,
+        headers=headers,
+        data=image_data.getvalue(),
+        timeout=60
+    )
+    
+    if response.status_code in [200, 201]:
+        return response.json().get('id')
+    return None
+
+def _set_public_permission(access_token, file_id):
+    """Set file to public readable"""
     try:
-        # Search for existing folder
-        results = service.files().list(
-            q=f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder'",
-            fields="files(id, name)"
-        ).execute()
-        
-        folders = results.get('files', [])
-        
-        if folders:
-            return folders[0]['id']
-        
-        # Create new folder
-        folder_metadata = {
-            'name': folder_name,
-            'mimeType': 'application/vnd.google-apps.folder'
-        }
-        
-        folder = service.files().create(body=folder_metadata, fields='id').execute()
-        return folder['id']
-        
+        requests.post(
+            f"https://www.googleapis.com/drive/v3/files/{file_id}/permissions",
+            headers={
+                'Authorization': f'Bearer {access_token}',
+                'Content-Type': 'application/json'
+            },
+            json={'role': 'reader', 'type': 'anyone'},
+            timeout=30
+        )
     except Exception as e:
-        logging.error(f"Error creating folder: {e}")
-        return None
+        logging.error(f"Permission error: {e}")
 
 def delete_from_drive(image_url):
     """Delete image from Google Drive"""
@@ -126,18 +134,22 @@ def delete_from_drive(image_url):
         if not image_url or 'drive.google.com' not in image_url:
             return False
         
-        # Extract file ID from URL
         file_id = image_url.split('id=')[1] if 'id=' in image_url else None
         if not file_id:
             return False
         
-        service = get_drive_service()
-        if not service:
+        access_token = get_access_token()
+        if not access_token:
             return False
         
-        service.files().delete(fileId=file_id).execute()
-        return True
+        response = requests.delete(
+            f"https://www.googleapis.com/drive/v3/files/{file_id}",
+            headers={'Authorization': f'Bearer {access_token}'},
+            timeout=30
+        )
+        
+        return response.status_code == 204
         
     except Exception as e:
-        logging.error(f"Error deleting from Drive: {e}")
+        logging.error(f"Delete error: {e}")
         return False
