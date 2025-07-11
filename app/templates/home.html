@@ -71,8 +71,6 @@
     .logo-container img {
       height: 70px;
       width: auto;
-      border-radius: 12px;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
       transition: transform 0.3s ease;
     }
     
@@ -260,7 +258,7 @@
         <img src="/static/logo.png" alt="Company Logo">
       </div>
       <img src="/static/user.png" alt="Avatar" class="avatar">
-      <h2 id="welcome-msg">Halo, {{ user.username }} 👋</h2>
+      <h2 id="welcome-msg">Halo, {{ user.username }} <span style="color: #FFC107;">👋</span></h2>
       <div class="clock" id="clock">🕒</div>
     </div>
 
@@ -277,6 +275,7 @@
       <a href="/sync-assets"><i class="material-icons">sync</i><span>Sinkronisasi Aset</span></a>
       <a href="/settings/users"><i class="material-icons">manage_accounts</i><span>Pengaturan User</span></a>
       {% endif %}
+      <a href="/logout" style="background: linear-gradient(135deg, #dc3545, #c82333); color: white;"><i class="material-icons">logout</i><span>Logout</span></a>
     </div>
   </div>
 

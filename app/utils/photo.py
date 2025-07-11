@@ -59,14 +59,13 @@ def upload_to_drive(image_data, filename, asset_id):
         if not service:
             return None
         
-        # Create folder for assets if not exists
-        folder_name = "AMBP_Asset_Photos"
-        folder_id = get_or_create_folder(service, folder_name)
+        # Use specific folder ID: 1kvkfAqfrDWipNG037vRodmYnsrpUNf4s
+        folder_id = "1kvkfAqfrDWipNG037vRodmYnsrpUNf4s"
         
         # Upload file
         file_metadata = {
             'name': f"{asset_id}_{filename}.webp",
-            'parents': [folder_id] if folder_id else []
+            'parents': [folder_id]
         }
         
         media = MediaIoBaseUpload(
