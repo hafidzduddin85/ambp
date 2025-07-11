@@ -67,9 +67,14 @@
     <div class="header">
       <h1><i class="fas fa-exchange-alt"></i> Asset Relocation</h1>
       <p class="subtitle">Move assets to new locations efficiently</p>
-      <a href="/home" class="back-btn">
-        <i class="fas fa-home"></i> Back to Home
-      </a>
+      <div style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+        <a href="/relocate/logs" class="back-btn" style="background: #9b59b6;">
+          <i class="fas fa-history"></i> View Logs
+        </a>
+        <a href="/home" class="back-btn">
+          <i class="fas fa-home"></i> Back to Home
+        </a>
+      </div>
     </div>
 
     <!-- Flash Messages -->
@@ -203,6 +208,11 @@
           <select name="new_room" id="newRoom" required>
             <option value="">-- Select New Room --</option>
           </select>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-sticky-note"></i> Notes (Optional)</label>
+          <textarea name="notes" rows="2" placeholder="Reason for relocation..." style="padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 14px; background: white; transition: all 0.3s ease; width: 100%; resize: vertical;"></textarea>
         </div>
 
         <button type="submit" class="modal-btn">

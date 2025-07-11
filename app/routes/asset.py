@@ -117,9 +117,9 @@ def dashboard(request: Request, status: str = "All", user=Depends(get_current_us
     # Process all data for statistics
     for row in all_data:
         asset_status = row.get("Status", "").lower()
-        if asset_status in ["active", "in use", "in stock"]:
+        if asset_status in ["active"]:
             active_count += 1
-        elif asset_status in ["repair", "under repair"]:
+        elif asset_status in ["under repair"]:
             repair_count += 1
         elif asset_status in ["disposed", "to be disposed"]:
             disposed_count += 1

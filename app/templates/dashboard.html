@@ -39,8 +39,10 @@
         tbody tr:hover { background: #f8f9fa; }
         .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
         .status-active { background: #d4edda; color: #155724; }
-        .status-repair { background: #fff3cd; color: #856404; }
-        .status-disposed { background: #f8d7da; color: #721c24; }
+        .status-in-storage { background: #cce5ff; color: #004085; }
+        .status-under-repair { background: #fff3cd; color: #856404; }
+        .status-to-be-disposed { background: #f8d7da; color: #721c24; }
+        .status-disposed { background: #6c757d; color: #fff; }
         .search-box { padding: 10px 15px; border: 1px solid #ddd; border-radius: 8px; width: 250px; }
         @media (max-width: 768px) {
             .container { padding: 10px; }
@@ -72,7 +74,7 @@
             <div class="stat-card">
                 <div class="icon" style="color: #27ae60;"><i class="fas fa-check-circle"></i></div>
                 <div class="number" style="color: #27ae60;">{{ active_count }}</div>
-                <div class="label">Active Assets</div>
+                <div class="label">Active</div>
             </div>
             <div class="stat-card">
                 <div class="icon" style="color: #f39c12;"><i class="fas fa-tools"></i></div>
@@ -80,7 +82,7 @@
                 <div class="label">Under Repair</div>
             </div>
             <div class="stat-card">
-                <div class="icon" style="color: #e74c3c;"><i class="fas fa-exclamation-triangle"></i></div>
+                <div class="icon" style="color: #e74c3c;"><i class="fas fa-trash"></i></div>
                 <div class="number" style="color: #e74c3c;">{{ disposed_count }}</div>
                 <div class="label">Disposed</div>
             </div>
@@ -94,9 +96,9 @@
                     <select name="status" onchange="this.form.submit()">
                         <option value="All" {% if selected_status == 'All' %}selected{% endif %}>All Assets</option>
                         <option value="Active" {% if selected_status == 'Active' %}selected{% endif %}>Active</option>
-                        <option value="In Use" {% if selected_status == 'In Use' %}selected{% endif %}>In Use</option>
-                        <option value="In Stock" {% if selected_status == 'In Stock' %}selected{% endif %}>In Stock</option>
-                        <option value="Repair" {% if selected_status == 'Repair' %}selected{% endif %}>Under Repair</option>
+                        <option value="In Storage" {% if selected_status == 'In Storage' %}selected{% endif %}>In Storage</option>
+                        <option value="Under Repair" {% if selected_status == 'Under Repair' %}selected{% endif %}>Under Repair</option>
+                        <option value="To be Disposed" {% if selected_status == 'To be Disposed' %}selected{% endif %}>To be Disposed</option>
                         <option value="Disposed" {% if selected_status == 'Disposed' %}selected{% endif %}>Disposed</option>
                     </select>
                 </form>
