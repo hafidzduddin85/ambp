@@ -14,31 +14,35 @@ def list_assets(request: Request, status: str = "All", search: str = "", user=De
     try:
         assets = sheets.get_assets(status)
         
-        # Enhanced search filter
+        # Enhanced search filter - focus on key fields
         if search:
             search_term = search.lower().strip()
             filtered_assets = []
             
             for asset in assets:
-                # Search across multiple fields
-                searchable_fields = [
+                # Primary search fields (most important)
+                primary_fields = [
                     str(asset.get('Item Name', '')),
-                    str(asset.get('Asset Tag', '')),
-                    str(asset.get('ID', '')),
                     str(asset.get('Category', '')),
                     str(asset.get('Type', '')),
-                    str(asset.get('Manufacture', '')),
-                    str(asset.get('Model', '')),
-                    str(asset.get('Serial Number', '')),
-                    str(asset.get('Company', '')),
-                    str(asset.get('Location', '')),
-                    str(asset.get('Room Location', '')),
-                    str(asset.get('Owner', '')),
-                    str(asset.get('Status', ''))
+                    str(asset.get('Location', ''))
                 ]
                 
-                # Check if search term exists in any field
-                if any(search_term in field.lower() for field in searchable_fields):
+                # Secondary search fields
+                secondary_fields = [
+                    str(asset.get('Asset Tag', '')),
+                    str(asset.get('ID', '')),
+                    str(asset.get('Manufacture', '')),
+                    str(asset.get('Model', '')),
+                    str(asset.get('Company', '')),
+                    str(asset.get('Room Location', ''))
+                ]
+                
+                # Check primary fields first (higher priority)
+                primary_match = any(search_term in field.lower() for field in primary_fields)
+                secondary_match = any(search_term in field.lower() for field in secondary_fields)
+                
+                if primary_match or secondary_match:
                     filtered_assets.append(asset)
             
             assets = filtered_assets

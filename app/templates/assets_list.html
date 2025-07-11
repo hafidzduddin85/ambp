@@ -113,7 +113,7 @@
             <option value="To be Disposed" {% if selected_status == 'To be Disposed' %}selected{% endif %}>To be Disposed</option>
             <option value="Disposed" {% if selected_status == 'Disposed' %}selected{% endif %}>Disposed</option>
           </select>
-          <input type="text" name="search" class="search-box" placeholder="🔍 Search assets (name, tag, category, type, brand, location...)" value="{{ search_query }}" onchange="this.form.submit()">
+          <input type="text" name="search" class="search-box" placeholder="🔍 Search by name, category, type, location..." value="{{ search_query }}" onchange="this.form.submit()">
         </form>
       </div>
       
