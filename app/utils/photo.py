@@ -51,14 +51,8 @@ def upload_to_drive(image_data, filename, asset_id):
         if not access_token:
             return None
 
-        # Get folder ID from environment
-        folder_id = os.getenv("DRIVE_FOLDER_ID")
-        if not folder_id:
-            logging.error("DRIVE_FOLDER_ID is not set in environment.")
-            return None
-
         # Step 1: Initiate upload session
-        upload_url = _initiate_upload(access_token, filename, asset_id, image_data, folder_id)
+        upload_url = _initiate_upload(access_token, filename, asset_id, image_data)
         if not upload_url:
             return None
 
@@ -76,11 +70,10 @@ def upload_to_drive(image_data, filename, asset_id):
         logging.error(f"Upload error: {e}")
         return None
 
-def _initiate_upload(access_token, filename, asset_id, image_data, folder_id):
+def _initiate_upload(access_token, filename, asset_id, image_data):
     """Initiate resumable upload session"""
     file_metadata = {
-        'name': f"{asset_id}_{filename}.webp",
-        'parents': [folder_id]
+        'name': f"AMBP_{asset_id}_{filename}.webp"
     }
 
     headers = {
