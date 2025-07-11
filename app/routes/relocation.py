@@ -32,28 +32,34 @@ def search_assets(
 ):
     try:
         assets = sheets.get_assets("All")
-        # Debug: Show first asset columns to identify correct field names
+        # Show sample locations for debugging
         if assets:
-            flash(request, f"📋 Available columns: {', '.join(assets[0].keys())}", "info")
-            first_asset = assets[0]
-            flash(request, f"🔍 Sample data - Location: '{first_asset.get('Location', 'N/A')}', Room: '{first_asset.get('Room Location', 'N/A')}'", "info")
+            unique_locations = list(set([str(a.get('Location', '')).strip() for a in assets[:5] if a.get('Location')]))
+            flash(request, f"📋 Sample locations: {', '.join(unique_locations[:3])}", "info")
         
         filtered_assets = []
         for asset in assets:
             asset_location = str(asset.get("Location", "")).strip()
             asset_room = str(asset.get("Room Location", "")).strip()
             
-            # Try alternative column names
-            if not asset_location:
-                asset_location = str(asset.get("Lokasi", "")).strip()
-            if not asset_room:
-                asset_room = str(asset.get("Ruangan", "")).strip()
-                
-            if (asset_location.lower() == location.lower() and 
-                asset_room.lower() == room.lower()):
+            # Normalize location names for comparison
+            search_location = location.lower().replace(" ", ").replace("-", "")
+            asset_location_norm = asset_location.lower().replace(" ", ").replace("-", "")
+            
+            # Check if locations match (fuzzy matching)
+            location_match = (
+                search_location in asset_location_norm or 
+                asset_location_norm in search_location or
+                asset_location.lower() == location.lower()
+            )
+            
+            # Exact room match
+            room_match = asset_room.lower() == room.lower()
+            
+            if location_match and room_match:
                 filtered_assets.append(asset)
         
-        flash(request, f"🔍 Searched for: '{location}' - '{room}', Found: {len(filtered_assets)} assets", "info")
+        flash(request, f"🔍 Searched: '{location}' - '{room}' | Found: {len(filtered_assets)} assets", "info")
         
         refs = sheets.get_reference_lists()
         location_room_map = sheets.get_location_room_map()
