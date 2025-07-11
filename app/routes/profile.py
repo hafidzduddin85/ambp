@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from fastapi import HTTPException, status
 
 from app.database.dependencies import get_current_user, get_db
-from app.models.user import User  # Ini SQLAlchemy model
+from app.utils.models import User  # Ini SQLAlchemy model
 from app.utils.flash import flash as set_flash
 from app.utils.auth import verify_password, hash_password  # Tambahkan ini
 

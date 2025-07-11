@@ -4,7 +4,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from fastapi.templating import Jinja2Templates
 
-from app.models.user import User
+from app.utils.models import User
 from app.database.dependencies import get_db
 from app.utils.auth import verify_password  # ✅ Import fungsi verifikasi password yang benar
 

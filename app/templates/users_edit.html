@@ -1,101 +1,156 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>✏️ Edit Pengguna</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="/static/style.css">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f8f9fa;
-            padding: 2rem;
-            max-width: 600px;
-            margin: auto;
-        }
-
-        h2 {
-            text-align: center;
-            color: #1976d2;
-        }
-
-        form {
-            background-color: white;
-            padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 0 8px rgba(0,0,0,0.1);
-        }
-
-        label {
-            display: block;
-            margin-top: 1rem;
-            font-weight: bold;
-        }
-
-        input, select {
-            width: 100%;
-            padding: 0.75rem;
-            margin-top: 0.25rem;
-            border: 1px solid #ccc;
-            border-radius: 6px;
-        }
-
-        button {
-            margin-top: 1.5rem;
-            background-color: #1976d2;
-            color: white;
-            padding: 10px;
-            border: none;
-            width: 100%;
-            font-size: 16px;
-            border-radius: 6px;
-            cursor: pointer;
-        }
-
-        button:hover {
-            background-color: #125ea2;
-        }
-
-        .back {
-            text-align: center;
-            margin-top: 1rem;
-        }
-
-        .error {
-            text-align: center;
-            color: red;
-            font-weight: bold;
-            margin-bottom: 1rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Edit User</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+    .container { max-width: 600px; margin: 0 auto; }
+    .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .header h1 { color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px; }
+    .header .subtitle { color: #7f8c8d; font-size: 1.1rem; }
+    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: #3498db; color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; margin-top: 15px; transition: all 0.3s ease; }
+    .back-btn:hover { background: #2980b9; transform: translateY(-2px); }
+    .flash-messages { margin-bottom: 20px; }
+    .flash-message { padding: 15px 20px; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
+    .flash-success { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
+    .flash-error { background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24; border-left: 4px solid #dc3545; }
+    .form-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 40px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
+    .user-info { background: linear-gradient(135deg, #e3f2fd, #bbdefb); border-radius: 15px; padding: 20px; margin-bottom: 25px; }
+    .user-info h3 { color: #1976d2; margin-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+    .user-info p { color: #2c3e50; margin: 5px 0; }
+    .form-group { margin-bottom: 25px; }
+    .form-group label { display: flex; align-items: center; gap: 8px; font-weight: 600; color: #2c3e50; margin-bottom: 8px; font-size: 14px; }
+    .form-group input, .form-group select { width: 100%; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 14px; transition: all 0.3s ease; background: white; }
+    .form-group input:focus, .form-group select:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
+    .form-group.required label::after { content: '*'; color: #e74c3c; margin-left: 4px; }
+    .password-note { font-size: 12px; color: #7f8c8d; margin-top: 5px; font-style: italic; }
+    .submit-btn { width: 100%; background: linear-gradient(135deg, #27ae60, #229954); color: white; padding: 15px 30px; border: none; border-radius: 10px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 20px; }
+    .submit-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(39, 174, 96, 0.3); }
+    .submit-btn:active { transform: translateY(0); }
+    .role-badge { padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .role-admin { background: #e74c3c; color: white; }
+    .role-user { background: #3498db; color: white; }
+    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @media (max-width: 768px) {
+      .container { padding: 10px; }
+      .header h1 { font-size: 2rem; }
+      .form-card { padding: 25px; }
+    }
+  </style>
 </head>
 <body>
-    <h2>✏️ Edit Pengguna</h2>
-
-    {% if error %}
-    <div class="error">
-        ⚠️ {{ error }}
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <h1><i class="fas fa-user-edit"></i> Edit User</h1>
+      <p class="subtitle">Update user information and permissions</p>
+      <a href="/settings/users" class="back-btn">
+        <i class="fas fa-arrow-left"></i> Back to Users
+      </a>
     </div>
-    {% endif %}
 
-    <form method="post" action="/settings/users/update/{{ user.id }}">
-        <label>Username</label>
-        <input type="text" name="username" value="{{ user.username }}" required>
-
-        <label>Password (kosongkan jika tidak diubah)</label>
-        <input type="password" name="password">
-
-        <label>Role</label>
-        <select name="role">
-            <option value="user" {% if user.role == "user" %}selected{% endif %}>User</option>
-            <option value="admin" {% if user.role == "admin" %}selected{% endif %}>Admin</option>
-        </select>
-
-        <button type="submit">💾 Simpan Perubahan</button>
-    </form>
-
-    <div class="back">
-        <a href="/settings/users">🔙 Kembali ke Daftar Pengguna</a>
+    <!-- Flash Messages -->
+    <div class="flash-messages">
+      {% if flash_messages %}
+        {% for message in flash_messages %}
+          <div class="flash-message flash-{{ message.category }}">
+            <i class="fas fa-{% if message.category == 'success' %}check-circle{% elif message.category == 'error' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
+            {{ message.message }}
+          </div>
+        {% endfor %}
+      {% endif %}
     </div>
+
+    <!-- Edit Form -->
+    <div class="form-card">
+      <!-- Current User Info -->
+      <div class="user-info">
+        <h3><i class="fas fa-info-circle"></i> Current User Information</h3>
+        <p><strong>ID:</strong> {{ target_user.id }}</p>
+        <p><strong>Username:</strong> {{ target_user.username }}</p>
+        <p><strong>Current Role:</strong> 
+          <span class="role-badge role-{{ target_user.role }}">{{ target_user.role.upper() }}</span>
+        </p>
+        <p><strong>Created:</strong> {{ target_user.created_at.strftime('%Y-%m-%d %H:%M') if target_user.created_at else 'Unknown' }}</p>
+        <p><strong>Status:</strong> 
+          {% if target_user.is_active %}
+            <span style="color: #27ae60;"><i class="fas fa-check-circle"></i> Active</span>
+          {% else %}
+            <span style="color: #e74c3c;"><i class="fas fa-times-circle"></i> Inactive</span>
+          {% endif %}
+        </p>
+      </div>
+
+      <!-- Edit Form -->
+      <form method="post" action="/settings/users/update/{{ target_user.id }}">
+        <div class="form-group required">
+          <label><i class="fas fa-user"></i> Username</label>
+          <input type="text" name="username" value="{{ target_user.username }}" required>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-lock"></i> New Password</label>
+          <input type="password" name="password" placeholder="Leave empty to keep current password">
+          <div class="password-note">
+            <i class="fas fa-info-circle"></i> Only enter a password if you want to change it
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-envelope"></i> Email</label>
+          <input type="email" name="email" value="{{ target_user.email or '' }}" placeholder="Enter email address">
+        </div>
+
+        <div class="form-group">
+          <label><i class="fas fa-id-card"></i> Full Name</label>
+          <input type="text" name="full_name" value="{{ target_user.full_name or '' }}" placeholder="Enter full name">
+        </div>
+
+        <div class="form-group required">
+          <label><i class="fas fa-shield-alt"></i> Role</label>
+          <select name="role" required>
+            <option value="user" {% if target_user.role == "user" %}selected{% endif %}>User</option>
+            <option value="admin" {% if target_user.role == "admin" %}selected{% endif %}>Admin</option>
+          </select>
+        </div>
+
+        <button type="submit" class="submit-btn">
+          <i class="fas fa-save"></i> Save Changes
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // Add some interactivity
+    document.addEventListener('DOMContentLoaded', function() {
+      // Auto-hide flash messages after 5 seconds
+      const flashMessages = document.querySelectorAll('.flash-message');
+      flashMessages.forEach(message => {
+        setTimeout(() => {
+          message.style.opacity = '0';
+          setTimeout(() => message.remove(), 300);
+        }, 5000);
+      });
+
+      // Form validation
+      const form = document.querySelector('form');
+      form.addEventListener('submit', function(e) {
+        const username = document.querySelector('input[name="username"]').value.trim();
+        if (username.length < 3) {
+          e.preventDefault();
+          alert('Username must be at least 3 characters long');
+          return false;
+        }
+      });
+    });
+  </script>
 </body>
 </html>

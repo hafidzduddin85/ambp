@@ -9,7 +9,8 @@ from app.routes import (
     profile,
     sync,
     relocation,
-    setup_admin
+    setup_admin,
+    reset_db
 )
 
 def create_app() -> FastAPI:
@@ -27,5 +28,6 @@ def create_app() -> FastAPI:
     app.include_router(sync.router)
     app.include_router(relocation.router)
     app.include_router(setup_admin.router)
+    app.include_router(reset_db.router)
 
     return app
