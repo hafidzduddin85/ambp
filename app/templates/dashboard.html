@@ -200,15 +200,88 @@
     <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Chart data and initialization code remains the same as original
+        // Chart data
         const kategoriLabels = {{ kategori_labels|tojson }};
         const kategoriValues = {{ kategori_values|tojson }};
         const allTahunLabels = {{ tahun_labels|tojson }};
         const allTahunValues = {{ tahun_values|tojson }};
         const assets = {{ assets|tojson }};
         
-        // Chart initialization code (same as original)
-        // ... (keeping original chart code for brevity)
+        // Color schemes
+        const colors = ['#3498db', '#e74c3c', '#f39c12', '#27ae60', '#9b59b6', '#1abc9c'];
+        
+        // Category Chart
+        new Chart(document.getElementById('kategoriChart'), {
+            type: 'doughnut',
+            data: {
+                labels: kategoriLabels,
+                datasets: [{
+                    data: kategoriValues,
+                    backgroundColor: colors.slice(0, kategoriLabels.length)
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Year Chart
+        new Chart(document.getElementById('tahunChart'), {
+            type: 'line',
+            data: {
+                labels: allTahunLabels,
+                datasets: [{
+                    label: 'Assets',
+                    data: allTahunValues,
+                    borderColor: '#3498db',
+                    fill: false
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Status Chart
+        const statusData = {};
+        assets.forEach(asset => {
+            const status = asset.Status || 'Unknown';
+            statusData[status] = (statusData[status] || 0) + 1;
+        });
+
+        new Chart(document.getElementById('statusChart'), {
+            type: 'pie',
+            data: {
+                labels: Object.keys(statusData),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: colors
+                }]
+            },
+            options: { responsive: true }
+        });
+
+        // Value Chart
+        const categoryValues = {};
+        assets.forEach(asset => {
+            const category = asset.Category || 'Unknown';
+            const cost = parseFloat(String(asset['Purchase Cost'] || '0').replace(/[^0-9.-]+/g, '')) || 0;
+            categoryValues[category] = (categoryValues[category] || 0) + cost;
+        });
+        
+        const categoryValuesInMillions = {};
+        Object.keys(categoryValues).forEach(key => {
+            categoryValuesInMillions[key] = categoryValues[key] / 1000000;
+        });
+
+        new Chart(document.getElementById('valueChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(categoryValuesInMillions),
+                datasets: [{
+                    label: 'Value (M Rp)',
+                    data: Object.values(categoryValuesInMillions),
+                    backgroundColor: colors
+                }]
+            },
+            options: { responsive: true }
+        });
         
         function searchTable() {
             const input = document.getElementById('searchBox');
