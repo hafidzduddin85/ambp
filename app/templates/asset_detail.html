@@ -459,7 +459,7 @@
                 loading="lazy"
                 onerror="this.src='{{ asset.get('Photo URL').replace('thumbnail', 'uc') }}'"
                 style="cursor: pointer;"
-                onclick="window.open('https://drive.google.com/file/d/{{ asset.get('Photo URL').split('id=')[1] }}/view', '_blank')"
+                onclick="window.open('https://drive.google.com/file/d/{{ asset.get('Photo URL').split('id=')[1].split('&')[0] }}/view', '_blank')"
               >
             </div>
           {% else %}
