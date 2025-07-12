@@ -27,10 +27,33 @@ class Config:
         db_url = os.getenv("DATABASE_URL")
         if not db_url:
             raise RuntimeError("DATABASE_URL is not set in environment")
-        # Fix PostgreSQL URL format if needed (Render.com compatibility)
+        # Fix PostgreSQL URL format if needed (Render.com/Supabase compatibility)
         if db_url.startswith("postgres://"):
             db_url = db_url.replace("postgres://", "postgresql://", 1)
         return db_url
+    
+    @property
+    def SECRET_KEY(self) -> str:
+        """JWT Secret Key (Supabase JWT Secret)"""
+        secret = os.getenv("SECRET_KEY")
+        if not secret:
+            raise RuntimeError("SECRET_KEY is not set in environment")
+        return secret
+    
+    @property
+    def SUPABASE_URL(self) -> str:
+        """Supabase Project URL (optional)"""
+        return os.getenv("SUPABASE_URL", "")
+    
+    @property
+    def SUPABASE_ANON_KEY(self) -> str:
+        """Supabase Anonymous Key (optional)"""
+        return os.getenv("SUPABASE_ANON_KEY", "")
+    
+    @property
+    def SUPABASE_SERVICE_KEY(self) -> str:
+        """Supabase Service Role Key (optional)"""
+        return os.getenv("SUPABASE_SERVICE_KEY", "")
 
     def _load_google_creds(self) -> Dict:
         creds_json_str = os.getenv("GOOGLE_CREDS_JSON")
