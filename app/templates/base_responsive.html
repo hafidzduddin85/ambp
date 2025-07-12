@@ -5,75 +5,75 @@
 /* Large Desktop */
 @media (min-width: 1200px) {
   .container {
-    max-width: 1400px;
-    padding: 2rem;
+    max-width: 1200px;
+    padding: 1.5rem;
   }
   
   .header {
-    padding: 3rem 2.5rem;
+    padding: 2rem 2rem;
   }
   
   .header h1 {
-    font-size: 2.8rem;
+    font-size: 2.2rem;
   }
   
   .card, .detail-card, .profile-card {
-    padding: 3rem 2.5rem;
+    padding: 2rem 2rem;
   }
   
   .btn, .action-btn, .nav-btn {
-    padding: 15px 25px;
-    font-size: 1.1rem;
+    padding: 10px 18px;
+    font-size: 0.95rem;
   }
   
   .stats-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 2.5rem;
+    gap: 1.5rem;
   }
   
   .charts-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 3rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
   }
   
   .menu {
     grid-template-columns: repeat(3, 1fr);
-    gap: 2rem;
+    gap: 1.5rem;
   }
 }
 
 /* Desktop */
 @media (min-width: 992px) and (max-width: 1199px) {
   .container {
-    max-width: 1200px;
-    padding: 1.5rem;
+    max-width: 1100px;
+    padding: 1.2rem;
   }
   
   .header {
-    padding: 2.5rem 2rem;
+    padding: 1.8rem 1.5rem;
   }
   
   .header h1 {
-    font-size: 2.5rem;
+    font-size: 2rem;
   }
   
   .card, .detail-card, .profile-card {
-    padding: 2.5rem 2rem;
+    padding: 1.8rem 1.5rem;
   }
   
   .stats-grid {
     grid-template-columns: repeat(4, 1fr);
-    gap: 2rem;
+    gap: 1.2rem;
   }
   
   .charts-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.2rem;
   }
   
   .menu {
     grid-template-columns: repeat(2, 1fr);
-    gap: 1.8rem;
+    gap: 1.3rem;
   }
 }
 
@@ -245,6 +245,72 @@
   }
 }
 
+/* Chart specific styles */
+.chart-card {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  border-radius: 15px;
+  padding: 15px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+  border: 1px solid rgba(255,255,255,0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.chart-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #667eea, #764ba2);
+}
+
+.chart-card h3 {
+  color: #2c3e50;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.chart-card canvas {
+  max-height: 200px !important;
+}
+
+@media (min-width: 1200px) {
+  .chart-card {
+    padding: 18px;
+  }
+  
+  .chart-card h3 {
+    font-size: 1rem;
+    margin-bottom: 12px;
+  }
+  
+  .chart-card canvas {
+    max-height: 220px !important;
+  }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+  .chart-card {
+    padding: 15px;
+  }
+  
+  .chart-card h3 {
+    font-size: 0.9rem;
+  }
+  
+  .chart-card canvas {
+    max-height: 180px !important;
+  }
+}
+
 /* Common responsive utilities */
 .mobile-only {
   display: none;
@@ -261,6 +327,15 @@
   
   .desktop-only {
     display: none;
+  }
+  
+  .charts-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+  
+  .chart-card canvas {
+    max-height: 250px !important;
   }
 }
 </style>
