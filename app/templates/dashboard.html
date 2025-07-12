@@ -120,7 +120,7 @@
                 <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                     <div class="flex items-center justify-between mb-4">
                         <h3 class="text-lg font-semibold text-gray-900">Purchase History</h3>
-                        <div class="text-sm text-gray-500">Last 5 Years</div>
+                        <div class="text-sm text-gray-500">Purchase Timeline</div>
                     </div>
                     <canvas id="yearlyChart" class="max-h-64"></canvas>
                 </div>
@@ -321,29 +321,31 @@
         });
         statusLegend.innerHTML = statusHTML;
         
-        // Yearly Purchase Chart (Last 5 Years)
+        // Yearly Purchase Chart (From First Purchase to Current Year)
         const tahunLabels = {{ tahun_labels|tojson }};
         const tahunValues = {{ tahun_values|tojson }};
         
-        // Get last 5 years data
+        // Get range from first purchase year to current year
         const currentYear = new Date().getFullYear();
-        const last5Years = [];
-        const last5YearValues = [];
+        const firstYear = tahunLabels.length > 0 ? Math.min(...tahunLabels.map(y => parseInt(y))) : currentYear;
         
-        for (let i = 4; i >= 0; i--) {
-            const year = (currentYear - i).toString();
-            const index = tahunLabels.indexOf(year);
-            last5Years.push(year);
-            last5YearValues.push(index >= 0 ? tahunValues[index] : 0);
+        const allYears = [];
+        const allYearValues = [];
+        
+        for (let year = firstYear; year <= currentYear; year++) {
+            const yearStr = year.toString();
+            const index = tahunLabels.indexOf(yearStr);
+            allYears.push(yearStr);
+            allYearValues.push(index >= 0 ? tahunValues[index] : 0);
         }
         
         new Chart(document.getElementById('yearlyChart'), {
             type: 'line',
             data: {
-                labels: last5Years,
+                labels: allYears,
                 datasets: [{
                     label: 'Assets Purchased',
-                    data: last5YearValues,
+                    data: allYearValues,
                     borderColor: '#3B82F6',
                     backgroundColor: 'rgba(59, 130, 246, 0.1)',
                     borderWidth: 3,
