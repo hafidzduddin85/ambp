@@ -116,13 +116,13 @@
                     </div>
                 </div>
 
-                <!-- Monthly Activity -->
+                <!-- Purchase History -->
                 <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                     <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-semibold text-gray-900">Monthly Activity</h3>
-                        <div class="text-sm text-gray-500">2024 Purchases</div>
+                        <h3 class="text-lg font-semibold text-gray-900">Purchase History</h3>
+                        <div class="text-sm text-gray-500">Last 5 Years</div>
                     </div>
-                    <canvas id="monthlyChart" class="max-h-64"></canvas>
+                    <canvas id="yearlyChart" class="max-h-64"></canvas>
                 </div>
             </div>
 
@@ -321,33 +321,38 @@
         });
         statusLegend.innerHTML = statusHTML;
         
-        // Monthly Chart
+        // Yearly Purchase Chart (Last 5 Years)
+        const tahunLabels = {{ tahun_labels|tojson }};
+        const tahunValues = {{ tahun_values|tojson }};
+        
+        // Get last 5 years data
         const currentYear = new Date().getFullYear();
-        const monthlyData = new Array(12).fill(0);
-        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const last5Years = [];
+        const last5YearValues = [];
         
-        assets.forEach(asset => {
-            const purchaseDate = asset['Purchase Date'];
-            if (purchaseDate) {
-                try {
-                    const date = new Date(purchaseDate);
-                    if (date.getFullYear() === currentYear) {
-                        monthlyData[date.getMonth()]++;
-                    }
-                } catch (e) {}
-            }
-        });
+        for (let i = 4; i >= 0; i--) {
+            const year = (currentYear - i).toString();
+            const index = tahunLabels.indexOf(year);
+            last5Years.push(year);
+            last5YearValues.push(index >= 0 ? tahunValues[index] : 0);
+        }
         
-        new Chart(document.getElementById('monthlyChart'), {
-            type: 'bar',
+        new Chart(document.getElementById('yearlyChart'), {
+            type: 'line',
             data: {
-                labels: monthNames,
+                labels: last5Years,
                 datasets: [{
                     label: 'Assets Purchased',
-                    data: monthlyData,
-                    backgroundColor: '#3B82F6',
-                    borderRadius: 6,
-                    borderSkipped: false
+                    data: last5YearValues,
+                    borderColor: '#3B82F6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#3B82F6',
+                    pointBorderColor: '#ffffff',
+                    pointBorderWidth: 2,
+                    pointRadius: 6
                 }]
             },
             options: {
