@@ -2,257 +2,326 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Asset Management Dashboard</title>
+    <title>Asset Dashboard</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="manifest" href="/static/manifest.json">
     <meta name="theme-color" content="#667eea">
     <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     {% include 'base_tailwind.html' %}
 </head>
-<body class="font-inter bg-gradient-to-br from-primary to-secondary min-h-screen">
-    <div class="max-w-8xl mx-auto p-2 md:p-3">
-        <!-- Header -->
-        <div class="glass rounded-2xl p-3 md:p-4 mb-3 text-center relative overflow-hidden gradient-border">
-            <h1 class="text-lg md:text-xl lg:text-2xl font-bold text-gray-800 mb-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-                <i class="fas fa-chart-line mr-2"></i>Asset Management Dashboard
-            </h1>
-            <p class="text-gray-600 font-medium mb-2 text-xs md:text-sm">Real-time monitoring and reporting system</p>
-            <a href="/home" class="inline-flex items-center px-4 py-2 bg-gradient-to-r from-primary to-secondary text-white rounded-lg font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300 text-sm">
-                <i class="fas fa-home mr-1"></i>Back to Home
-            </a>
-        </div>
-
-        <!-- Statistics Cards -->
-        <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-3">
-            <div class="glass rounded-lg p-2 md:p-3 text-center relative overflow-hidden hover:-translate-y-1 hover:scale-102 transition-all duration-300 border-t-2 border-blue-500">
-                <div class="text-xl md:text-2xl text-blue-500 mb-1">
-                    <i class="fas fa-boxes"></i>
+<body class="font-inter bg-gray-50 min-h-screen">
+    <!-- Top Bar -->
+    <div class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center space-x-4">
+                    <h1 class="text-xl font-bold text-gray-900">Asset Dashboard</h1>
+                    <div class="hidden sm:flex items-center space-x-2 text-sm text-gray-500">
+                        <i class="fas fa-clock"></i>
+                        <span id="currentTime"></span>
+                    </div>
                 </div>
-                <div class="text-lg md:text-xl font-bold text-blue-500 mb-1">{{ assets|length }}</div>
-                <div class="text-xs text-gray-600 font-semibold uppercase tracking-wide">Total Assets</div>
-            </div>
-            
-            <div class="glass rounded-lg p-2 md:p-3 text-center relative overflow-hidden hover:-translate-y-1 hover:scale-102 transition-all duration-300 border-t-2 border-green-500">
-                <div class="text-xl md:text-2xl text-green-500 mb-1">
-                    <i class="fas fa-check-circle"></i>
-                </div>
-                <div class="text-lg md:text-xl font-bold text-green-500 mb-1">{{ active_count }}</div>
-                <div class="text-xs text-gray-600 font-semibold uppercase tracking-wide">Active</div>
-            </div>
-            
-            <div class="glass rounded-lg p-2 md:p-3 text-center relative overflow-hidden hover:-translate-y-1 hover:scale-102 transition-all duration-300 border-t-2 border-yellow-500">
-                <div class="text-xl md:text-2xl text-yellow-500 mb-1">
-                    <i class="fas fa-tools"></i>
-                </div>
-                <div class="text-lg md:text-xl font-bold text-yellow-500 mb-1">{{ repair_count }}</div>
-                <div class="text-xs text-gray-600 font-semibold uppercase tracking-wide">Under Repair</div>
-            </div>
-            
-            <div class="glass rounded-lg p-2 md:p-3 text-center relative overflow-hidden hover:-translate-y-1 hover:scale-102 transition-all duration-300 border-t-2 border-red-500">
-                <div class="text-xl md:text-2xl text-red-500 mb-1">
-                    <i class="fas fa-trash"></i>
-                </div>
-                <div class="text-lg md:text-xl font-bold text-red-500 mb-1">{{ disposed_count }}</div>
-                <div class="text-xs text-gray-600 font-semibold uppercase tracking-wide">Disposed</div>
-            </div>
-        </div>
-
-        <!-- Controls -->
-        <div class="glass rounded-lg p-2 md:p-3 mb-3 relative overflow-hidden gradient-border">
-            <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-2">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2">
-                    <label class="font-semibold text-gray-800 flex items-center text-sm">
-                        <i class="fas fa-filter mr-1"></i>Filter Status:
-                    </label>
-                    <form method="get" action="/dashboard" class="inline">
-                        <select name="status" onchange="this.form.submit()" class="px-2 py-1 border-2 border-gray-200 rounded-md bg-white/80 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-xs">
-                            <option value="All" {% if selected_status == 'All' %}selected{% endif %}>All Assets</option>
-                            <option value="Active" {% if selected_status == 'Active' %}selected{% endif %}>Active</option>
-                            <option value="In Storage" {% if selected_status == 'In Storage' %}selected{% endif %}>In Storage</option>
-                            <option value="Under Repair" {% if selected_status == 'Under Repair' %}selected{% endif %}>Under Repair</option>
-                            <option value="To be Disposed" {% if selected_status == 'To be Disposed' %}selected{% endif %}>To be Disposed</option>
-                            <option value="Disposed" {% if selected_status == 'Disposed' %}selected{% endif %}>Disposed</option>
-                        </select>
-                    </form>
-                </div>
-                
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <form method="get" action="/export" class="inline">
-                        <input type="hidden" name="status" value="{{ selected_status }}">
-                        <button type="submit" class="px-2 py-1 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-md font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300 text-xs">
-                            <i class="fas fa-download mr-1"></i>Export
-                        </button>
-                    </form>
-                    {% if user and user.role == 'admin' %}
-                    <a href="/sync" class="px-2 py-1 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-md font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300 text-xs">
-                        <i class="fas fa-sync mr-1"></i>Sync
+                <div class="flex items-center space-x-3">
+                    <button onclick="refreshData()" class="p-2 text-gray-400 hover:text-gray-600 transition-colors">
+                        <i class="fas fa-sync-alt" id="refreshIcon"></i>
+                    </button>
+                    <a href="/home" class="px-3 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+                        <i class="fas fa-home mr-1"></i>Home
                     </a>
-                    {% endif %}
-                </div>
-            </div>
-            
-            <div class="mt-2">
-                <input type="text" id="searchBox" class="w-full px-2 py-1 border-2 border-gray-200 rounded-md bg-white/80 focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all duration-300 text-xs" placeholder="🔍 Search by name, category, type, location..." onkeyup="searchTable()">
-            </div>
-        </div>
-        
-        <!-- Mobile Tabs -->
-        <div class="lg:hidden glass rounded-lg p-2 mb-3">
-            <div class="flex gap-1">
-                <button class="flex-1 px-2 py-1 bg-primary text-white rounded-md font-semibold text-xs" onclick="showTab('charts')">📊 Charts</button>
-                <button class="flex-1 px-2 py-1 bg-gray-200 text-gray-700 rounded-md font-semibold text-xs" onclick="showTab('table')">📋 Table</button>
-            </div>
-        </div>
-
-        <!-- Charts Section -->
-        <div id="charts-tab" class="tab-content">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2 md:gap-3 mb-3">
-                <div class="glass rounded-lg p-2 md:p-3 relative overflow-hidden gradient-border hover:-translate-y-1 transition-all duration-300">
-                    <h3 class="text-xs font-bold text-gray-800 mb-2 flex items-center">
-                        <i class="fas fa-chart-bar mr-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></i>
-                        Assets by Category
-                    </h3>
-                    <div class="flex flex-col lg:flex-row gap-2">
-                        <canvas id="kategoriChart" class="max-h-20 flex-1"></canvas>
-                        <div id="kategoriInfo" class="text-xs space-y-1 lg:w-16"></div>
-                    </div>
-                </div>
-                
-                <div class="glass rounded-lg p-2 md:p-3 relative overflow-hidden gradient-border hover:-translate-y-1 transition-all duration-300">
-                    <h3 class="text-xs font-bold text-gray-800 mb-2 flex items-center">
-                        <i class="fas fa-chart-line mr-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></i>
-                        Monthly Purchases 2024
-                    </h3>
-                    <canvas id="monthlyChart" class="max-h-20"></canvas>
-                </div>
-                
-                <div class="glass rounded-lg p-2 md:p-3 relative overflow-hidden gradient-border hover:-translate-y-1 transition-all duration-300">
-                    <h3 class="text-xs font-bold text-gray-800 mb-2 flex items-center">
-                        <i class="fas fa-chart-pie mr-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></i>
-                        Status Distribution
-                    </h3>
-                    <div class="flex flex-col lg:flex-row gap-2">
-                        <canvas id="statusChart" class="max-h-20 flex-1"></canvas>
-                        <div id="statusInfo" class="text-xs space-y-1 lg:w-16"></div>
-                    </div>
-                </div>
-                
-                <div class="glass rounded-lg p-2 md:p-3 relative overflow-hidden gradient-border hover:-translate-y-1 transition-all duration-300">
-                    <h3 class="text-xs font-bold text-gray-800 mb-2 flex items-center">
-                        <i class="fas fa-dollar-sign mr-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></i>
-                        Asset Value
-                    </h3>
-                    <canvas id="valueChart" class="max-h-20"></canvas>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Table Section -->
-        <div id="table-tab" class="tab-content">
-            <div class="glass rounded-lg p-2 md:p-3 relative overflow-hidden gradient-border">
-                <h3 class="text-sm font-bold text-gray-800 mb-2 flex items-center">
-                    <i class="fas fa-table mr-1 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></i>
-                    Asset Details ({{ selected_status }})
-                </h3>
-                <div class="overflow-x-auto rounded-md">
-                    <table id="assetTable" class="w-full bg-white rounded-md overflow-hidden">
-                        <thead>
-                            {% if assets %}
-                            <tr class="bg-gradient-to-r from-primary to-secondary text-white">
-                                {% for key in assets[0].keys() %}
-                                    {% if key in ['ID', 'Item Name', 'Category', 'Type', 'Asset Tag', 'Company', 'Location', 'Status', 'Purchase Cost', 'Purchase Date'] %}
-                                        <th class="px-2 py-2 text-left text-xs font-bold uppercase tracking-wider">{{ key }}</th>
-                                    {% endif %}
-                                {% endfor %}
-                            </tr>
-                            {% else %}
-                            <tr><th class="px-2 py-4 text-center text-gray-500 text-xs" colspan="100%">No assets found for status "{{ selected_status }}"</th></tr>
-                            {% endif %}
-                        </thead>
-                        <tbody class="divide-y divide-gray-100">
-                            {% for row in assets %}
-                            <tr class="hover:bg-gray-50 transition-colors duration-200">
-                                {% for key, value in row.items() %}
-                                    {% if key in ['ID', 'Item Name', 'Category', 'Type', 'Asset Tag', 'Company', 'Location', 'Status', 'Purchase Cost', 'Purchase Date'] %}
-                                        <td class="px-2 py-2 text-xs text-gray-900">
-                                            {% if key == 'Status' %}
-                                                <span class="inline-flex px-1 py-0.5 text-xs font-semibold rounded-full 
-                                                    {% if value == 'Active' %}bg-green-100 text-green-800
-                                                    {% elif value == 'In Storage' %}bg-blue-100 text-blue-800
-                                                    {% elif value == 'Under Repair' %}bg-yellow-100 text-yellow-800
-                                                    {% elif value == 'To be Disposed' %}bg-red-100 text-red-800
-                                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                                    {{ value }}
-                                                </span>
-                                            {% elif key == 'Purchase Cost' and value %}
-                                                Rp {{ "{:,.0f}".format(value|float) if value|string|replace(',','')|replace('Rp','')|trim|float else '0' }}
-                                            {% else %}
-                                                {{ value }}
-                                            {% endif %}
-                                        </td>
-                                    {% endif %}
-                                {% endfor %}
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Scripts -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Total Assets</p>
+                        <p class="text-2xl font-bold text-gray-900">{{ assets|length }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-boxes text-blue-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Active</p>
+                        <p class="text-2xl font-bold text-green-600">{{ active_count }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Under Repair</p>
+                        <p class="text-2xl font-bold text-yellow-600">{{ repair_count }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-yellow-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-tools text-yellow-600"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Disposed</p>
+                        <p class="text-2xl font-bold text-red-600">{{ disposed_count }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center">
+                        <i class="fas fa-trash text-red-600"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Charts Column -->
+            <div class="lg:col-span-2 space-y-6">
+                <!-- Category & Status Row -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Assets by Category</h3>
+                            <div class="text-sm text-gray-500">{{ assets|length }} total</div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <canvas id="categoryChart" class="max-w-32 max-h-32"></canvas>
+                            <div id="categoryLegend" class="flex-1 space-y-2"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-lg font-semibold text-gray-900">Status Overview</h3>
+                            <div class="text-sm text-gray-500">Live status</div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <canvas id="statusChart" class="max-w-32 max-h-32"></canvas>
+                            <div id="statusLegend" class="flex-1 space-y-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Activity -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-lg font-semibold text-gray-900">Monthly Activity</h3>
+                        <div class="text-sm text-gray-500">2024 Purchases</div>
+                    </div>
+                    <canvas id="monthlyChart" class="max-h-64"></canvas>
+                </div>
+            </div>
+
+            <!-- Sidebar -->
+            <div class="space-y-6">
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
+                    <div class="space-y-3">
+                        <a href="/assets" class="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                            <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
+                                <i class="fas fa-list text-blue-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">View Assets</p>
+                                <p class="text-xs text-gray-500">Browse all assets</p>
+                            </div>
+                        </a>
+                        
+                        {% if user.role == 'admin' %}
+                        <a href="/input" class="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                            <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center group-hover:bg-green-200 transition-colors">
+                                <i class="fas fa-plus text-green-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">Add Asset</p>
+                                <p class="text-xs text-gray-500">Register new asset</p>
+                            </div>
+                        </a>
+                        
+                        <a href="/disposal" class="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                            <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center group-hover:bg-red-200 transition-colors">
+                                <i class="fas fa-trash text-red-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">Disposal</p>
+                                <p class="text-xs text-gray-500">Manage disposals</p>
+                            </div>
+                        </a>
+                        {% endif %}
+                        
+                        <a href="/relocate" class="flex items-center p-3 rounded-lg hover:bg-gray-50 transition-colors group">
+                            <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center group-hover:bg-purple-200 transition-colors">
+                                <i class="fas fa-exchange-alt text-purple-600"></i>
+                            </div>
+                            <div class="ml-3">
+                                <p class="text-sm font-medium text-gray-900">Relocate</p>
+                                <p class="text-xs text-gray-500">Move assets</p>
+                            </div>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Recent Activity -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">System Status</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span class="text-sm font-medium text-gray-900">Database</span>
+                            </div>
+                            <span class="text-xs text-green-600 font-medium">Online</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-2 h-2 bg-green-500 rounded-full mr-3"></div>
+                                <span class="text-sm font-medium text-gray-900">Google Sheets</span>
+                            </div>
+                            <span class="text-xs text-green-600 font-medium">Synced</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="w-2 h-2 bg-blue-500 rounded-full mr-3"></div>
+                                <span class="text-sm font-medium text-gray-900">Last Update</span>
+                            </div>
+                            <span class="text-xs text-blue-600 font-medium" id="lastUpdate">Just now</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export & Sync -->
+                <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                    <h3 class="text-lg font-semibold text-gray-900 mb-4">Data Management</h3>
+                    <div class="space-y-3">
+                        <a href="/export" class="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-download mr-2"></i>
+                            Export Data
+                        </a>
+                        
+                        {% if user.role == 'admin' %}
+                        <a href="/sync" class="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                            <i class="fas fa-sync mr-2"></i>
+                            Sync Assets
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
-        // Chart data
+        // Data
+        const assets = {{ assets|tojson }};
         const kategoriLabels = {{ kategori_labels|tojson }};
         const kategoriValues = {{ kategori_values|tojson }};
-        const assets = {{ assets|tojson }};
-        const totalAssets = assets.length;
         
-        // Color schemes
-        const colors = ['#3498db', '#e74c3c', '#f39c12', '#27ae60', '#9b59b6', '#1abc9c', '#34495e', '#e67e22'];
+        // Colors
+        const colors = ['#3B82F6', '#EF4444', '#F59E0B', '#10B981', '#8B5CF6', '#06B6D4', '#84CC16', '#F97316'];
         
-        // 1. Category Chart with Info
-        const categoryChart = new Chart(document.getElementById('kategoriChart'), {
+        // Update time
+        function updateTime() {
+            const now = new Date();
+            document.getElementById('currentTime').textContent = now.toLocaleTimeString('id-ID');
+            document.getElementById('lastUpdate').textContent = now.toLocaleTimeString('id-ID');
+        }
+        
+        // Category Chart
+        const categoryChart = new Chart(document.getElementById('categoryChart'), {
             type: 'doughnut',
             data: {
                 labels: kategoriLabels,
                 datasets: [{
                     data: kategoriValues,
                     backgroundColor: colors.slice(0, kategoriLabels.length),
-                    borderWidth: 1,
-                    borderColor: '#fff'
+                    borderWidth: 0
                 }]
             },
             options: {
                 responsive: true,
-                plugins: {
-                    legend: { display: false }
-                }
+                maintainAspectRatio: true,
+                plugins: { legend: { display: false } }
             }
         });
         
-        // Category Info Display
-        const categoryInfo = document.getElementById('kategoriInfo');
-        let categoryInfoHTML = '';
+        // Category Legend
+        const categoryLegend = document.getElementById('categoryLegend');
+        let categoryHTML = '';
         kategoriLabels.forEach((label, index) => {
-            const percentage = ((kategoriValues[index] / totalAssets) * 100).toFixed(1);
-            categoryInfoHTML += `
-                <div class="flex items-center gap-1">
-                    <div class="w-2 h-2 rounded-full" style="background-color: ${colors[index]}"></div>
-                    <div class="flex-1">
-                        <div class="font-semibold text-gray-800 text-xs">${label}</div>
-                        <div class="text-gray-600 text-xs">${percentage}%</div>
+            const percentage = ((kategoriValues[index] / assets.length) * 100).toFixed(1);
+            categoryHTML += `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 rounded-full mr-2" style="background-color: ${colors[index]}"></div>
+                        <span class="text-sm text-gray-700">${label}</span>
                     </div>
+                    <span class="text-sm font-medium text-gray-900">${percentage}%</span>
                 </div>
             `;
         });
-        categoryInfo.innerHTML = categoryInfoHTML;
-
-        // 2. Monthly Purchase Chart (Current Year)
+        categoryLegend.innerHTML = categoryHTML;
+        
+        // Status Chart
+        const statusData = {};
+        assets.forEach(asset => {
+            const status = asset.Status || 'Unknown';
+            statusData[status] = (statusData[status] || 0) + 1;
+        });
+        
+        const statusChart = new Chart(document.getElementById('statusChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(statusData),
+                datasets: [{
+                    data: Object.values(statusData),
+                    backgroundColor: ['#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { display: false } }
+            }
+        });
+        
+        // Status Legend
+        const statusLegend = document.getElementById('statusLegend');
+        const statusColors = ['#10B981', '#F59E0B', '#EF4444', '#3B82F6', '#8B5CF6'];
+        let statusHTML = '';
+        Object.keys(statusData).forEach((status, index) => {
+            const percentage = ((statusData[status] / assets.length) * 100).toFixed(1);
+            statusHTML += `
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 rounded-full mr-2" style="background-color: ${statusColors[index]}"></div>
+                        <span class="text-sm text-gray-700">${status}</span>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">${percentage}%</span>
+                </div>
+            `;
+        });
+        statusLegend.innerHTML = statusHTML;
+        
+        // Monthly Chart
         const currentYear = new Date().getFullYear();
         const monthlyData = new Array(12).fill(0);
         const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -274,10 +343,11 @@
             data: {
                 labels: monthNames,
                 datasets: [{
-                    label: 'Purchases',
+                    label: 'Assets Purchased',
                     data: monthlyData,
-                    backgroundColor: '#3498db',
-                    borderRadius: 2
+                    backgroundColor: '#3B82F6',
+                    borderRadius: 6,
+                    borderSkipped: false
                 }]
             },
             options: {
@@ -286,151 +356,30 @@
                     legend: { display: false }
                 },
                 scales: {
-                    y: { beginAtZero: true }
-                }
-            }
-        });
-
-        // 3. Status Chart with Info
-        const statusData = {};
-        assets.forEach(asset => {
-            const status = asset.Status || 'Unknown';
-            statusData[status] = (statusData[status] || 0) + 1;
-        });
-        
-        const statusChart = new Chart(document.getElementById('statusChart'), {
-            type: 'pie',
-            data: {
-                labels: Object.keys(statusData),
-                datasets: [{
-                    data: Object.values(statusData),
-                    backgroundColor: ['#27ae60', '#f39c12', '#e74c3c', '#3498db', '#9b59b6'],
-                    borderWidth: 1,
-                    borderColor: '#fff'
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                }
-            }
-        });
-        
-        // Status Info Display
-        const statusInfo = document.getElementById('statusInfo');
-        let statusInfoHTML = '';
-        const statusColors = ['#27ae60', '#f39c12', '#e74c3c', '#3498db', '#9b59b6'];
-        Object.keys(statusData).forEach((status, index) => {
-            const percentage = ((statusData[status] / totalAssets) * 100).toFixed(1);
-            statusInfoHTML += `
-                <div class="flex items-center gap-1">
-                    <div class="w-2 h-2 rounded-full" style="background-color: ${statusColors[index]}"></div>
-                    <div class="flex-1">
-                        <div class="font-semibold text-gray-800 text-xs">${status}</div>
-                        <div class="text-gray-600 text-xs">${percentage}%</div>
-                    </div>
-                </div>
-            `;
-        });
-        statusInfo.innerHTML = statusInfoHTML;
-
-        // 4. Value Chart with Smart Formatting
-        const categoryValues = {};
-        assets.forEach(asset => {
-            const category = asset.Category || 'Unknown';
-            const cost = parseFloat(String(asset['Purchase Cost'] || '0').replace(/[^0-9.-]+/g, '')) || 0;
-            categoryValues[category] = (categoryValues[category] || 0) + cost;
-        });
-        
-        // Smart value formatting
-        const maxValue = Math.max(...Object.values(categoryValues));
-        let unit = '';
-        let divisor = 1;
-        
-        if (maxValue >= 1000000000) {
-            unit = 'B';
-            divisor = 1000000000;
-        } else if (maxValue >= 1000000) {
-            unit = 'M';
-            divisor = 1000000;
-        } else if (maxValue >= 1000) {
-            unit = 'K';
-            divisor = 1000;
-        }
-        
-        const formattedValues = {};
-        Object.keys(categoryValues).forEach(key => {
-            formattedValues[key] = categoryValues[key] / divisor;
-        });
-
-        new Chart(document.getElementById('valueChart'), {
-            type: 'bar',
-            data: {
-                labels: Object.keys(formattedValues),
-                datasets: [{
-                    label: `Value (${unit} Rp)`,
-                    data: Object.values(formattedValues),
-                    backgroundColor: colors.slice(0, Object.keys(formattedValues).length),
-                    borderRadius: 2
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    legend: { display: false }
-                },
-                scales: {
-                    y: {
+                    y: { 
                         beginAtZero: true,
-                        ticks: {
-                            callback: function(value) {
-                                return value.toFixed(1) + unit;
-                            }
-                        }
+                        grid: { color: '#F3F4F6' }
+                    },
+                    x: {
+                        grid: { display: false }
                     }
                 }
             }
         });
         
-        function searchTable() {
-            const input = document.getElementById('searchBox');
-            const filter = input.value.toUpperCase().trim();
-            const table = document.getElementById('assetTable');
-            
-            if (!table) return;
-            
-            const tr = table.getElementsByTagName('tr');
-            let visibleCount = 0;
-
-            for (let i = 1; i < tr.length; i++) {
-                const row = tr[i];
-                let txtValue = row.textContent || row.innerText;
-                
-                if (filter === '' || txtValue.toUpperCase().indexOf(filter) > -1) {
-                    row.style.display = '';
-                    visibleCount++;
-                } else {
-                    row.style.display = 'none';
-                }
-            }
+        // Refresh function
+        function refreshData() {
+            const icon = document.getElementById('refreshIcon');
+            icon.classList.add('fa-spin');
+            setTimeout(() => {
+                icon.classList.remove('fa-spin');
+                updateTime();
+            }, 1000);
         }
-
-        function showTab(tabName) {
-            const buttons = document.querySelectorAll('.lg\\:hidden button');
-            buttons.forEach(btn => {
-                btn.classList.remove('bg-primary', 'text-white');
-                btn.classList.add('bg-gray-200', 'text-gray-700');
-            });
-            
-            event.target.classList.remove('bg-gray-200', 'text-gray-700');
-            event.target.classList.add('bg-primary', 'text-white');
-            
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.add('hidden');
-            });
-            document.getElementById(tabName + '-tab').classList.remove('hidden');
-        }
+        
+        // Initialize
+        updateTime();
+        setInterval(updateTime, 1000);
     </script>
 </body>
 </html>
