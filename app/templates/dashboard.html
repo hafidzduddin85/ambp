@@ -114,15 +114,18 @@
                         <i class="fas fa-chart-bar mr-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></i>
                         Assets by Category
                     </h3>
-                    <canvas id="kategoriChart" class="max-h-48"></canvas>
+                    <div class="flex flex-col lg:flex-row gap-3">
+                        <canvas id="kategoriChart" class="max-h-32 lg:max-h-28 flex-1"></canvas>
+                        <div id="kategoriInfo" class="text-xs space-y-1 lg:w-24"></div>
+                    </div>
                 </div>
                 
                 <div class="glass rounded-2xl p-4 md:p-5 relative overflow-hidden gradient-border hover:-translate-y-1 transition-all duration-300">
                     <h3 class="text-sm md:text-base font-bold text-gray-800 mb-3 flex items-center">
                         <i class="fas fa-chart-line mr-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></i>
-                        Purchase History
+                        Monthly Purchases 2024
                     </h3>
-                    <canvas id="tahunChart" class="max-h-48"></canvas>
+                    <canvas id="monthlyChart" class="max-h-32"></canvas>
                 </div>
                 
                 <div class="glass rounded-2xl p-4 md:p-5 relative overflow-hidden gradient-border hover:-translate-y-1 transition-all duration-300">
@@ -130,15 +133,18 @@
                         <i class="fas fa-chart-pie mr-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></i>
                         Status Distribution
                     </h3>
-                    <canvas id="statusChart" class="max-h-48"></canvas>
+                    <div class="flex flex-col lg:flex-row gap-3">
+                        <canvas id="statusChart" class="max-h-32 lg:max-h-28 flex-1"></canvas>
+                        <div id="statusInfo" class="text-xs space-y-1 lg:w-24"></div>
+                    </div>
                 </div>
                 
                 <div class="glass rounded-2xl p-4 md:p-5 relative overflow-hidden gradient-border hover:-translate-y-1 transition-all duration-300">
                     <h3 class="text-sm md:text-base font-bold text-gray-800 mb-3 flex items-center">
                         <i class="fas fa-dollar-sign mr-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent"></i>
-                        Asset Value (M Rp)
+                        Asset Value
                     </h3>
-                    <canvas id="valueChart" class="max-h-48"></canvas>
+                    <canvas id="valueChart" class="max-h-32"></canvas>
                 </div>
             </div>
         </div>
@@ -203,61 +209,133 @@
         // Chart data
         const kategoriLabels = {{ kategori_labels|tojson }};
         const kategoriValues = {{ kategori_values|tojson }};
-        const allTahunLabels = {{ tahun_labels|tojson }};
-        const allTahunValues = {{ tahun_values|tojson }};
         const assets = {{ assets|tojson }};
+        const totalAssets = assets.length;
         
         // Color schemes
-        const colors = ['#3498db', '#e74c3c', '#f39c12', '#27ae60', '#9b59b6', '#1abc9c'];
+        const colors = ['#3498db', '#e74c3c', '#f39c12', '#27ae60', '#9b59b6', '#1abc9c', '#34495e', '#e67e22'];
         
-        // Category Chart
-        new Chart(document.getElementById('kategoriChart'), {
+        // 1. Category Chart with Info
+        const categoryChart = new Chart(document.getElementById('kategoriChart'), {
             type: 'doughnut',
             data: {
                 labels: kategoriLabels,
                 datasets: [{
                     data: kategoriValues,
-                    backgroundColor: colors.slice(0, kategoriLabels.length)
+                    backgroundColor: colors.slice(0, kategoriLabels.length),
+                    borderWidth: 2,
+                    borderColor: '#fff'
                 }]
             },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
         });
+        
+        // Category Info Display
+        const categoryInfo = document.getElementById('kategoriInfo');
+        let categoryInfoHTML = '';
+        kategoriLabels.forEach((label, index) => {
+            const percentage = ((kategoriValues[index] / totalAssets) * 100).toFixed(1);
+            categoryInfoHTML += `
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full" style="background-color: ${colors[index]}"></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-gray-800">${label}</div>
+                        <div class="text-gray-600">${percentage}%</div>
+                    </div>
+                </div>
+            `;
+        });
+        categoryInfo.innerHTML = categoryInfoHTML;
 
-        // Year Chart
-        new Chart(document.getElementById('tahunChart'), {
-            type: 'line',
+        // 2. Monthly Purchase Chart (Current Year)
+        const currentYear = new Date().getFullYear();
+        const monthlyData = new Array(12).fill(0);
+        const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        
+        assets.forEach(asset => {
+            const purchaseDate = asset['Purchase Date'];
+            if (purchaseDate) {
+                try {
+                    const date = new Date(purchaseDate);
+                    if (date.getFullYear() === currentYear) {
+                        monthlyData[date.getMonth()]++;
+                    }
+                } catch (e) {}
+            }
+        });
+        
+        new Chart(document.getElementById('monthlyChart'), {
+            type: 'bar',
             data: {
-                labels: allTahunLabels,
+                labels: monthNames,
                 datasets: [{
-                    label: 'Assets',
-                    data: allTahunValues,
-                    borderColor: '#3498db',
-                    fill: false
+                    label: 'Purchases',
+                    data: monthlyData,
+                    backgroundColor: '#3498db',
+                    borderRadius: 4
                 }]
             },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true }
+                }
+            }
         });
 
-        // Status Chart
+        // 3. Status Chart with Info
         const statusData = {};
         assets.forEach(asset => {
             const status = asset.Status || 'Unknown';
             statusData[status] = (statusData[status] || 0) + 1;
         });
-
-        new Chart(document.getElementById('statusChart'), {
+        
+        const statusChart = new Chart(document.getElementById('statusChart'), {
             type: 'pie',
             data: {
                 labels: Object.keys(statusData),
                 datasets: [{
                     data: Object.values(statusData),
-                    backgroundColor: colors
+                    backgroundColor: ['#27ae60', '#f39c12', '#e74c3c', '#3498db', '#9b59b6'],
+                    borderWidth: 2,
+                    borderColor: '#fff'
                 }]
             },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                }
+            }
         });
+        
+        // Status Info Display
+        const statusInfo = document.getElementById('statusInfo');
+        let statusInfoHTML = '';
+        const statusColors = ['#27ae60', '#f39c12', '#e74c3c', '#3498db', '#9b59b6'];
+        Object.keys(statusData).forEach((status, index) => {
+            const percentage = ((statusData[status] / totalAssets) * 100).toFixed(1);
+            statusInfoHTML += `
+                <div class="flex items-center gap-2">
+                    <div class="w-3 h-3 rounded-full" style="background-color: ${statusColors[index]}"></div>
+                    <div class="flex-1">
+                        <div class="font-semibold text-gray-800">${status}</div>
+                        <div class="text-gray-600">${percentage}%</div>
+                    </div>
+                </div>
+            `;
+        });
+        statusInfo.innerHTML = statusInfoHTML;
 
-        // Value Chart
+        // 4. Value Chart with Smart Formatting
         const categoryValues = {};
         assets.forEach(asset => {
             const category = asset.Category || 'Unknown';
@@ -265,22 +343,54 @@
             categoryValues[category] = (categoryValues[category] || 0) + cost;
         });
         
-        const categoryValuesInMillions = {};
+        // Smart value formatting
+        const maxValue = Math.max(...Object.values(categoryValues));
+        let unit = '';
+        let divisor = 1;
+        
+        if (maxValue >= 1000000000) {
+            unit = 'B';
+            divisor = 1000000000;
+        } else if (maxValue >= 1000000) {
+            unit = 'M';
+            divisor = 1000000;
+        } else if (maxValue >= 1000) {
+            unit = 'K';
+            divisor = 1000;
+        }
+        
+        const formattedValues = {};
         Object.keys(categoryValues).forEach(key => {
-            categoryValuesInMillions[key] = categoryValues[key] / 1000000;
+            formattedValues[key] = categoryValues[key] / divisor;
         });
 
         new Chart(document.getElementById('valueChart'), {
             type: 'bar',
             data: {
-                labels: Object.keys(categoryValuesInMillions),
+                labels: Object.keys(formattedValues),
                 datasets: [{
-                    label: 'Value (M Rp)',
-                    data: Object.values(categoryValuesInMillions),
-                    backgroundColor: colors
+                    label: `Value (${unit} Rp)`,
+                    data: Object.values(formattedValues),
+                    backgroundColor: colors.slice(0, Object.keys(formattedValues).length),
+                    borderRadius: 4
                 }]
             },
-            options: { responsive: true }
+            options: {
+                responsive: true,
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        ticks: {
+                            callback: function(value) {
+                                return value.toFixed(1) + unit;
+                            }
+                        }
+                    }
+                }
+            }
         });
         
         function searchTable() {
