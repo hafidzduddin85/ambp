@@ -167,12 +167,17 @@ def append_asset(data: dict):
         if not ws: return
 
         # Add asset with empty calculated fields
+        purchase_date = data.get("purchase_date", "")
+        # Ensure date format without apostrophe prefix
+        if purchase_date and not purchase_date.startswith("="):
+            purchase_date = f"=DATE({purchase_date.split('-')[0]},{purchase_date.split('-')[1]},{purchase_date.split('-')[2]})"
+        
         row_data = [
             "", data.get("item_name", ""), data.get("category", ""), data.get("type", ""),
             data.get("manufacture", ""), data.get("model", ""), data.get("serial_number", ""),
             "", data.get("company", ""), data.get("bisnis_unit", ""),
             data.get("location", ""), data.get("room_location", ""), data.get("notes", "Input dari Web"),
-            data.get("condition", ""), data.get("purchase_date", ""), data.get("purchase_cost", ""),
+            data.get("condition", ""), purchase_date, data.get("purchase_cost", ""),
             data.get("warranty", "No"), data.get("supplier", ""), data.get("journal", ""),
             data.get("owner", ""), "", "", "", "", "", "Active", ""
         ]
@@ -235,7 +240,19 @@ def sync_assets_data():
 
             purchase_date = row_dict.get("Purchase Date", "")
             try:
-                year = datetime.strptime(purchase_date, "%Y-%m-%d").year if purchase_date else current_year
+                # Handle different date formats
+                if purchase_date:
+                    # Remove any apostrophe prefix
+                    clean_date = purchase_date.lstrip("'")
+                    # Try different date formats
+                    if "-" in clean_date:
+                        year = datetime.strptime(clean_date, "%Y-%m-%d").year
+                    elif "/" in clean_date:
+                        year = datetime.strptime(clean_date, "%m/%d/%Y").year
+                    else:
+                        year = int(clean_date[:4]) if len(clean_date) >= 4 else current_year
+                else:
+                    year = current_year
             except:
                 year = current_year
 
