@@ -1,4 +1,3 @@
-# app/utils/photo.py
 import io
 import os
 import json
@@ -45,20 +44,20 @@ def resize_and_convert_image(image_file, max_size=MAX_IMAGE_SIZE, quality=WEBP_Q
         return None
 
 def upload_to_drive(image_data, filename, asset_id):
-    """Upload image to Google Drive using resumable upload"""
+    """Upload image to Google Drive Shared Drive using resumable upload"""
     try:
         access_token = get_access_token()
         if not access_token:
             return None
         
-        # Use folder from environment variable
         folder_id = os.getenv("DRIVE_FOLDER_ID")
-        if not folder_id:
-            logging.error("DRIVE_FOLDER_ID not set in environment")
+        shared_drive_id = os.getenv("DRIVE_SHARED_ID")
+        if not folder_id or not shared_drive_id:
+            logging.error("Missing DRIVE_FOLDER_ID or DRIVE_SHARED_ID in environment")
             return None
 
         # Step 1: Initiate upload session
-        upload_url = _initiate_upload(access_token, filename, asset_id, image_data, folder_id)
+        upload_url = _initiate_upload(access_token, filename, asset_id, image_data, folder_id, shared_drive_id)
         if not upload_url:
             return None
 
@@ -70,21 +69,20 @@ def upload_to_drive(image_data, filename, asset_id):
         # Step 3: Set public permissions
         _set_public_permission(access_token, file_id)
 
-        # Return preview link for web display
+        # Return preview link
         return f"https://drive.google.com/thumbnail?id={file_id}&sz=w400-h300"
 
     except Exception as e:
         logging.error(f"Upload error: {e}")
         return None
 
-def _initiate_upload(access_token, filename, asset_id, image_data, folder_id):
+def _initiate_upload(access_token, filename, asset_id, image_data, folder_id, shared_drive_id):
     """Initiate resumable upload session"""
     file_metadata = {
-        'name': f"AMBP_{asset_id}_{filename}.webp"
+        'name': f"AMBP_{asset_id}_{filename}.webp",
+        'parents': [folder_id],
+        'driveId': shared_drive_id
     }
-    
-    if folder_id:
-        file_metadata['parents'] = [folder_id]
 
     headers = {
         'Authorization': f'Bearer {access_token}',
@@ -94,7 +92,7 @@ def _initiate_upload(access_token, filename, asset_id, image_data, folder_id):
     }
 
     response = requests.post(
-        'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable',
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&supportsAllDrives=true',
         headers=headers,
         json=file_metadata,
         timeout=30
@@ -131,7 +129,7 @@ def _set_public_permission(access_token, file_id):
     """Set file to public readable"""
     try:
         requests.post(
-            f"https://www.googleapis.com/drive/v3/files/{file_id}/permissions",
+            f"https://www.googleapis.com/drive/v3/files/{file_id}/permissions?supportsAllDrives=true",
             headers={
                 'Authorization': f'Bearer {access_token}',
                 'Content-Type': 'application/json'
@@ -141,49 +139,6 @@ def _set_public_permission(access_token, file_id):
         )
     except Exception as e:
         logging.error(f"Permission error: {e}")
-
-def get_or_create_folder(access_token, folder_name):
-    """Get or create folder in Google Drive"""
-    try:
-        # Search for existing folder
-        search_url = "https://www.googleapis.com/drive/v3/files"
-        params = {
-            'q': f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder'",
-            'fields': 'files(id, name)'
-        }
-        headers = {'Authorization': f'Bearer {access_token}'}
-        
-        response = requests.get(search_url, headers=headers, params=params, timeout=30)
-        
-        if response.status_code == 200:
-            folders = response.json().get('files', [])
-            if folders:
-                return folders[0]['id']
-        
-        # Create new folder
-        folder_metadata = {
-            'name': folder_name,
-            'mimeType': 'application/vnd.google-apps.folder'
-        }
-        
-        create_response = requests.post(
-            'https://www.googleapis.com/drive/v3/files',
-            headers={
-                'Authorization': f'Bearer {access_token}',
-                'Content-Type': 'application/json'
-            },
-            json=folder_metadata,
-            timeout=30
-        )
-        
-        if create_response.status_code == 200:
-            return create_response.json().get('id')
-        
-        return None
-        
-    except Exception as e:
-        logging.error(f"Folder creation error: {e}")
-        return None
 
 def delete_from_drive(image_url):
     """Delete image from Google Drive"""
@@ -200,7 +155,7 @@ def delete_from_drive(image_url):
             return False
 
         response = requests.delete(
-            f"https://www.googleapis.com/drive/v3/files/{file_id}",
+            f"https://www.googleapis.com/drive/v3/files/{file_id}?supportsAllDrives=true",
             headers={'Authorization': f'Bearer {access_token}'},
             timeout=30
         )
