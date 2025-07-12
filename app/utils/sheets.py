@@ -231,7 +231,7 @@ def sync_assets_data():
             updated_row = list(row)
 
             if "ID" in header_map:
-                updated_row[header_map["ID"]] = str(i + 1)
+                updated_row[header_map["ID"]] = str(i + 1).zfill(3)
 
             purchase_date = row_dict.get("Purchase Date", "")
             try:
@@ -269,7 +269,7 @@ def sync_assets_data():
 
             code_category = cat_ref.get("Code Category", "")
             if "Code Category" in header_map:
-                updated_row[header_map["Code Category"]] = code_category
+                updated_row[header_map["Code Category"]] = str(code_category).zfill(2) if code_category else ""
 
             company = row_dict.get("Company", "")
             code_company = ref_data["companies"].get(company, "")
@@ -279,7 +279,7 @@ def sync_assets_data():
             type_name = row_dict.get("Type", "")
             code_type = ref_data["types"].get((type_name, category), "")
             if "Code Type" in header_map:
-                updated_row[header_map["Code Type"]] = code_type
+                updated_row[header_map["Code Type"]] = str(code_type).zfill(2) if code_type else ""
 
             owner = row_dict.get("Owner", "")
             code_owner = ref_data["owners"].get(owner, "")
