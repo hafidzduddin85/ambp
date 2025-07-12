@@ -291,7 +291,7 @@ def sync_assets_data():
                 tracker[key] += 1
                 seq_num = str(tracker[key]).zfill(3)
                 year_2digit = str(year)[-2:]
-                asset_tag = f"{code_company}-{code_category}{code_type}.{code_owner}{year_2digit}.{seq_num}"
+                asset_tag = f"{code_company}-{str(code_category).zfill(2)}{str(code_type).zfill(2)}.{code_owner}{year_2digit}.{seq_num}"
                 if "Asset Tag" in header_map:
                     updated_row[header_map["Asset Tag"]] = asset_tag
 
