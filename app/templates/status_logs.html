@@ -2,223 +2,156 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Status Change Logs</title>
+  <title>Status Change Logs - Asset Management</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="manifest" href="/static/manifest.json">
-  <meta name="theme-color" content="#667eea">
+  <meta name="theme-color" content="#3B82F6">
   <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-    .container { max-width: 1400px; margin: 0 auto; }
-    .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-    .header h1 { color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px; }
-    .header .subtitle { color: #7f8c8d; font-size: 1.1rem; }
-    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: #3498db; color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; margin: 5px; transition: all 0.3s ease; }
-    .back-btn:hover { background: #2980b9; transform: translateY(-2px); }
-    .flash-messages { margin-bottom: 20px; }
-    .flash-message { padding: 15px 20px; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
-    .flash-success { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
-    .flash-error { background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24; border-left: 4px solid #dc3545; }
-    .logs-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-    .stats-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
-    .stat-card { background: linear-gradient(135deg, #f8f9fa, #e9ecef); border-radius: 15px; padding: 20px; text-align: center; }
-    .stat-card .number { font-size: 2rem; font-weight: bold; color: #3498db; }
-    .stat-card .label { color: #7f8c8d; font-size: 0.9rem; }
-    .search-box { width: 100%; max-width: 400px; padding: 12px 15px; border: 2px solid #e9ecef; border-radius: 10px; font-size: 14px; margin-bottom: 20px; }
-    .search-box:focus { outline: none; border-color: #3498db; box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1); }
-    .table-wrapper { overflow-x: auto; border-radius: 15px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; background: white; }
-    th, td { padding: 12px 10px; text-align: left; border-bottom: 1px solid #ecf0f1; }
-    th { background: linear-gradient(135deg, #fd7e14, #e67e22); color: white; font-weight: 600; position: sticky; top: 0; z-index: 10; }
-    tbody tr:hover { background: #f8f9fa; }
-    tbody tr:nth-child(even) { background: #fdfdfd; }
-    .timestamp { font-weight: 600; color: #2c3e50; }
-    .asset-id { background: #3498db; color: white; padding: 4px 8px; border-radius: 12px; font-size: 11px; font-weight: bold; }
-    .status-change { display: flex; align-items: center; gap: 8px; }
-    .status-old { color: #e74c3c; text-decoration: line-through; font-size: 11px; }
-    .status-new { color: #27ae60; font-weight: 600; font-size: 11px; }
-    .status-badge { padding: 4px 8px; border-radius: 12px; font-size: 10px; font-weight: bold; }
-    .status-active { background: #d4edda; color: #155724; }
-    .status-in-storage { background: #cce5ff; color: #004085; }
-    .status-under-repair { background: #fff3cd; color: #856404; }
-    .status-to-be-disposed { background: #f8d7da; color: #721c24; }
-    .status-disposed { background: #6c757d; color: #fff; }
-    .notes-cell { max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-    .notes-cell:hover { white-space: normal; overflow: visible; }
-    .no-logs { text-align: center; padding: 60px 20px; color: #7f8c8d; }
-    .no-logs i { font-size: 4rem; margin-bottom: 20px; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    @media (max-width: 768px) {
-      .container { padding: 10px; }
-      .header h1 { font-size: 2rem; }
-      .stats-row { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
-      th, td { padding: 8px 6px; font-size: 12px; }
-    }
-  </style>
+  {% include 'base_modern.html' %}
 </head>
-<body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <h1><i class="fas fa-toggle-on"></i> Status Change Logs</h1>
-      <p class="subtitle">Track all asset status modifications</p>
-      <div style="margin-top: 15px;">
-        <a href="/assets" class="back-btn">
-          <i class="fas fa-arrow-left"></i> Back to Assets
-        </a>
-        <a href="/dashboard" class="back-btn" style="background: #27ae60;">
-          <i class="fas fa-chart-pie"></i> Dashboard
-        </a>
-      </div>
-    </div>
-
-    <!-- Flash Messages -->
-    <div class="flash-messages">
-      {% if flash_messages %}
-        {% for message in flash_messages %}
-          <div class="flash-message flash-{{ message.category }}">
-            <i class="fas fa-{% if message.category == 'success' %}check-circle{% elif message.category == 'error' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
-            {{ message.message }}
-          </div>
-        {% endfor %}
-      {% endif %}
-    </div>
-
-    <!-- Logs Content -->
-    <div class="logs-card">
-      <!-- Statistics -->
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="number">{{ logs|length }}</div>
-          <div class="label">Total Changes</div>
+<body class="font-inter bg-gray-50 min-h-screen">
+  <!-- Top Bar -->
+  <div class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-4">
+          <h1 class="text-xl font-bold text-gray-900">Status Change Logs</h1>
+          <div class="text-sm text-gray-500">{{ logs|length }} status change records</div>
         </div>
-        <div class="stat-card">
-          <div class="number">{{ logs|selectattr('New Status', 'equalto', 'Active')|list|length if logs else 0 }}</div>
-          <div class="label">Set to Active</div>
-        </div>
-        <div class="stat-card">
-          <div class="number">{{ logs|selectattr('New Status', 'equalto', 'Under Repair')|list|length if logs else 0 }}</div>
-          <div class="label">Set to Repair</div>
-        </div>
-        <div class="stat-card">
-          <div class="number">{{ logs|selectattr('New Status', 'equalto', 'Disposed')|list|length if logs else 0 }}</div>
-          <div class="label">Set to Disposed</div>
-        </div>
-      </div>
-
-      <!-- Search -->
-      <div style="text-align: center; margin-bottom: 20px;">
-        <input type="text" id="searchBox" class="search-box" placeholder="🔍 Search logs by asset ID, name, status, or user...">
-      </div>
-
-      <!-- Logs Table -->
-      {% if logs %}
-        <div class="table-wrapper">
-          <table id="logsTable">
-            <thead>
-              <tr>
-                <th>Timestamp</th>
-                <th>Asset</th>
-                <th>Status Change</th>
-                <th>Changed By</th>
-                <th>Notes</th>
-                <th>Reason</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for log in logs %}
-                <tr>
-                  <td class="timestamp">{{ log.get('Timestamp', 'N/A') }}</td>
-                  <td>
-                    <div>
-                      <span class="asset-id">{{ log.get('Asset ID', 'N/A') }}</span>
-                    </div>
-                    <div style="margin-top: 4px; font-size: 12px; color: #7f8c8d;">
-                      {{ log.get('Asset Name', 'Unknown') }}
-                    </div>
-                  </td>
-                  <td>
-                    <div class="status-change">
-                      <span class="status-badge status-{{ log.get('Old Status', 'active').lower().replace(' ', '-') }}">
-                        {{ log.get('Old Status', 'N/A') }}
-                      </span>
-                      <i class="fas fa-arrow-right" style="color: #7f8c8d;"></i>
-                      <span class="status-badge status-{{ log.get('New Status', 'active').lower().replace(' ', '-') }}">
-                        {{ log.get('New Status', 'N/A') }}
-                      </span>
-                    </div>
-                  </td>
-                  <td>
-                    <i class="fas fa-user"></i> {{ log.get('Changed By', 'Unknown') }}
-                  </td>
-                  <td class="notes-cell" title="{{ log.get('Notes', '') }}">
-                    {{ log.get('Notes', '-') }}
-                  </td>
-                  <td style="font-size: 11px; color: #7f8c8d;">
-                    {{ log.get('Reason', 'N/A') }}
-                  </td>
-                </tr>
-              {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      {% else %}
-        <div class="no-logs">
-          <i class="fas fa-toggle-on"></i>
-          <h3>📋 No Status Change Logs Found</h3>
-          <p style="margin: 15px 0; line-height: 1.6;">Belum ada log perubahan status asset yang tercatat.</p>
-          <div style="background: linear-gradient(135deg, #e3f2fd, #bbdefb); padding: 20px; border-radius: 10px; margin: 20px 0; text-align: left;">
-            <h4 style="color: #1976d2; margin-bottom: 10px;"><i class="fas fa-info-circle"></i> Informasi:</h4>
-            <ul style="color: #2c3e50; margin: 0; padding-left: 20px;">
-              <li>Log akan muncul setelah Anda mengubah status asset pertama</li>
-              <li>Setiap perubahan status akan tercatat secara otomatis</li>
-              <li>Log mencakup: waktu, asset, status lama/baru, dan user yang mengubah</li>
-            </ul>
-          </div>
-          <a href="/assets" class="back-btn" style="margin-top: 20px; background: #fd7e14;">
-            <i class="fas fa-toggle-on"></i> Mulai Ubah Status Asset
+        <div class="flex items-center space-x-3">
+          <a href="/assets" class="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+            <i class="fas fa-list mr-1"></i>Back to Assets
+          </a>
+          <a href="/home" class="px-3 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+            <i class="fas fa-home mr-1"></i>Home
           </a>
         </div>
-      {% endif %}
+      </div>
     </div>
   </div>
 
-  <script>
-    // Search functionality
-    function searchLogs() {
-      const input = document.getElementById('searchBox');
-      const filter = input.value.toUpperCase();
-      const table = document.getElementById('logsTable');
-      
-      if (!table) return;
-      
-      const tr = table.getElementsByTagName('tr');
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    {% if logs %}
+    <!-- Desktop Table -->
+    <div class="hidden md:block bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead class="bg-gray-50 border-b border-gray-200">
+            <tr>
+              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asset</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">From Status</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">To Status</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Changed By</th>
+              <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Notes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-200">
+            {% for log in logs %}
+            <tr class="hover:bg-gray-50 transition-colors">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                {{ log.get('Timestamp', 'N/A')[:16] }}
+              </td>
+              <td class="px-6 py-4 text-sm">
+                <div class="font-medium text-gray-900">{{ log.get('Asset Name', 'N/A') }}</div>
+                <div class="text-gray-500">ID: {{ log.get('Asset ID', 'N/A') }}</div>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 py-1 text-xs font-medium rounded-full
+                  {% if log.get('Old Status') == 'Active' %}bg-green-100 text-green-800
+                  {% elif log.get('Old Status') == 'Under Repair' %}bg-yellow-100 text-yellow-800
+                  {% elif log.get('Old Status') == 'Disposed' %}bg-red-100 text-red-800
+                  {% else %}bg-gray-100 text-gray-800{% endif %}">
+                  {{ log.get('Old Status', 'N/A') }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span class="px-2 py-1 text-xs font-medium rounded-full
+                  {% if log.get('New Status') == 'Active' %}bg-green-100 text-green-800
+                  {% elif log.get('New Status') == 'Under Repair' %}bg-yellow-100 text-yellow-800
+                  {% elif log.get('New Status') == 'Disposed' %}bg-red-100 text-red-800
+                  {% else %}bg-gray-100 text-gray-800{% endif %}">
+                  {{ log.get('New Status', 'N/A') }}
+                </span>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{{ log.get('Changed By', 'N/A') }}</td>
+              <td class="px-6 py-4 text-sm text-gray-600 max-w-xs truncate">
+                {{ log.get('Notes', '-') }}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-      for (let i = 1; i < tr.length; i++) {
-        let txtValue = tr[i].textContent || tr[i].innerText;
-        if (txtValue.toUpperCase().indexOf(filter) > -1) {
-          tr[i].style.display = '';
-        } else {
-          tr[i].style.display = 'none';
-        }
-      }
-    }
+    <!-- Mobile Cards -->
+    <div class="md:hidden space-y-4">
+      {% for log in logs %}
+      <div class="bg-white rounded-xl p-4 shadow-sm border border-gray-200">
+        <div class="flex justify-between items-start mb-3">
+          <span class="text-xs text-gray-500">{{ log.get('Timestamp', 'N/A')[:10] }}</span>
+          <span class="px-2 py-1 text-xs font-medium rounded-full bg-blue-100 text-blue-800">
+            Status Changed
+          </span>
+        </div>
+        
+        <h4 class="font-semibold text-gray-900 mb-2">{{ log.get('Asset Name', 'Unknown Asset') }}</h4>
+        
+        <div class="space-y-2 text-sm text-gray-600 mb-4">
+          <div class="flex justify-between">
+            <span>Asset ID:</span>
+            <span class="font-medium">{{ log.get('Asset ID', 'N/A') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Changed By:</span>
+            <span class="font-medium">{{ log.get('Changed By', 'N/A') }}</span>
+          </div>
+        </div>
 
-    // Add search event listener
-    document.getElementById('searchBox')?.addEventListener('keyup', searchLogs);
+        <div class="bg-gray-50 rounded-lg p-3">
+          <div class="flex items-center justify-between text-sm">
+            <span class="px-2 py-1 text-xs font-medium rounded-full
+              {% if log.get('Old Status') == 'Active' %}bg-green-100 text-green-800
+              {% elif log.get('Old Status') == 'Under Repair' %}bg-yellow-100 text-yellow-800
+              {% elif log.get('Old Status') == 'Disposed' %}bg-red-100 text-red-800
+              {% else %}bg-gray-100 text-gray-800{% endif %}">
+              {{ log.get('Old Status', 'N/A') }}
+            </span>
+            <div class="px-2">
+              <i class="fas fa-arrow-right text-blue-600"></i>
+            </div>
+            <span class="px-2 py-1 text-xs font-medium rounded-full
+              {% if log.get('New Status') == 'Active' %}bg-green-100 text-green-800
+              {% elif log.get('New Status') == 'Under Repair' %}bg-yellow-100 text-yellow-800
+              {% elif log.get('New Status') == 'Disposed' %}bg-red-100 text-red-800
+              {% else %}bg-gray-100 text-gray-800{% endif %}">
+              {{ log.get('New Status', 'N/A') }}
+            </span>
+          </div>
+        </div>
 
-    // Auto-hide flash messages
-    document.addEventListener('DOMContentLoaded', function() {
-      const flashMessages = document.querySelectorAll('.flash-message');
-      flashMessages.forEach(message => {
-        setTimeout(() => {
-          message.style.opacity = '0';
-          setTimeout(() => message.remove(), 300);
-        }, 5000);
-      });
-    });
-  </script>
+        {% if log.get('Notes') %}
+        <div class="mt-3 p-3 bg-blue-50 rounded-lg">
+          <span class="font-medium text-blue-900">Notes:</span>
+          <p class="text-blue-800 mt-1 text-sm">{{ log.get('Notes') }}</p>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
+      <i class="fas fa-edit text-gray-400 text-4xl mb-4"></i>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">No Status Change Records</h3>
+      <p class="text-gray-600 mb-6">No asset status changes have been recorded yet. All status changes will be logged here.</p>
+      <a href="/assets" class="px-4 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition-colors">
+        <i class="fas fa-list mr-2"></i>Go to Assets
+      </a>
+    </div>
+    {% endif %}
+  </div>
 </body>
 </html>
