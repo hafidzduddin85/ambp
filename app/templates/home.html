@@ -179,9 +179,111 @@
       color: #2c3e50;
     }
 
-    @media (max-width: 768px) {
+    /* Large Desktop */
+    @media (min-width: 1200px) {
       .container {
-        padding: 0.5rem;
+        max-width: 1400px;
+        padding: 2rem;
+      }
+      
+      .profile-card {
+        padding: 3rem 2.5rem;
+      }
+      
+      .profile-card h2 {
+        font-size: 2.4rem;
+      }
+      
+      .logo-container img {
+        height: 85px;
+      }
+      
+      .profile-card img.avatar {
+        width: 110px;
+        height: 110px;
+      }
+      
+      .menu {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2rem;
+      }
+      
+      .menu a {
+        padding: 2.2rem;
+      }
+      
+      .menu a .material-icons {
+        font-size: 2.6rem;
+        margin-right: 1.4rem;
+      }
+      
+      .menu a span {
+        font-size: 1.3rem;
+      }
+    }
+    
+    /* Desktop */
+    @media (min-width: 992px) and (max-width: 1199px) {
+      .container {
+        max-width: 1200px;
+        padding: 1.5rem;
+      }
+      
+      .menu {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.8rem;
+      }
+      
+      .menu a {
+        padding: 2rem;
+      }
+    }
+    
+    /* Tablet */
+    @media (min-width: 769px) and (max-width: 991px) {
+      .container {
+        padding: 1.2rem;
+      }
+      
+      .profile-card {
+        padding: 2.2rem 1.8rem;
+      }
+      
+      .profile-card h2 {
+        font-size: 1.8rem;
+      }
+      
+      .logo-container img {
+        height: 65px;
+      }
+      
+      .profile-card img.avatar {
+        width: 80px;
+        height: 80px;
+      }
+      
+      .menu {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1.3rem;
+      }
+      
+      .menu a {
+        padding: 1.6rem;
+      }
+      
+      .menu a .material-icons {
+        font-size: 2.1rem;
+      }
+      
+      .menu a span {
+        font-size: 1.05rem;
+      }
+    }
+    
+    /* Mobile Large */
+    @media (min-width: 481px) and (max-width: 768px) {
+      .container {
+        padding: 0.8rem;
       }
       
       .profile-card {
@@ -199,13 +301,13 @@
       }
       
       .profile-card img.avatar {
-        width: 70px;
-        height: 70px;
+        width: 75px;
+        height: 75px;
       }
       
       .clock {
         font-size: 1rem;
-        padding: 0.8rem 1.2rem;
+        padding: 0.9rem 1.3rem;
       }
       
       .menu {
@@ -228,13 +330,37 @@
       }
     }
     
+    /* Mobile Small */
     @media (max-width: 480px) {
+      .container {
+        padding: 0.5rem;
+      }
+      
       .profile-card {
         padding: 1.5rem 1rem;
+        margin-bottom: 1rem;
       }
       
       .profile-card h2 {
         font-size: 1.4rem;
+      }
+      
+      .logo-container img {
+        height: 50px;
+      }
+      
+      .profile-card img.avatar {
+        width: 65px;
+        height: 65px;
+      }
+      
+      .clock {
+        font-size: 0.9rem;
+        padding: 0.7rem 1rem;
+      }
+      
+      .menu {
+        gap: 0.8rem;
       }
       
       .menu a {
@@ -243,6 +369,7 @@
       
       .menu a .material-icons {
         font-size: 1.8rem;
+        margin-right: 0.8rem;
       }
       
       .menu a span {
