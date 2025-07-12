@@ -67,22 +67,140 @@
     @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
     .mobile-card { display: none; }
     
+    /* Mobile Modern Design */
     @media (max-width: 768px) {
       .container { padding: 8px; }
-      .header { padding: 20px; margin-bottom: 20px; }
-      .header h1 { font-size: 1.8rem; }
-      .header .subtitle { font-size: 1rem; }
-      .controls { padding: 15px; margin-bottom: 20px; }
-      .controls-row { flex-direction: column; gap: 10px; }
-      .search-box { width: 100%; padding: 12px; font-size: 16px; }
-      .assets-grid { grid-template-columns: 1fr; gap: 12px; }
-      .asset-card { padding: 15px; border-radius: 15px; }
-      .asset-header { margin-bottom: 10px; }
-      .asset-name { font-size: 1.1rem; margin: 6px 0; }
-      .asset-details { font-size: 12px; margin-bottom: 12px; }
-      .asset-details .detail-row { margin: 4px 0; }
-      .asset-actions { gap: 4px; justify-content: center; }
-      .action-btn { padding: 6px 10px; font-size: 9px; }
+      .header { 
+        padding: 20px; 
+        margin-bottom: 15px; 
+        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
+        border-radius: 25px;
+        box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+      }
+      .header h1 { font-size: 1.6rem; margin-bottom: 8px; }
+      .header .subtitle { font-size: 0.9rem; }
+      
+      .controls { 
+        padding: 15px; 
+        margin-bottom: 15px; 
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
+      }
+      
+      .filter-group form {
+        flex-direction: column !important;
+        gap: 12px !important;
+        align-items: stretch !important;
+      }
+      
+      .filter-group select, .search-box { 
+        width: 100% !important; 
+        padding: 14px 16px; 
+        font-size: 15px; 
+        border-radius: 15px;
+        border: 2px solid #e9ecef;
+        background: rgba(255,255,255,0.9);
+        transition: all 0.3s ease;
+      }
+      
+      .filter-group select:focus, .search-box:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        background: white;
+      }
+      
+      .assets-grid { 
+        grid-template-columns: 1fr; 
+        gap: 12px; 
+      }
+      
+      .asset-card { 
+        padding: 18px; 
+        border-radius: 20px;
+        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
+        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+        border: 1px solid rgba(255,255,255,0.3);
+      }
+      
+      .asset-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
+      }
+      
+      .asset-header { 
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      
+      .asset-id {
+        background: linear-gradient(135deg, #667eea, #764ba2);
+        padding: 8px 14px;
+        border-radius: 20px;
+        font-size: 11px;
+        font-weight: 700;
+        color: white;
+      }
+      
+      .asset-status {
+        padding: 6px 12px;
+        border-radius: 18px;
+        font-size: 10px;
+        font-weight: 700;
+      }
+      
+      .asset-name { 
+        font-size: 1.2rem; 
+        margin: 8px 0;
+        font-weight: 700;
+        color: #2c3e50;
+      }
+      
+      .asset-details { 
+        font-size: 13px; 
+        margin-bottom: 15px;
+        background: rgba(248,249,250,0.8);
+        padding: 12px;
+        border-radius: 12px;
+      }
+      
+      .asset-details .detail-row { 
+        margin: 6px 0;
+        padding: 4px 0;
+      }
+      
+      .asset-details .label {
+        font-weight: 600;
+        color: #495057;
+        font-size: 12px;
+      }
+      
+      .asset-details .value {
+        font-weight: 500;
+        color: #2c3e50;
+        font-size: 12px;
+      }
+      
+      .asset-actions { 
+        gap: 8px; 
+        justify-content: center;
+        flex-wrap: wrap;
+      }
+      
+      .action-btn { 
+        padding: 10px 14px; 
+        font-size: 10px;
+        border-radius: 15px;
+        font-weight: 700;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      }
+      
+      .action-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+      }
+      
       .mobile-card { display: block; }
       .desktop-card { display: none; }
     }
@@ -130,8 +248,8 @@
     <!-- Controls -->
     <div class="controls">
       <div class="filter-group">
-        <label><strong><i class="fas fa-filter"></i> Filter:</strong></label>
-        <form method="get" action="/assets" style="display: flex; gap: 10px; align-items: center;">
+        <label><strong><i class="fas fa-filter"></i> Filters:</strong></label>
+        <form method="get" action="/assets" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
           <select name="status" onchange="this.form.submit()">
             <option value="All" {% if selected_status == 'All' %}selected{% endif %}>All Status</option>
             <option value="Active" {% if selected_status == 'Active' %}selected{% endif %}>Active</option>
@@ -140,7 +258,19 @@
             <option value="To be Disposed" {% if selected_status == 'To be Disposed' %}selected{% endif %}>To be Disposed</option>
             <option value="Disposed" {% if selected_status == 'Disposed' %}selected{% endif %}>Disposed</option>
           </select>
-          <input type="text" name="search" class="search-box" placeholder="🔍 Search by name, category, type, location..." value="{{ search_query }}" onchange="this.form.submit()">
+          <select name="location" id="locationFilter" onchange="handleLocationChange()">
+            <option value="All">All Locations</option>
+            {% for location in locations %}
+            <option value="{{ location }}" {% if selected_location == location %}selected{% endif %}>{{ location }}</option>
+            {% endfor %}
+          </select>
+          <select name="room" id="roomFilter" onchange="this.form.submit()" style="display: none;">
+            <option value="All">All Rooms</option>
+            {% for room in rooms %}
+            <option value="{{ room }}" {% if selected_room == room %}selected{% endif %}>{{ room }}</option>
+            {% endfor %}
+          </select>
+          <input type="text" name="search" class="search-box" placeholder="🔍 Search assets..." value="{{ search_query }}" onchange="this.form.submit()">
         </form>
       </div>
       
@@ -351,7 +481,33 @@
       
       // Initialize lazy loading
       lazyLoadImages();
+      
+      // Initialize room filter visibility
+      const roomSelect = document.getElementById('roomFilter');
+      const hasRooms = roomSelect.options.length > 1;
+      const locationSelected = document.getElementById('locationFilter').value !== 'All';
+      
+      if (hasRooms && locationSelected) {
+        roomSelect.style.display = 'block';
+      } else {
+        roomSelect.style.display = 'none';
+      }
     });
+    
+    function handleLocationChange() {
+      const locationSelect = document.getElementById('locationFilter');
+      const roomSelect = document.getElementById('roomFilter');
+      
+      if (locationSelect.value === 'All' || roomSelect.options.length <= 1) {
+        roomSelect.style.display = 'none';
+        roomSelect.value = 'All';
+      } else {
+        roomSelect.style.display = 'block';
+      }
+      
+      // Submit form
+      locationSelect.form.submit();
+    }
   </script>
 </body>
 </html>

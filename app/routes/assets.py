@@ -12,9 +12,17 @@ router = APIRouter()
 templates = Jinja2Templates(directory="app/templates")
 
 @router.get("/assets")
-def list_assets(request: Request, status: str = "All", search: str = "", user=Depends(get_current_user)):
+def list_assets(request: Request, status: str = "All", location: str = "All", room: str = "All", search: str = "", user=Depends(get_current_user)):
     try:
         assets = sheets.get_assets(status)
+        
+        # Location filter
+        if location != "All":
+            assets = [asset for asset in assets if asset.get('Location', '').strip() == location]
+        
+        # Room filter
+        if room != "All":
+            assets = [asset for asset in assets if asset.get('Room Location', '').strip() == room]
         
         # Enhanced search filter - focus on key fields
         if search:
@@ -49,13 +57,28 @@ def list_assets(request: Request, status: str = "All", search: str = "", user=De
             
             assets = filtered_assets
         
+        # Get unique locations and rooms for filter dropdowns
+        all_assets = sheets.get_assets("All")
+        locations = sorted(set(asset.get('Location', '').strip() for asset in all_assets if asset.get('Location', '').strip()))
+        
+        # Filter rooms based on selected location
+        if location != "All":
+            rooms = sorted(set(asset.get('Room Location', '').strip() for asset in all_assets 
+                             if asset.get('Location', '').strip() == location and asset.get('Room Location', '').strip()))
+        else:
+            rooms = []
+        
         flash_messages = get_flashed_messages(request)
         
         return templates.TemplateResponse("assets_list.html", {
             "request": request,
             "assets": assets,
             "selected_status": status,
+            "selected_location": location,
+            "selected_room": room,
             "search_query": search,
+            "locations": locations,
+            "rooms": rooms,
             "flash_messages": flash_messages,
             "user": user
         })
