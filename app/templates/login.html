@@ -9,287 +9,74 @@
   <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  {% include 'base_responsive.html' %}
-  <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
-      padding: 1rem;
-      overflow-x: hidden;
-    }
-
-    .login-container {
-      background: rgba(255, 255, 255, 0.95);
-      backdrop-filter: blur(20px);
-      padding: 3rem 2.5rem;
-      border-radius: 25px;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-      width: 100%;
-      max-width: 420px;
-      border: 1px solid rgba(255,255,255,0.2);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .login-container::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 4px;
-      background: linear-gradient(90deg, #667eea, #764ba2);
-    }
-
-    .logo-container {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .logo-container img {
-      height: 80px;
-      width: auto;
-      transition: transform 0.3s ease;
-    }
-
-    .logo-container img:hover {
-      transform: scale(1.05);
-    }
-
-    .login-header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    .login-header h1 {
-      font-size: 1.8rem;
-      font-weight: 700;
-      color: #2c3e50;
-      margin-bottom: 0.5rem;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-    }
-
-    .login-header p {
-      color: #6c757d;
-      font-size: 1rem;
-      font-weight: 500;
-    }
-
-    .input-group {
-      position: relative;
-      margin-bottom: 1.5rem;
-    }
-
-    .input-group input {
-      width: 100%;
-      padding: 1rem 1rem 1rem 3rem;
-      font-size: 1rem;
-      border: 2px solid #e9ecef;
-      border-radius: 15px;
-      box-sizing: border-box;
-      transition: all 0.3s ease;
-      background: rgba(255,255,255,0.8);
-      font-weight: 500;
-    }
-
-    .input-group input:focus {
-      border-color: #667eea;
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-      background: rgba(255,255,255,1);
-    }
-
-    .input-icon {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: #6c757d;
-      font-size: 1.1rem;
-      transition: color 0.3s ease;
-    }
-
-    .input-group input:focus + .input-icon {
-      color: #667eea;
-    }
-
-    .toggle-icon {
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      cursor: pointer;
-      color: #6c757d;
-      transition: all 0.3s ease;
-      font-size: 1.1rem;
-    }
-
-    .toggle-icon:hover {
-      color: #667eea;
-      transform: translateY(-50%) scale(1.1);
-    }
-
-    .remember-me {
-      display: flex;
-      align-items: center;
-      margin-bottom: 1.5rem;
-      font-size: 0.95rem;
-      color: #6c757d;
-      font-weight: 500;
-    }
-
-    .remember-me input {
-      margin-right: 0.8rem;
-      transform: scale(1.2);
-      accent-color: #667eea;
-    }
-
-    .error-message {
-      color: #dc3545;
-      background: linear-gradient(135deg, #ffebee, #ffcdd2);
-      border: 1px solid #f5c6cb;
-      padding: 1rem;
-      border-radius: 12px;
-      margin-bottom: 1.5rem;
-      font-size: 0.95rem;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-    }
-
-    .login-btn {
-      width: 100%;
-      padding: 1rem;
-      background: linear-gradient(135deg, #667eea, #764ba2);
-      color: white;
-      border: none;
-      border-radius: 15px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .login-btn::before {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-      transition: left 0.5s ease;
-    }
-
-    .login-btn:hover::before {
-      left: 100%;
-    }
-
-    .login-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 35px rgba(102, 126, 234, 0.4);
-    }
-
-    .login-btn:active {
-      transform: translateY(0);
-    }
-
-    @media (max-width: 480px) {
-      body {
-        padding: 0.5rem;
-      }
-
-      .login-container {
-        padding: 2rem 1.5rem;
-        border-radius: 20px;
-      }
-
-      .logo-container img {
-        height: 70px;
-      }
-
-      .login-header h1 {
-        font-size: 1.6rem;
-      }
-
-      .input-group input {
-        padding: 0.9rem 0.9rem 0.9rem 2.8rem;
-        font-size: 0.95rem;
-      }
-
-      .input-icon {
-        left: 0.9rem;
-        font-size: 1rem;
-      }
-
-      .toggle-icon {
-        right: 0.9rem;
-        font-size: 1rem;
-      }
-
-      .login-btn {
-        padding: 0.9rem;
-        font-size: 1rem;
-      }
-    }
-  </style>
+  {% include 'base_tailwind.html' %}
 </head>
-<body>
-  <div class="login-container">
-    <div class="logo-container">
-      <img src="/static/logo.png" alt="Company Logo">
+<body class="font-inter bg-gradient-to-br from-primary to-secondary min-h-screen flex items-center justify-center p-4 overflow-x-hidden">
+  <div class="glass rounded-3xl p-6 md:p-8 lg:p-10 w-full max-w-md relative overflow-hidden gradient-border">
+    <!-- Logo -->
+    <div class="text-center mb-6 md:mb-8">
+      <img src="/static/logo.png" alt="Company Logo" class="h-16 md:h-20 w-auto mx-auto transition-transform hover:scale-105">
     </div>
     
-    <div class="login-header">
-      <h1><i class="fas fa-shield-alt"></i> Asset Management</h1>
-      <p>Silakan login untuk mengakses sistem</p>
+    <!-- Header -->
+    <div class="text-center mb-6 md:mb-8">
+      <h1 class="text-2xl md:text-3xl font-bold text-gray-800 mb-2 bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+        <i class="fas fa-shield-alt mr-2"></i>Asset Management
+      </h1>
+      <p class="text-gray-600 font-medium">Silakan login untuk mengakses sistem</p>
     </div>
 
+    <!-- Error Message -->
     {% if error %}
-      <div class="error-message">
-        <i class="fas fa-exclamation-triangle"></i>
-        {{ error }}
-      </div>
+    <div class="bg-gradient-to-r from-red-50 to-red-100 border-l-4 border-red-500 p-4 mb-6 rounded-xl flex items-center animate-slide-in">
+      <i class="fas fa-exclamation-triangle text-red-600 mr-3"></i>
+      <span class="text-red-800 font-medium">{{ error }}</span>
+    </div>
     {% endif %}
 
-    <form method="post" action="/login">
-      <div class="input-group">
-        <input type="text" name="username" placeholder="Username" required>
-        <i class="fas fa-user input-icon"></i>
+    <!-- Login Form -->
+    <form method="post" action="/login" class="space-y-6">
+      <!-- Username -->
+      <div class="relative">
+        <input 
+          type="text" 
+          name="username" 
+          placeholder="Username" 
+          required
+          class="w-full pl-12 pr-4 py-3 md:py-4 border-2 border-gray-200 rounded-2xl bg-white/80 transition-all duration-300 focus:border-primary focus:ring-4 focus:ring-primary/10 focus:bg-white font-medium"
+        >
+        <i class="fas fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 transition-colors duration-300"></i>
       </div>
 
-      <div class="input-group">
-        <input type="password" name="password" id="password" placeholder="Password" required>
-        <i class="fas fa-lock input-icon"></i>
-        <span class="toggle-icon" onclick="togglePassword()">
+      <!-- Password -->
+      <div class="relative">
+        <input 
+          type="password" 
+          name="password" 
+          id="password" 
+          placeholder="Password" 
+          required
+          class="w-full pl-12 pr-12 py-3 md:py-4 border-2 border-gray-200 rounded-2xl bg-white/80 transition-all duration-300 focus:border-primary focus:ring-4 focus:ring-primary/10 focus:bg-white font-medium"
+        >
+        <i class="fas fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 transition-colors duration-300"></i>
+        <span class="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer text-gray-400 hover:text-primary transition-all duration-300 hover:scale-110" onclick="togglePassword()">
           <i id="toggleIcon" class="fas fa-eye-slash"></i>
         </span>
       </div>
 
-      <div class="remember-me">
-        <input type="checkbox" name="remember" id="remember">
-        <label for="remember">Remember Me</label>
+      <!-- Remember Me -->
+      <div class="flex items-center">
+        <input type="checkbox" name="remember" id="remember" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2">
+        <label for="remember" class="ml-3 text-gray-600 font-medium">Remember Me</label>
       </div>
 
-      <button type="submit" class="login-btn">
-        <i class="fas fa-sign-in-alt"></i> Login
+      <!-- Login Button -->
+      <button 
+        type="submit" 
+        class="w-full bg-gradient-to-r from-primary to-secondary text-white py-3 md:py-4 rounded-2xl font-semibold transition-all duration-300 hover:-translate-y-1 hover:shadow-xl shadow-lg relative overflow-hidden group"
+      >
+        <div class="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
+        <i class="fas fa-sign-in-alt mr-2"></i>Login
       </button>
     </form>
   </div>
@@ -308,9 +95,19 @@
 
     // Add loading state on form submit
     document.querySelector('form').addEventListener('submit', function() {
-      const btn = document.querySelector('.login-btn');
-      btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Logging in...';
+      const btn = document.querySelector('button[type="submit"]');
+      btn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Logging in...';
       btn.disabled = true;
+    });
+
+    // Focus effects for inputs
+    document.querySelectorAll('input').forEach(input => {
+      input.addEventListener('focus', function() {
+        this.previousElementSibling?.classList.add('text-primary');
+      });
+      input.addEventListener('blur', function() {
+        this.previousElementSibling?.classList.remove('text-primary');
+      });
     });
   </script>
 </body>
