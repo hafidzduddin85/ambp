@@ -10,6 +10,7 @@ from app.routes import (
     profile,
     sync,
     relocation,
+    disposal,
 )
 
 def create_app() -> FastAPI:
@@ -27,5 +28,6 @@ def create_app() -> FastAPI:
     app.include_router(profile.router)
     app.include_router(sync.router)
     app.include_router(relocation.router)
+    app.include_router(disposal.router)
 
     return app

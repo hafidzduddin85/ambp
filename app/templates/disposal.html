@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Asset Disposal</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  {% include 'base_tailwind.html' %}
+</head>
+<body class="font-inter bg-gradient-to-br from-primary to-secondary min-h-screen">
+  <div class="max-w-7xl mx-auto p-4 md:p-6">
+    <!-- Header -->
+    <div class="glass rounded-3xl p-6 md:p-8 mb-6 text-center relative overflow-hidden gradient-border">
+      <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 bg-gradient-to-r from-red-500 to-red-600 bg-clip-text text-transparent">
+        <i class="fas fa-trash-alt mr-3"></i>Asset Disposal
+      </h1>
+      <p class="text-gray-600 font-medium mb-4">Manage asset disposal and decommissioning</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/disposal/logs" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-purple-500 to-purple-600 text-white rounded-xl font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <i class="fas fa-history mr-2"></i>View Disposal Logs
+        </a>
+        <a href="/home" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <i class="fas fa-home mr-2"></i>Back to Home
+        </a>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% if flash_messages %}
+    <div class="mb-6">
+      {% for message in flash_messages %}
+      <div class="glass rounded-2xl p-4 mb-3 flex items-center animate-slide-in border-l-4 
+        {% if message.category == 'success' %}border-green-500 bg-green-50/50
+        {% elif message.category == 'error' %}border-red-500 bg-red-50/50
+        {% else %}border-blue-500 bg-blue-50/50{% endif %}">
+        <i class="fas fa-{% if message.category == 'success' %}check-circle text-green-600{% elif message.category == 'error' %}exclamation-triangle text-red-600{% else %}info-circle text-blue-600{% endif %} mr-3"></i>
+        <span class="{% if message.category == 'success' %}text-green-800{% elif message.category == 'error' %}text-red-800{% else %}text-blue-800{% endif %} font-medium">{{ message.message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Assets for Disposal -->
+    {% if assets %}
+    <div class="glass rounded-2xl p-6 md:p-8 mb-6 relative overflow-hidden gradient-border">
+      <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-6 flex items-center">
+        <i class="fas fa-exclamation-triangle mr-3 text-yellow-500"></i>
+        Assets Ready for Disposal ({{ assets|length }})
+      </h3>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+        {% for asset in assets %}
+        <div class="bg-white/90 rounded-2xl p-5 shadow-lg hover:shadow-xl transition-all duration-300 hover:-translate-y-1 border border-yellow-200">
+          <div class="flex justify-between items-start mb-4">
+            <span class="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full text-xs font-bold">
+              ID: {{ asset.get('ID', 'N/A') }}
+            </span>
+            <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">
+              {{ asset.get('Status', 'N/A') }}
+            </span>
+          </div>
+          
+          <h4 class="text-lg font-bold text-gray-800 mb-3">{{ asset.get('Item Name', 'Unknown Item') }}</h4>
+          
+          {% if asset.get('Photo URL') %}
+          <div class="mb-4 text-center">
+            <img 
+              src="{{ asset.get('Photo URL') }}" 
+              alt="Asset Photo" 
+              class="w-full max-w-32 h-20 object-cover rounded-lg shadow-md mx-auto cursor-pointer hover:scale-105 transition-transform"
+              loading="lazy"
+              onerror="this.src='{{ asset.get('Photo URL').replace('thumbnail', 'uc') }}'"
+              onclick="window.open('https://drive.google.com/file/d/{{ asset.get('Photo URL').split('id=')[1].split('&')[0] }}/view', '_blank')"
+            >
+          </div>
+          {% endif %}
+          
+          <div class="space-y-2 text-sm text-gray-600 mb-4">
+            <div class="flex justify-between">
+              <span class="font-medium">Category:</span>
+              <span>{{ asset.get('Category', 'N/A') }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium">Asset Tag:</span>
+              <span>{{ asset.get('Asset Tag', 'N/A') }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium">Location:</span>
+              <span>{{ asset.get('Location', 'N/A') }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium">Purchase Cost:</span>
+              <span>Rp {{ "{:,.0f}".format(asset.get('Purchase Cost', 0)|float) if asset.get('Purchase Cost') else 'N/A' }}</span>
+            </div>
+          </div>
+          
+          <button 
+            onclick="openDisposalModal('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')"
+            class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-4 rounded-xl font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300"
+          >
+            <i class="fas fa-trash mr-2"></i>Dispose Asset
+          </button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="glass rounded-2xl p-8 md:p-12 text-center">
+      <div class="text-6xl text-gray-400 mb-4">
+        <i class="fas fa-check-circle"></i>
+      </div>
+      <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-3">No Assets for Disposal</h3>
+      <p class="text-gray-600 mb-6">All assets are currently in good condition. No disposal required at this time.</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/assets" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <i class="fas fa-list mr-2"></i>View All Assets
+        </a>
+        <a href="/dashboard" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-xl font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <i class="fas fa-chart-pie mr-2"></i>Dashboard
+        </a>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Disposal Modal -->
+  <div id="disposalModal" class="fixed inset-0 bg-black/50 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-3xl p-6 md:p-8 w-full max-w-md animate-modal-in">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-xl font-bold text-gray-800 flex items-center">
+          <i class="fas fa-trash-alt mr-3 text-red-500"></i>Dispose Asset
+        </h3>
+        <button onclick="closeDisposalModal()" class="text-gray-400 hover:text-gray-600 text-2xl">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      
+      <form method="post" id="disposalForm" class="space-y-4">
+        <div class="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+          <p class="text-red-800 font-medium">
+            <i class="fas fa-exclamation-triangle mr-2"></i>
+            Asset: <span id="modalAssetName" class="font-bold"></span>
+          </p>
+          <p class="text-red-600 text-sm mt-1">This action cannot be undone!</p>
+        </div>
+        
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-cog mr-2"></i>Disposal Method
+          </label>
+          <select name="disposal_method" required class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all duration-300">
+            <option value="">-- Select Method --</option>
+            <option value="Sold">Sold</option>
+            <option value="Donated">Donated</option>
+            <option value="Recycled">Recycled</option>
+            <option value="Destroyed">Destroyed</option>
+            <option value="Returned to Vendor">Returned to Vendor</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-dollar-sign mr-2"></i>Disposal Value (Rp)
+          </label>
+          <input type="number" name="disposal_value" min="0" step="1000" placeholder="0" class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all duration-300">
+        </div>
+
+        <div>
+          <label class="block text-sm font-semibold text-gray-700 mb-2">
+            <i class="fas fa-sticky-note mr-2"></i>Notes (Optional)
+          </label>
+          <textarea name="notes" rows="3" placeholder="Reason for disposal, condition, etc..." class="w-full px-4 py-3 border-2 border-gray-200 rounded-xl bg-white focus:border-red-500 focus:ring-4 focus:ring-red-500/10 transition-all duration-300 resize-none"></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-gradient-to-r from-red-500 to-red-600 text-white py-3 px-4 rounded-xl font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <i class="fas fa-check mr-2"></i>Confirm Disposal
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function openDisposalModal(assetId, assetName) {
+      document.getElementById('modalAssetName').textContent = assetName;
+      document.getElementById('disposalForm').action = `/disposal/${assetId}/dispose`;
+      document.getElementById('disposalModal').classList.remove('hidden');
+      document.getElementById('disposalModal').classList.add('flex');
+    }
+
+    function closeDisposalModal() {
+      document.getElementById('disposalModal').classList.add('hidden');
+      document.getElementById('disposalModal').classList.remove('flex');
+    }
+
+    // Close modal when clicking outside
+    document.getElementById('disposalModal').addEventListener('click', function(e) {
+      if (e.target === this) {
+        closeDisposalModal();
+      }
+    });
+
+    // Auto-hide flash messages
+    document.addEventListener('DOMContentLoaded', function() {
+      const flashMessages = document.querySelectorAll('.animate-slide-in');
+      flashMessages.forEach(message => {
+        setTimeout(() => {
+          message.style.opacity = '0';
+          setTimeout(() => message.remove(), 300);
+        }, 5000);
+      });
+    });
+  </script>
+</body>
+</html>

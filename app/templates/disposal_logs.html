@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Disposal Logs</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="/static/manifest.json">
+  <meta name="theme-color" content="#667eea">
+  <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  {% include 'base_tailwind.html' %}
+</head>
+<body class="font-inter bg-gradient-to-br from-primary to-secondary min-h-screen">
+  <div class="max-w-7xl mx-auto p-4 md:p-6">
+    <!-- Header -->
+    <div class="glass rounded-3xl p-6 md:p-8 mb-6 text-center relative overflow-hidden gradient-border">
+      <h1 class="text-2xl md:text-3xl lg:text-4xl font-bold text-gray-800 mb-2 bg-gradient-to-r from-purple-500 to-purple-600 bg-clip-text text-transparent">
+        <i class="fas fa-history mr-3"></i>Disposal Logs
+      </h1>
+      <p class="text-gray-600 font-medium mb-4">Complete history of asset disposals</p>
+      <div class="flex flex-col sm:flex-row gap-3 justify-center">
+        <a href="/disposal" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <i class="fas fa-trash-alt mr-2"></i>Back to Disposal
+        </a>
+        <a href="/home" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-primary to-secondary text-white rounded-xl font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+          <i class="fas fa-home mr-2"></i>Home
+        </a>
+      </div>
+    </div>
+
+    <!-- Flash Messages -->
+    {% if flash_messages %}
+    <div class="mb-6">
+      {% for message in flash_messages %}
+      <div class="glass rounded-2xl p-4 mb-3 flex items-center animate-slide-in border-l-4 
+        {% if message.category == 'success' %}border-green-500 bg-green-50/50
+        {% elif message.category == 'error' %}border-red-500 bg-red-50/50
+        {% else %}border-blue-500 bg-blue-50/50{% endif %}">
+        <i class="fas fa-{% if message.category == 'success' %}check-circle text-green-600{% elif message.category == 'error' %}exclamation-triangle text-red-600{% else %}info-circle text-blue-600{% endif %} mr-3"></i>
+        <span class="{% if message.category == 'success' %}text-green-800{% elif message.category == 'error' %}text-red-800{% else %}text-blue-800{% endif %} font-medium">{{ message.message }}</span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    <!-- Disposal Logs -->
+    {% if logs %}
+    <div class="glass rounded-2xl p-6 md:p-8 relative overflow-hidden gradient-border">
+      <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-6 flex items-center">
+        <i class="fas fa-list mr-3 bg-gradient-to-r from-purple-500 to-purple-600 bg-clip-text text-transparent"></i>
+        Disposal History ({{ logs|length }} records)
+      </h3>
+      
+      <!-- Desktop Table -->
+      <div class="hidden md:block overflow-x-auto rounded-xl">
+        <table class="w-full bg-white rounded-xl overflow-hidden">
+          <thead>
+            <tr class="bg-gradient-to-r from-purple-500 to-purple-600 text-white">
+              <th class="px-4 py-4 text-left text-sm font-bold uppercase tracking-wider">Date</th>
+              <th class="px-4 py-4 text-left text-sm font-bold uppercase tracking-wider">Asset</th>
+              <th class="px-4 py-4 text-left text-sm font-bold uppercase tracking-wider">Method</th>
+              <th class="px-4 py-4 text-left text-sm font-bold uppercase tracking-wider">Value</th>
+              <th class="px-4 py-4 text-left text-sm font-bold uppercase tracking-wider">Disposed By</th>
+              <th class="px-4 py-4 text-left text-sm font-bold uppercase tracking-wider">Notes</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+            {% for log in logs %}
+            <tr class="hover:bg-gray-50 transition-colors duration-200">
+              <td class="px-4 py-4 text-sm text-gray-900">
+                {{ log.get('Timestamp', 'N/A')[:16] }}
+              </td>
+              <td class="px-4 py-4 text-sm">
+                <div class="font-semibold text-gray-900">{{ log.get('Asset Name', 'N/A') }}</div>
+                <div class="text-gray-500">ID: {{ log.get('Asset ID', 'N/A') }}</div>
+              </td>
+              <td class="px-4 py-4 text-sm">
+                <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+                  {% if log.get('Disposal Method') == 'Sold' %}bg-green-100 text-green-800
+                  {% elif log.get('Disposal Method') == 'Donated' %}bg-blue-100 text-blue-800
+                  {% elif log.get('Disposal Method') == 'Recycled' %}bg-yellow-100 text-yellow-800
+                  {% elif log.get('Disposal Method') == 'Destroyed' %}bg-red-100 text-red-800
+                  {% else %}bg-gray-100 text-gray-800{% endif %}">
+                  {{ log.get('Disposal Method', 'N/A') }}
+                </span>
+              </td>
+              <td class="px-4 py-4 text-sm text-gray-900">
+                {% if log.get('Disposal Value') and log.get('Disposal Value') != '0' %}
+                  Rp {{ "{:,.0f}".format(log.get('Disposal Value')|float) }}
+                {% else %}
+                  -
+                {% endif %}
+              </td>
+              <td class="px-4 py-4 text-sm text-gray-900">{{ log.get('Disposed By', 'N/A') }}</td>
+              <td class="px-4 py-4 text-sm text-gray-600">
+                {{ log.get('Notes', '-')[:50] }}{% if log.get('Notes', '') and log.get('Notes')|length > 50 %}...{% endif %}
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Cards -->
+      <div class="md:hidden space-y-4">
+        {% for log in logs %}
+        <div class="bg-white/90 rounded-2xl p-5 shadow-lg border border-purple-200">
+          <div class="flex justify-between items-start mb-3">
+            <span class="bg-gradient-to-r from-purple-500 to-purple-600 text-white px-3 py-1 rounded-full text-xs font-bold">
+              {{ log.get('Timestamp', 'N/A')[:10] }}
+            </span>
+            <span class="inline-flex px-2 py-1 text-xs font-semibold rounded-full
+              {% if log.get('Disposal Method') == 'Sold' %}bg-green-100 text-green-800
+              {% elif log.get('Disposal Method') == 'Donated' %}bg-blue-100 text-blue-800
+              {% elif log.get('Disposal Method') == 'Recycled' %}bg-yellow-100 text-yellow-800
+              {% elif log.get('Disposal Method') == 'Destroyed' %}bg-red-100 text-red-800
+              {% else %}bg-gray-100 text-gray-800{% endif %}">
+              {{ log.get('Disposal Method', 'N/A') }}
+            </span>
+          </div>
+          
+          <h4 class="text-lg font-bold text-gray-800 mb-2">{{ log.get('Asset Name', 'Unknown Asset') }}</h4>
+          
+          <div class="space-y-2 text-sm text-gray-600">
+            <div class="flex justify-between">
+              <span class="font-medium">Asset ID:</span>
+              <span>{{ log.get('Asset ID', 'N/A') }}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium">Disposal Value:</span>
+              <span>
+                {% if log.get('Disposal Value') and log.get('Disposal Value') != '0' %}
+                  Rp {{ "{:,.0f}".format(log.get('Disposal Value')|float) }}
+                {% else %}
+                  -
+                {% endif %}
+              </span>
+            </div>
+            <div class="flex justify-between">
+              <span class="font-medium">Disposed By:</span>
+              <span>{{ log.get('Disposed By', 'N/A') }}</span>
+            </div>
+            {% if log.get('Notes') %}
+            <div class="mt-3 p-3 bg-gray-50 rounded-lg">
+              <span class="font-medium text-gray-700">Notes:</span>
+              <p class="text-gray-600 mt-1">{{ log.get('Notes') }}</p>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    {% else %}
+    <div class="glass rounded-2xl p-8 md:p-12 text-center">
+      <div class="text-6xl text-gray-400 mb-4">
+        <i class="fas fa-clipboard-list"></i>
+      </div>
+      <h3 class="text-xl md:text-2xl font-bold text-gray-800 mb-3">No Disposal Records</h3>
+      <p class="text-gray-600 mb-6">No assets have been disposed yet. All disposal activities will be logged here.</p>
+      <a href="/disposal" class="inline-flex items-center px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-semibold hover:-translate-y-1 hover:shadow-lg transition-all duration-300">
+        <i class="fas fa-trash-alt mr-2"></i>Go to Disposal
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <script>
+    // Auto-hide flash messages
+    document.addEventListener('DOMContentLoaded', function() {
+      const flashMessages = document.querySelectorAll('.animate-slide-in');
+      flashMessages.forEach(message => {
+        setTimeout(() => {
+          message.style.opacity = '0';
+          setTimeout(() => message.remove(), 300);
+        }, 5000);
+      });
+    });
+  </script>
+</body>
+</html>
