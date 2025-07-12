@@ -197,7 +197,7 @@ def log_status_change(asset_id: str, asset_name: str, old_status: str, new_statu
                      changed_by: str, notes: str = ""):
     """Log status change to Google Sheets"""
     try:
-        from datetime import datetime
+        from datetime import datetime, timezone
         
         log_ws = sheets.get_worksheet("Log_Status")
         if not log_ws:
@@ -213,7 +213,7 @@ def log_status_change(asset_id: str, asset_name: str, old_status: str, new_statu
         
         # Add log entry
         log_entry = [
-            datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S"),
             asset_id,
             asset_name,
             old_status,

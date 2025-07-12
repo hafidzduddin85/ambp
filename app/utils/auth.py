@@ -1,12 +1,11 @@
 # app/utils/auth.py
 
 import os
-from jose import jwt
-from datetime import datetime, timedelta
+from jose import jwt, JWTError
+from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict
 
 from passlib.context import CryptContext
-from jwt import PyJWTError
 
 # Konfigurasi token
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
@@ -28,7 +27,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     Generate JWT token dari data user.
     """
     to_encode = data.copy()
-    expire = datetime.utcnow() + (expires_delta or timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS))
+    expire = datetime.now(timezone.utc) + (expires_delta or timedelta(hours=ACCESS_TOKEN_EXPIRE_HOURS))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
@@ -39,7 +38,7 @@ def verify_token(token: str) -> Optional[Dict]:
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         return payload
-    except PyJWTError:
+    except JWTError:
         return None
 
 # ========================
