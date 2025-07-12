@@ -2,255 +2,57 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Assets Management</title>
+  <title>Assets - Asset Management</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <link rel="manifest" href="/static/manifest.json">
-  <meta name="theme-color" content="#667eea">
+  <meta name="theme-color" content="#3B82F6">
   <link rel="icon" href="/static/icon-192.png" sizes="192x192" type="image/png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  {% include 'base_responsive.html' %}
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
-    .container { max-width: 1400px; margin: 0 auto; }
-    .header { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 30px; margin-bottom: 30px; text-align: center; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-    .header h1 { color: #2c3e50; font-size: 2.5rem; margin-bottom: 10px; }
-    .header .subtitle { color: #7f8c8d; font-size: 1.1rem; }
-    .back-btn { display: inline-flex; align-items: center; gap: 8px; background: #3498db; color: white; padding: 12px 20px; border-radius: 10px; text-decoration: none; margin: 5px; transition: all 0.3s ease; }
-    .back-btn:hover { background: #2980b9; transform: translateY(-2px); }
-    .flash-messages { margin-bottom: 20px; }
-    .flash-message { padding: 15px 20px; margin: 10px 0; border-radius: 10px; display: flex; align-items: center; gap: 10px; animation: slideIn 0.3s ease; }
-    .flash-success { background: linear-gradient(135deg, #d4edda, #c3e6cb); color: #155724; border-left: 4px solid #28a745; }
-    .flash-error { background: linear-gradient(135deg, #f8d7da, #f5c6cb); color: #721c24; border-left: 4px solid #dc3545; }
-    .controls { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 15px; padding: 20px; margin-bottom: 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); }
-    .filter-group { display: flex; align-items: center; gap: 10px; }
-    .filter-group select, .search-box { padding: 10px 15px; border: 2px solid #e9ecef; border-radius: 8px; font-size: 14px; }
-    .search-box { width: 300px; }
-    .search-box:focus { outline: none; border-color: #3498db; }
-    .btn { background: #3498db; color: white; padding: 10px 15px; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
-    .btn:hover { background: #2980b9; transform: translateY(-2px); }
-    .btn-success { background: #27ae60; }
-    .btn-success:hover { background: #229954; }
-    .assets-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 15px; }
-    .asset-card { background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); border-radius: 20px; padding: 20px; box-shadow: 0 8px 32px rgba(0,0,0,0.1); transition: all 0.3s ease; position: relative; overflow: hidden; }
-    .asset-card:hover { transform: translateY(-3px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
-    .asset-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: linear-gradient(90deg, #3498db, #2980b9); }
-    .asset-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-    .asset-id { background: linear-gradient(135deg, #3498db, #2980b9); color: white; padding: 6px 12px; border-radius: 15px; font-size: 11px; font-weight: bold; }
-    .asset-status { padding: 5px 10px; border-radius: 15px; font-size: 10px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.5px; }
-    .status-active { background: #d4edda; color: #155724; }
-    .status-in-storage { background: #cce5ff; color: #004085; }
-    .status-under-repair { background: #fff3cd; color: #856404; }
-    .status-to-be-disposed { background: #f8d7da; color: #721c24; }
-    .status-disposed { background: #6c757d; color: #fff; }
-    .asset-name { font-size: 1.2rem; font-weight: 700; color: #2c3e50; margin: 8px 0; line-height: 1.3; }
-    .asset-details { color: #6c757d; font-size: 13px; line-height: 1.5; margin-bottom: 15px; }
-    .asset-details .detail-row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; padding: 4px 0; }
-    .asset-details .label { font-weight: 600; color: #495057; font-size: 12px; }
-    .asset-details .value { text-align: right; font-size: 12px; }
-    .asset-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 15px; }
-    .action-btn { padding: 8px 12px; border-radius: 12px; text-decoration: none; font-size: 10px; font-weight: 700; transition: all 0.3s ease; display: inline-flex; align-items: center; gap: 4px; border: none; cursor: pointer; text-transform: uppercase; letter-spacing: 0.5px; }
-    .btn-view { background: #17a2b8; color: white; }
-    .btn-edit { background: #ffc107; color: #212529; }
-    .btn-relocate { background: #6f42c1; color: white; }
-    .btn-status { background: #fd7e14; color: white; }
-    .btn-delete { background: #dc3545; color: white; }
-    .action-btn:hover { transform: translateY(-1px); }
-    .no-assets { text-align: center; padding: 60px 20px; color: #7f8c8d; }
-    .no-assets i { font-size: 4rem; margin-bottom: 20px; }
-    .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); backdrop-filter: blur(5px); }
-    .modal-content { background: white; margin: 5% auto; padding: 30px; width: 90%; max-width: 400px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.3); animation: modalSlideIn 0.3s ease; }
-    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-    .close { color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer; }
-    .close:hover { color: #000; }
-    @keyframes slideIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes modalSlideIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
-    .mobile-card { display: none; }
-    
-    /* Mobile Modern Design */
-    @media (max-width: 768px) {
-      .container { padding: 8px; }
-      .header { 
-        padding: 20px; 
-        margin-bottom: 15px; 
-        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
-        border-radius: 25px;
-        box-shadow: 0 15px 35px rgba(0,0,0,0.08);
-      }
-      .header h1 { font-size: 1.6rem; margin-bottom: 8px; }
-      .header .subtitle { font-size: 0.9rem; }
-      
-      .controls { 
-        padding: 15px; 
-        margin-bottom: 15px; 
-        border-radius: 20px;
-        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
-      }
-      
-      .filter-group form {
-        flex-direction: column !important;
-        gap: 12px !important;
-        align-items: stretch !important;
-      }
-      
-      .filter-group select, .search-box { 
-        width: 100% !important; 
-        padding: 14px 16px; 
-        font-size: 15px; 
-        border-radius: 15px;
-        border: 2px solid #e9ecef;
-        background: rgba(255,255,255,0.9);
-        transition: all 0.3s ease;
-      }
-      
-      .filter-group select:focus, .search-box:focus {
-        border-color: #667eea;
-        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        background: white;
-      }
-      
-      .assets-grid { 
-        grid-template-columns: 1fr; 
-        gap: 12px; 
-      }
-      
-      .asset-card { 
-        padding: 18px; 
-        border-radius: 20px;
-        background: linear-gradient(135deg, rgba(255,255,255,0.98), rgba(255,255,255,0.95));
-        box-shadow: 0 8px 25px rgba(0,0,0,0.08);
-        border: 1px solid rgba(255,255,255,0.3);
-      }
-      
-      .asset-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 12px 30px rgba(0,0,0,0.12);
-      }
-      
-      .asset-header { 
-        margin-bottom: 12px;
-        flex-wrap: wrap;
-        gap: 8px;
-      }
-      
-      .asset-id {
-        background: linear-gradient(135deg, #667eea, #764ba2);
-        padding: 8px 14px;
-        border-radius: 20px;
-        font-size: 11px;
-        font-weight: 700;
-        color: white;
-      }
-      
-      .asset-status {
-        padding: 6px 12px;
-        border-radius: 18px;
-        font-size: 10px;
-        font-weight: 700;
-      }
-      
-      .asset-name { 
-        font-size: 1.2rem; 
-        margin: 8px 0;
-        font-weight: 700;
-        color: #2c3e50;
-      }
-      
-      .asset-details { 
-        font-size: 13px; 
-        margin-bottom: 15px;
-        background: rgba(248,249,250,0.8);
-        padding: 12px;
-        border-radius: 12px;
-      }
-      
-      .asset-details .detail-row { 
-        margin: 6px 0;
-        padding: 4px 0;
-      }
-      
-      .asset-details .label {
-        font-weight: 600;
-        color: #495057;
-        font-size: 12px;
-      }
-      
-      .asset-details .value {
-        font-weight: 500;
-        color: #2c3e50;
-        font-size: 12px;
-      }
-      
-      .asset-actions { 
-        gap: 8px; 
-        justify-content: center;
-        flex-wrap: wrap;
-      }
-      
-      .action-btn { 
-        padding: 10px 14px; 
-        font-size: 10px;
-        border-radius: 15px;
-        font-weight: 700;
-        transition: all 0.3s ease;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      }
-      
-      .action-btn:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-      }
-      
-      .mobile-card { display: block; }
-      .desktop-card { display: none; }
-    }
-    
-    @media (max-width: 480px) {
-      .container { padding: 5px; }
-      .header { padding: 15px; }
-      .header h1 { font-size: 1.6rem; }
-      .controls { padding: 12px; }
-      .asset-card { padding: 12px; }
-      .asset-name { font-size: 1rem; }
-      .asset-details { font-size: 11px; }
-      .action-btn { padding: 5px 8px; font-size: 8px; gap: 2px; }
-    }
-  </style>
+  {% include 'base_modern.html' %}
 </head>
-<body>
-  <div class="container">
-    <!-- Header -->
-    <div class="header">
-      <h1><i class="fas fa-list"></i> Assets Management</h1>
-      <p class="subtitle">Manage and monitor all your assets</p>
-      <div style="margin-top: 15px;">
-        <a href="/home" class="back-btn">
-          <i class="fas fa-home"></i> Home
-        </a>
-        <a href="/dashboard" class="back-btn" style="background: #27ae60;">
-          <i class="fas fa-chart-pie"></i> Dashboard
-        </a>
+<body class="font-inter bg-gray-50 min-h-screen">
+  <!-- Top Bar -->
+  <div class="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex justify-between items-center h-16">
+        <div class="flex items-center space-x-4">
+          <h1 class="text-xl font-bold text-gray-900">Assets Management</h1>
+          <div class="text-sm text-gray-500">{{ assets|length }} assets found</div>
+        </div>
+        <div class="flex items-center space-x-3">
+          {% if user.role == 'admin' %}
+          <a href="/input" class="px-3 py-1.5 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 transition-colors">
+            <i class="fas fa-plus mr-1"></i>Add Asset
+          </a>
+          {% endif %}
+          <a href="/home" class="px-3 py-1.5 bg-primary text-white rounded-lg text-sm font-medium hover:bg-primary/90 transition-colors">
+            <i class="fas fa-home mr-1"></i>Home
+          </a>
+        </div>
       </div>
     </div>
+  </div>
 
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
     <!-- Flash Messages -->
-    <div class="flash-messages">
-      {% if flash_messages %}
-        {% for message in flash_messages %}
-          <div class="flash-message flash-{{ message.category }}">
-            <i class="fas fa-{% if message.category == 'success' %}check-circle{% elif message.category == 'error' %}exclamation-triangle{% else %}info-circle{% endif %}"></i>
-            {{ message.message }}
-          </div>
-        {% endfor %}
-      {% endif %}
+    {% if flash_messages %}
+    <div class="mb-6">
+      {% for message in flash_messages %}
+      <div class="bg-{{ 'green' if message.category == 'success' else 'red' }}-50 border border-{{ 'green' if message.category == 'success' else 'red' }}-200 rounded-lg p-4 mb-3 flex items-center">
+        <i class="fas fa-{{ 'check-circle' if message.category == 'success' else 'exclamation-triangle' }} text-{{ 'green' if message.category == 'success' else 'red' }}-600 mr-3"></i>
+        <span class="text-{{ 'green' if message.category == 'success' else 'red' }}-800 text-sm">{{ message.message }}</span>
+      </div>
+      {% endfor %}
     </div>
+    {% endif %}
 
-    <!-- Controls -->
-    <div class="controls">
-      <div class="filter-group">
-        <label><strong><i class="fas fa-filter"></i> Filters:</strong></label>
-        <form method="get" action="/assets" style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
-          <select name="status" onchange="this.form.submit()">
+    <!-- Filters -->
+    <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 mb-6">
+      <form method="get" action="/assets" class="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Status</label>
+          <select name="status" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
             <option value="All" {% if selected_status == 'All' %}selected{% endif %}>All Status</option>
             <option value="Active" {% if selected_status == 'Active' %}selected{% endif %}>Active</option>
             <option value="In Storage" {% if selected_status == 'In Storage' %}selected{% endif %}>In Storage</option>
@@ -258,145 +60,134 @@
             <option value="To be Disposed" {% if selected_status == 'To be Disposed' %}selected{% endif %}>To be Disposed</option>
             <option value="Disposed" {% if selected_status == 'Disposed' %}selected{% endif %}>Disposed</option>
           </select>
-          <select name="location" id="locationFilter" onchange="handleLocationChange()">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Location</label>
+          <select name="location" id="locationFilter" onchange="handleLocationChange()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
             <option value="All">All Locations</option>
             {% for location in locations %}
             <option value="{{ location }}" {% if selected_location == location %}selected{% endif %}>{{ location }}</option>
             {% endfor %}
           </select>
-          <select name="room" id="roomFilter" onchange="this.form.submit()" style="display: none;">
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Room</label>
+          <select name="room" id="roomFilter" onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" style="display: none;">
             <option value="All">All Rooms</option>
             {% for room in rooms %}
             <option value="{{ room }}" {% if selected_room == room %}selected{% endif %}>{{ room }}</option>
             {% endfor %}
           </select>
-          <input type="text" name="search" class="search-box" placeholder="🔍 Search assets..." value="{{ search_query }}" onchange="this.form.submit()">
-        </form>
-      </div>
-      
-      <div class="filter-group">
-        {% if user.role == 'admin' %}
-          <a href="/input" class="btn btn-success">
-            <i class="fas fa-plus"></i> Add Asset
-          </a>
-        {% endif %}
-        <a href="/export?status={{ selected_status }}" class="btn">
-          <i class="fas fa-download"></i> Export
-        </a>
-      </div>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">Search</label>
+          <input type="text" name="search" value="{{ search_query }}" placeholder="Search assets..." onchange="this.form.submit()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+        </div>
+      </form>
     </div>
 
     <!-- Assets Grid -->
     {% if assets %}
-      <div style="text-align: center; margin-bottom: 20px; color: #7f8c8d;">
-        {% if search_query %}
-          <p><i class="fas fa-search"></i> Found {{ assets|length }} asset(s) matching "{{ search_query }}" 
-          {% if selected_status != 'All' %}(Status: {{ selected_status }}){% endif %}</p>
-        {% else %}
-          <p><i class="fas fa-boxes"></i> Showing {{ assets|length }} asset(s) 
-          {% if selected_status == 'All' %}(All Status){% else %}(Status: {{ selected_status }}){% endif %}</p>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {% for asset in assets %}
+      <div class="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow">
+        <div class="flex justify-between items-start mb-4">
+          <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs font-medium">
+            ID: {{ asset.get('ID', 'N/A') }}
+          </span>
+          <span class="px-2 py-1 rounded-full text-xs font-medium
+            {% if asset.get('Status') == 'Active' %}bg-green-100 text-green-800
+            {% elif asset.get('Status') == 'Under Repair' %}bg-yellow-100 text-yellow-800
+            {% elif asset.get('Status') == 'Disposed' %}bg-red-100 text-red-800
+            {% else %}bg-gray-100 text-gray-800{% endif %}">
+            {{ asset.get('Status', 'N/A') }}
+          </span>
+        </div>
+
+        <h3 class="text-lg font-semibold text-gray-900 mb-3">{{ asset.get('Item Name', 'Unknown Item') }}</h3>
+
+        {% if asset.get('Photo URL') %}
+        <div class="mb-4">
+          <img 
+            src="{{ asset.get('Photo URL') }}" 
+            alt="Asset Photo" 
+            class="w-full h-32 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
+            loading="lazy"
+            onerror="this.src='{{ asset.get('Photo URL').replace('thumbnail', 'uc') }}'"
+            onclick="window.open('https://drive.google.com/file/d/{{ asset.get('Photo URL').split('id=')[1].split('&')[0] }}/view', '_blank')"
+          >
+        </div>
         {% endif %}
-      </div>
-      <div class="assets-grid">
-        {% for asset in assets %}
-          <div class="asset-card">
-            <div class="asset-header">
-              <span class="asset-id">{{ asset.get('ID', 'N/A') }}</span>
-              <span class="asset-status status-{{ asset.get('Status', 'active').lower().replace(' ', '-') }}">
-                {{ asset.get('Status', 'Active') }}
-              </span>
-            </div>
-            
-            <div class="asset-name">{{ asset.get('Item Name', 'Unknown Item') }}</div>
-            
-            {% if asset.get('Photo URL') %}
-            <div class="asset-photo" style="margin: 8px 0;">
-              <img 
-                data-src="{{ asset.get('Photo URL') }}" 
-                alt="Asset Photo" 
-                class="lazy-image" 
-                style="width: 100%; height: 120px; object-fit: cover; border-radius: 12px; background: #f8f9fa; cursor: pointer;"
-                loading="lazy"
-                onerror="this.src='{{ asset.get('Photo URL').replace('thumbnail', 'uc') }}'"
-                onclick="window.open('https://drive.google.com/file/d/{{ asset.get('Photo URL').split('id=')[1].split('&')[0] }}/view', '_blank')"
-              >
-            </div>
-            {% endif %}
-            
-            <div class="asset-details">
-              <div class="detail-row">
-                <span class="label">Tag:</span>
-                <span class="value">{{ asset.get('Asset Tag', 'N/A') }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">Category:</span>
-                <span class="value">{{ asset.get('Category', 'N/A') }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">Location:</span>
-                <span class="value">{{ asset.get('Location', 'N/A') }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">Room:</span>
-                <span class="value">{{ asset.get('Room Location', 'N/A') }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">Owner:</span>
-                <span class="value">{{ asset.get('Owner', 'N/A') }}</span>
-              </div>
-              <div class="detail-row">
-                <span class="label">Cost:</span>
-                <span class="value">Rp {{ "{:,.0f}".format(asset.get('Purchase Cost', 0)|float) if asset.get('Purchase Cost') else 'N/A' }}</span>
-              </div>
-            </div>
-            
-            <div class="asset-actions">
-              <a href="/assets/{{ asset.get('ID', '') }}/detail" class="action-btn btn-view">
-                <i class="fas fa-eye"></i> <span class="desktop-card">View</span>
-              </a>
-              <button class="action-btn btn-relocate" onclick="relocateAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')">
-                <i class="fas fa-exchange-alt"></i> <span class="desktop-card">Move</span>
-              </button>
-              <button class="action-btn btn-status" onclick="changeStatus('{{ asset.get('ID', '') }}', '{{ asset.get('Status', 'Active') }}')">
-                <i class="fas fa-toggle-on"></i> <span class="desktop-card">Status</span>
-              </button>
-              {% if user and user.role == 'admin' %}
-                <button class="action-btn btn-edit" onclick="editAsset('{{ asset.get('ID', '') }}')">
-                  <i class="fas fa-edit"></i> <span class="desktop-card">Edit</span>
-                </button>
-                <button class="action-btn btn-delete" onclick="deleteAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')">
-                  <i class="fas fa-trash"></i> <span class="desktop-card">Delete</span>
-                </button>
-              {% endif %}
-            </div>
+
+        <div class="space-y-2 text-sm text-gray-600 mb-4">
+          <div class="flex justify-between">
+            <span>Category:</span>
+            <span class="font-medium">{{ asset.get('Category', 'N/A') }}</span>
           </div>
-        {% endfor %}
+          <div class="flex justify-between">
+            <span>Location:</span>
+            <span class="font-medium">{{ asset.get('Location', 'N/A') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Asset Tag:</span>
+            <span class="font-medium">{{ asset.get('Asset Tag', 'N/A') }}</span>
+          </div>
+          <div class="flex justify-between">
+            <span>Cost:</span>
+            <span class="font-medium">Rp {{ "{:,.0f}".format(asset.get('Purchase Cost', 0)|float) if asset.get('Purchase Cost') else 'N/A' }}</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap gap-2">
+          <a href="/assets/{{ asset.get('ID', '') }}/detail" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg text-xs font-medium hover:bg-blue-700 transition-colors">
+            <i class="fas fa-eye mr-1"></i>View
+          </a>
+          <button onclick="relocateAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')" class="px-3 py-1.5 bg-purple-600 text-white rounded-lg text-xs font-medium hover:bg-purple-700 transition-colors">
+            <i class="fas fa-exchange-alt mr-1"></i>Move
+          </button>
+          <button onclick="changeStatus('{{ asset.get('ID', '') }}', '{{ asset.get('Status', 'Active') }}')" class="px-3 py-1.5 bg-yellow-600 text-white rounded-lg text-xs font-medium hover:bg-yellow-700 transition-colors">
+            <i class="fas fa-edit mr-1"></i>Status
+          </button>
+          {% if user and user.role == 'admin' %}
+          <button onclick="deleteAsset('{{ asset.get('ID', '') }}', '{{ asset.get('Item Name', '') }}')" class="px-3 py-1.5 bg-red-600 text-white rounded-lg text-xs font-medium hover:bg-red-700 transition-colors">
+            <i class="fas fa-trash mr-1"></i>Delete
+          </button>
+          {% endif %}
+        </div>
       </div>
+      {% endfor %}
+    </div>
     {% else %}
-      <div class="no-assets">
-        <i class="fas fa-inbox"></i>
-        <h3>No Assets Found</h3>
-        <p>No assets match your current filter criteria.</p>
-        <a href="/assets" class="btn" style="margin-top: 20px;">
-          <i class="fas fa-refresh"></i> Show All Assets
-        </a>
-      </div>
+    <div class="bg-white rounded-xl p-12 shadow-sm border border-gray-200 text-center">
+      <i class="fas fa-inbox text-gray-400 text-4xl mb-4"></i>
+      <h3 class="text-lg font-semibold text-gray-900 mb-2">No Assets Found</h3>
+      <p class="text-gray-600 mb-6">No assets match your current filter criteria.</p>
+      <a href="/assets" class="px-4 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors">
+        <i class="fas fa-refresh mr-2"></i>Show All Assets
+      </a>
+    </div>
     {% endif %}
   </div>
 
-  <!-- Status Change Modal -->
-  <div id="statusModal" class="modal">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3><i class="fas fa-toggle-on"></i> Change Status</h3>
-        <span class="close" onclick="closeStatusModal()">&times;</span>
+  <!-- Status Modal -->
+  <div id="statusModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center z-50 p-4">
+    <div class="bg-white rounded-xl p-6 w-full max-w-md">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-900">Change Status</h3>
+        <button onclick="closeStatusModal()" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
       </div>
       
       <form method="post" id="statusForm">
-        <p>Change status for Asset ID: <strong id="statusAssetId"></strong></p>
-        <div style="margin: 20px 0;">
-          <label><strong>New Status:</strong></label>
-          <select name="new_status" required style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ddd;">
+        <p class="text-sm text-gray-600 mb-4">Asset ID: <span id="statusAssetId" class="font-medium"></span></p>
+        
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">New Status</label>
+          <select name="new_status" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
             <option value="Active">Active</option>
             <option value="In Storage">In Storage</option>
             <option value="Under Repair">Under Repair</option>
@@ -404,21 +195,32 @@
             <option value="Disposed">Disposed</option>
           </select>
         </div>
-        <div style="margin: 20px 0;">
-          <label><strong>Notes (Optional):</strong></label>
-          <textarea name="notes" rows="2" placeholder="Reason for status change..." style="width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ddd; resize: vertical;"></textarea>
+        
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Notes (Optional)</label>
+          <textarea name="notes" rows="2" placeholder="Reason for status change..." class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"></textarea>
         </div>
-        <button type="submit" class="btn btn-success" style="width: 100%;">
-          <i class="fas fa-check"></i> Update Status
+        
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 transition-colors">
+          Update Status
         </button>
       </form>
     </div>
   </div>
 
   <script>
-    function editAsset(assetId) {
-      // Redirect to edit page (to be implemented)
-      alert('Edit functionality will be implemented soon!');
+    function handleLocationChange() {
+      const locationSelect = document.getElementById('locationFilter');
+      const roomSelect = document.getElementById('roomFilter');
+      
+      if (locationSelect.value === 'All' || roomSelect.options.length <= 1) {
+        roomSelect.style.display = 'none';
+        roomSelect.value = 'All';
+      } else {
+        roomSelect.style.display = 'block';
+      }
+      
+      locationSelect.form.submit();
     }
 
     function relocateAsset(assetId, assetName) {
@@ -431,83 +233,31 @@
       document.getElementById('statusAssetId').textContent = assetId;
       document.getElementById('statusForm').action = `/assets/${assetId}/status`;
       document.querySelector('select[name="new_status"]').value = currentStatus;
-      document.getElementById('statusModal').style.display = 'block';
+      document.getElementById('statusModal').classList.remove('hidden');
+      document.getElementById('statusModal').classList.add('flex');
     }
 
     function closeStatusModal() {
-      document.getElementById('statusModal').style.display = 'none';
+      document.getElementById('statusModal').classList.add('hidden');
+      document.getElementById('statusModal').classList.remove('flex');
     }
 
     function deleteAsset(assetId, assetName) {
-      if (confirm(`Are you sure you want to delete asset "${assetName}"?\n\nThis action cannot be undone!`)) {
+      if (confirm(`Delete asset "${assetName}"? This cannot be undone!`)) {
         window.location.href = `/assets/${assetId}/delete`;
       }
     }
 
-    // Close modal when clicking outside
-    window.onclick = function(event) {
-      const modal = document.getElementById('statusModal');
-      if (event.target == modal) {
-        closeStatusModal();
-      }
-    }
-
-    // Lazy loading for images
-    function lazyLoadImages() {
-      const images = document.querySelectorAll('.lazy-image');
-      const imageObserver = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-          if (entry.isIntersecting) {
-            const img = entry.target;
-            img.src = img.dataset.src;
-            img.classList.remove('lazy-image');
-            observer.unobserve(img);
-          }
-        });
-      });
-      
-      images.forEach(img => imageObserver.observe(img));
-    }
-
-    // Auto-hide flash messages
+    // Initialize room filter visibility
     document.addEventListener('DOMContentLoaded', function() {
-      const flashMessages = document.querySelectorAll('.flash-message');
-      flashMessages.forEach(message => {
-        setTimeout(() => {
-          message.style.opacity = '0';
-          setTimeout(() => message.remove(), 300);
-        }, 5000);
-      });
-      
-      // Initialize lazy loading
-      lazyLoadImages();
-      
-      // Initialize room filter visibility
       const roomSelect = document.getElementById('roomFilter');
       const hasRooms = roomSelect.options.length > 1;
       const locationSelected = document.getElementById('locationFilter').value !== 'All';
       
       if (hasRooms && locationSelected) {
         roomSelect.style.display = 'block';
-      } else {
-        roomSelect.style.display = 'none';
       }
     });
-    
-    function handleLocationChange() {
-      const locationSelect = document.getElementById('locationFilter');
-      const roomSelect = document.getElementById('roomFilter');
-      
-      if (locationSelect.value === 'All' || roomSelect.options.length <= 1) {
-        roomSelect.style.display = 'none';
-        roomSelect.value = 'All';
-      } else {
-        roomSelect.style.display = 'block';
-      }
-      
-      // Submit form
-      locationSelect.form.submit();
-    }
   </script>
 </body>
 </html>
