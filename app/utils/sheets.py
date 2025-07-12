@@ -5,7 +5,7 @@ import logging
 from decimal import Decimal, InvalidOperation
 from collections import defaultdict
 from datetime import datetime
-from oauth2client.service_account import ServiceAccountCredentials
+from google.oauth2.service_account import Credentials
 from app.utils.cache import get_cached_data, clear_cache
 from functools import wraps
 import time
@@ -55,7 +55,7 @@ def get_sheet():
     creds_json = json.loads(creds_json_str)
     if "private_key" in creds_json:
         creds_json["private_key"] = creds_json["private_key"].replace("\\n", "\n")
-    creds = ServiceAccountCredentials.from_json_keyfile_dict(creds_json, scope)
+    creds = Credentials.from_service_account_info(creds_json, scopes=scope)
     client = gspread.authorize(creds)
     _sheet_cache = client.open_by_key(sheet_id)
     return _sheet_cache
