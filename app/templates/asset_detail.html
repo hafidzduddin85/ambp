@@ -452,7 +452,14 @@
           </h3>
           {% if asset.get('Photo URL') %}
             <div style="margin-bottom: 1rem;">
-              <img src="{{ asset.get('Photo URL') }}" alt="Asset Photo" loading="lazy">
+              <img 
+                src="{{ asset.get('Photo URL') }}" 
+                alt="Asset Photo" 
+                loading="lazy"
+                onerror="this.src='{{ asset.get('Photo URL').replace('thumbnail', 'uc') }}'"
+                style="cursor: pointer;"
+                onclick="window.open('{{ asset.get('Photo URL').replace('thumbnail', 'file/d').replace('&sz=w400-h300', '/view') }}', '_blank')"
+              >
             </div>
           {% else %}
             <div class="no-photo">

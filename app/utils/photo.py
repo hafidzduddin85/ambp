@@ -51,8 +51,11 @@ def upload_to_drive(image_data, filename, asset_id):
         if not access_token:
             return None
         
-        # Get or create folder
-        folder_id = get_or_create_folder(access_token, "AMBP_Asset_Photos")
+        # Use folder from environment variable
+        folder_id = os.getenv("DRIVE_FOLDER_ID")
+        if not folder_id:
+            logging.error("DRIVE_FOLDER_ID not set in environment")
+            return None
 
         # Step 1: Initiate upload session
         upload_url = _initiate_upload(access_token, filename, asset_id, image_data, folder_id)
@@ -67,7 +70,8 @@ def upload_to_drive(image_data, filename, asset_id):
         # Step 3: Set public permissions
         _set_public_permission(access_token, file_id)
 
-        return f"https://drive.google.com/uc?id={file_id}"
+        # Return preview link for web display
+        return f"https://drive.google.com/thumbnail?id={file_id}&sz=w400-h300"
 
     except Exception as e:
         logging.error(f"Upload error: {e}")
