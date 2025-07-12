@@ -137,6 +137,19 @@
                 
                 <div class="asset-name">{{ asset.get('Item Name', 'Unknown Item') }}</div>
                 
+                {% if asset.get('Photo URL') %}
+                <div class="asset-photo" style="margin: 10px 0; text-align: center;">
+                  <img 
+                    src="{{ asset.get('Photo URL') }}" 
+                    alt="Asset Photo" 
+                    style="width: 100%; max-width: 150px; height: 80px; object-fit: cover; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer;"
+                    loading="lazy"
+                    onerror="this.src='{{ asset.get('Photo URL').replace('thumbnail', 'uc') }}'"
+                    onclick="window.open('https://drive.google.com/file/d/{{ asset.get('Photo URL').split('id=')[1].split('&')[0] }}/view', '_blank')"
+                  >
+                </div>
+                {% endif %}
+                
                 <div class="asset-details">
                   <div class="detail-row">
                     <span class="label">Category:</span>
